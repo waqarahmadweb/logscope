@@ -1,0 +1,34 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build artifacts
+/assets/build/
+
+# Compiled translations (source .po / .pot are tracked)
+/languages/*.mo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE — allow shared VS Code config, ignore user-specific
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+
+# Caches
+.eslintcache
+.cache/
+.phpcs-cache
