@@ -6,6 +6,50 @@ This file is read by Claude Code on session start.
 
 ---
 
+## Session working rules — READ EVERY SESSION
+
+Non-negotiable working rules for this project. Override default Claude Code behavior.
+
+### 1. One roadmap step at a time
+
+Do not batch multiple steps. After each step, update the relevant docs (CHANGELOG, ROADMAP, version fields) before moving to the next.
+
+### 2. Discuss before acting
+
+Before starting any step, surface: proposed approach, any improvements or deviations from the roadmap, open questions, trade-offs. Get **explicit approval** before running tools that write files, install dependencies, or execute git.
+
+Read-only tools (Read, Grep, Glob, version checks) don't need pre-approval. Writing files, installers, or `git` does.
+
+### 3. Suggest, don't execute, git operations
+
+Agent drafts commit messages and lists follow-up actions. The **user runs** `git add`, `git commit`, `git push`, `git tag`, `git checkout -b`, `git merge`. Never invoke them yourself.
+
+### 4. Branch per roadmap step
+
+Every roadmap step gets its own branch, named per [AGENTS.md §4](AGENTS.md) conventions and prefixed with the step number for traceability:
+
+- `feat/<step>-<short-name>` — features
+- `fix/<step>-<short-name>` — fixes
+- `chore/<step>-<short-name>` — tooling, release infra
+- `refactor/<step>-<short-name>` — refactors
+- `docs/<step>-<short-name>` — docs-only
+
+Example: `chore/1.5-husky-lint-staged`, `feat/2.1-plugin-bootstrap`.
+
+Flow:
+1. Agent suggests branch name; user creates it and confirms.
+2. Agent does step work on that branch.
+3. Agent drafts commit message; user commits + pushes + opens PR.
+4. User merges (squash preferred) once CI is green.
+
+No direct commits to `main` for roadmap-step work. Steps 1.1–1.4 landed on `main` before this rule existed — not retroactively rebranched.
+
+### Why these rules exist
+
+User wants control over pacing, git-writing, and branch hygiene. Pause-to-confirm is cheap; unwanted commits, batched steps, or force-push accidents are expensive to unwind.
+
+---
+
 ## Claude-specific operational notes
 
 ### Skills to prefer
