@@ -72,10 +72,15 @@ Goal: Any contributor can clone the repo, run two install commands, and have lin
   - **AC**: `pnpm build` creates (empty) output; `pnpm lint:js` runs cleanly.
   - **Commit**: `chore: add @wordpress/scripts + lint configs`
 
-- [ ] **1.4** Add GitHub Actions CI
-  - `.github/workflows/lint.yml`: matrix over PHP 8.0 / 8.1 / 8.2; runs `composer lint` + `pnpm lint:js`.
-  - **AC**: Pushed branch shows green CI on GitHub.
-  - **Commit**: `ci: add lint workflow`
+- [x] **1.4** Add GitHub Actions CI
+  - `.github/workflows/ci.yml` with four jobs:
+    - `php-lint` — matrix over PHP 8.0 / 8.1 / 8.2 / 8.3 / 8.4; runs `composer lint`.
+    - `js-lint` — runs `pnpm lint:js` + `pnpm build`.
+    - `audit` — runs `composer audit` + `pnpm audit --audit-level=high --prod`.
+    - `plugin-check` — runs `WordPress/plugin-check-action@v1` (plugin_repo + security categories), informational (`continue-on-error: true`) until `readme.txt` lands in Phase 12.1.
+  - Triggers: `push` to `main`, any `pull_request`, `workflow_dispatch`. Concurrency group cancels in-progress runs on the same ref.
+  - **AC**: Pushed branch shows green CI on GitHub (`plugin-check` may report findings but does not fail the run).
+  - **Commit**: `ci: add lint, audit, and plugin-check workflow`
 
 - [ ] **1.5** Husky + lint-staged
   - `pnpm exec husky init`; hook runs `pnpm exec lint-staged`.
