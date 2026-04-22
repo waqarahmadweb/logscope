@@ -20,6 +20,7 @@
 
 # wp.org release hygiene — excluded from `git archive` zip builds
 /tests            export-ignore
+/docs             export-ignore
 /.github          export-ignore
 /.wordpress-org   export-ignore
 /.editorconfig    export-ignore
@@ -28,6 +29,7 @@
 AGENTS.md         export-ignore
 CLAUDE.md         export-ignore
 CHANGELOG.md      export-ignore
+ROADMAP.md        export-ignore
 phpcs.xml.dist    export-ignore
 phpcs.xml         export-ignore
 .prettierrc       export-ignore

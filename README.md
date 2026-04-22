@@ -16,9 +16,11 @@ A free, GPL v2 WordPress plugin that streams, filters, and groups the WordPress 
 
 ## For contributors & AI agents
 
-- **Read [AGENTS.md](AGENTS.md) first.** It's the primary source of truth for conventions, naming, security rules, and workflow.
-- [CLAUDE.md](CLAUDE.md) adds Claude Code-specific operational notes on top of `AGENTS.md`.
-- [CHANGELOG.md](CHANGELOG.md) tracks versioned changes.
+- **Read [AGENTS.md](AGENTS.md) first.** Primary source of truth for conventions, naming, security rules, and workflow.
+- [CLAUDE.md](CLAUDE.md) — Claude Code-specific operational notes layered on top of `AGENTS.md`.
+- [ROADMAP.md](ROADMAP.md) — phased, versioned plan from scaffold → v1.0.0 (wp.org) → v1.1+ updates.
+- [CHANGELOG.md](CHANGELOG.md) — versioned history.
+- [docs/spec.md](docs/spec.md) — long-form technical specification.
 
 ## Requirements
 

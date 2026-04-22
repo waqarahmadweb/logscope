@@ -58,4 +58,15 @@ Do **not** persist:
 
 ### Ask first, don't assume
 
-The four open questions in [AGENTS.md §11](AGENTS.md#11-open-questions-decide-when-relevant-dont-assume) are not yet resolved. If the work touches any of them, surface the question to the user before deciding.
+The four original design questions are now **resolved** in [AGENTS.md §11](AGENTS.md#11-resolved-design-decisions) (soft-delete, neutral webhook payload, configurable tail, server-side regex). Do not relitigate unless you have a concrete reason.
+
+### Keep docs in sync with code — every commit
+
+[AGENTS.md §13](AGENTS.md#13-docs-you-must-update-with-every-change) lists the docs that must move with code. In short:
+
+- **Every** behavioral commit → tick the box in [ROADMAP.md](ROADMAP.md) + add a bullet to [CHANGELOG.md](CHANGELOG.md) `[Unreleased]`.
+- **🏷️ version-bump steps** → also bump `Version:` in [logscope.php](logscope.php), roll `[Unreleased]` to a dated heading, refresh the `Status:` line in [README.md](README.md), and tag `vX.Y.Z`.
+- **Post-v1.0 releases** → also mirror the changelog entry into `readme.txt` and re-capture screenshots if the UI changed.
+- **🔒 security-sensitive** commits → run the `security-review` skill before committing; use the `### Security` heading in CHANGELOG.
+
+Never land a code change and leave CHANGELOG stale. If a change genuinely warrants no docs update (purely internal refactor), say so in the commit body — don't skip silently.

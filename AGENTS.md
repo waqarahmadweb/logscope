@@ -172,31 +172,87 @@ Git hygiene:
 
 ---
 
-## 11. Open questions (decide when relevant, don't assume)
+## 11. Resolved design decisions
 
-Raised in the original spec, still open:
+Decided in the ROADMAP; do not relitigate without cause:
 
-1. **"Clear log"** — soft-delete (rename with timestamp) or hard-delete? *Lean: soft-delete.*
-2. **Webhook payload shape** — mimic Slack's `text` field or a neutral shape? *Lean: neutral + doc Slack/Discord mappings.*
-3. **Tail polling interval** — fixed or configurable? *Lean: configurable, 3s default, 1s min.*
-4. **Regex filter** — server-side (safer, better for large logs) or client-side (snappier)? *Lean: server-side with a pattern-length cap.*
-
-Ask the user before committing to any of these.
+1. **"Clear log"** — **soft-delete** (rename to `debug.log.cleared-YYYYMMDD-HHMMSS`). Requires `?confirm=true`.
+2. **Webhook payload shape** — **neutral JSON** (`{site, severity, message, file, line, signature, first_seen, last_seen, count}`). `logscope/webhook_payload` filter lets users reshape for Slack/Discord/Teams.
+3. **Tail polling interval** — **user-configurable**, 3s default, 1s min.
+4. **Regex filter** — **server-side** with pattern length ≤ 200 chars.
 
 ---
 
-## 12. Build order (not mandatory, but de-risks the hardest parts first)
+## 12. Build order
 
-1. ✅ Commit 1 — Bare scaffold, AI rules, license (this commit).
-2. Commit 2 — `composer.json`, `package.json`, `phpcs.xml.dist`, `.prettierrc`, `eslint.config.js`, lockfiles, tooling scripts.
-3. Commit 3 — Plugin bootstrap: `src/Plugin.php`, `Activator`, `Deactivator`, autoload wiring in `logscope.php`.
-4. `FileLogSource` + `LogParser` + unit tests.
-5. REST: `GET /logs` with pagination and filters.
-6. React shell + `LogViewer` consuming the REST endpoint.
-7. Filters, grouping, stack trace expansion.
-8. Settings page + `SettingsController`.
-9. Alerts: coordinator, email, webhook, dedup.
-10. Cron scanner for new fatals.
-11. Polish: empty states, loading skeletons, keyboard shortcuts, accessibility pass.
-12. `readme.txt`, screenshots, wp.org assets.
-13. PHPUnit + ESLint in CI.
+The authoritative, phased build plan is [ROADMAP.md](ROADMAP.md). Read it. It is structured around **version bumps** at every phase boundary and a single hard **wp.org release line at v1.0.0**.
+
+Summary of the shape — do **not** re-order without updating the roadmap:
+
+| Version | Scope |
+|---|---|
+| 0.1.0 ✅ | Scaffold (this commit). |
+| 0.2.0 → 0.9.0 | Tooling → bootstrap → parsers → REST → settings backend → admin/React shell → filters/grouping/tail → settings UI → polish/a11y/i18n. Pre-1.0 **git tags only.** |
+| **1.0.0** | 🚀 **wp.org submission.** Viewer-first scope. Gated by a full `security-review` skill pass. |
+| 1.1.0 | Alerts (email + webhook + dedup) — published to wp.org SVN. |
+| 1.2.0 | Scheduled fatal-log scanner (cron). |
+| 1.3.0+ | Live streaming, multisite, retention, etc. |
+
+**Alerts and cron are post-1.0, not pre-1.0.** Do not implement them before v1.0.0 ships unless the roadmap is explicitly revised first.
+
+---
+
+## 13. Docs you must update with every change
+
+Shipping code without updating the surrounding docs creates drift fast. **Every commit that is worth a checkbox in the roadmap** must update the relevant docs *in the same commit*:
+
+### 13.1 On every feature / fix / refactor commit
+
+- [ ] **[CHANGELOG.md](CHANGELOG.md)** — append a bullet to the `[Unreleased]` section under the correct heading (`### Added` / `### Changed` / `### Fixed` / `### Deprecated` / `### Removed` / `### Security`). One bullet per user-visible change. Not every internal refactor needs a bullet; user-visible behavior, API surface, security posture, and dependency changes do.
+- [ ] **[ROADMAP.md](ROADMAP.md)** — tick the checkbox for the step you completed. If the step's scope shifted, edit the step text too.
+
+### 13.2 On step that closes a phase (version-bump step, 🏷️)
+
+- [ ] **[logscope.php](logscope.php)** — bump the `Version:` header.
+- [ ] **[CHANGELOG.md](CHANGELOG.md)** — move `[Unreleased]` content to a new `[X.Y.Z] - YYYY-MM-DD` heading; add a fresh empty `[Unreleased]`; update the link references at the bottom of the file.
+- [ ] **[README.md](README.md)** — update the `Status:` line if it changed (e.g. 0.1.0 "scaffold" → 0.4.0 "parsers working").
+- [ ] Tag the commit `vX.Y.Z`.
+
+### 13.3 On step that lands a user-facing capability (1.0.0 onward)
+
+- [ ] **`readme.txt`** (exists from Phase 12.1 onward) — mirror the `CHANGELOG.md` entry into the wp.org-format `== Changelog ==` section. If WordPress compatibility changed, bump `Tested up to:`. If PHP minimum changed, bump `Requires PHP:`.
+- [ ] **`.wordpress-org/screenshot-*.png`** — if the UI changed materially, re-capture the affected screenshot and update the caption in `readme.txt`.
+
+### 13.4 On step that adds, removes, or changes a public extension point
+
+- [ ] **[AGENTS.md](AGENTS.md) §3** — if a new prefix / namespace is introduced, add it to the naming table.
+- [ ] **[AGENTS.md](AGENTS.md) §5** — if an interface boundary changes, update the architecture principles.
+- [ ] **`readme.txt`** FAQ or a dedicated `docs/hooks.md` — document new actions, filters, or REST routes so third-party integrators can find them.
+
+### 13.5 On step that changes security-sensitive surface
+
+(PathGuard, REST auth, capability checks, webhook handling, uninstall cleanup, external HTTP)
+
+- [ ] Run the **`security-review` skill** before committing. Record findings in the PR description.
+- [ ] **[CHANGELOG.md](CHANGELOG.md)** — use the `### Security` heading for any user-visible security-relevant change.
+
+### 13.6 What NOT to update
+
+- Do **not** update `readme.txt` or `.wordpress-org/` assets before Phase 12.1 — they don't exist yet.
+- Do **not** copy architecture or naming conventions into README.md or CHANGELOG.md — those belong in AGENTS.md.
+- Do **not** log ephemeral work-in-progress notes into any docs file — that belongs in the PR description or commit body.
+
+### Checklist template for agents
+
+Before marking any roadmap step done, an agent should mentally (or literally) run:
+
+```
+[ ] Code change committed
+[ ] CHANGELOG.md [Unreleased] updated (if user-visible)
+[ ] ROADMAP.md checkbox ticked
+[ ] Version-bump fields updated (only on 🏷️ steps)
+[ ] readme.txt mirrored (only post-Phase 12.1)
+[ ] security-review skill invoked (only on 🔒 steps)
+```
+
+If any row is "N/A", say so explicitly in the commit body — never silently skip.
