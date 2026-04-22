@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-22
+
+Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prettier, CI, and pre-commit hooks are all in place. No user-visible plugin behavior yet.
+
 ### Added
 
 -   Composer tooling: `composer.json` with PSR-4 autoload (`Logscope\` → `src/`), WordPress Coding Standards (phpcs + wpcs + PHPCompatibilityWP) and PHPUnit ^9 as dev dependencies, and `lint` / `lint:fix` / `test` scripts. Platform pinned to PHP 8.0 to match plugin minimum.
@@ -19,5 +23,6 @@ All notable changes to this project are documented here. The format is based on 
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://example.com/logscope/compare/v0.1.0...HEAD
-[0.1.0]: https://example.com/logscope/releases/tag/v0.1.0
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/waqarahmadweb/logscope/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/waqarahmadweb/logscope/releases/tag/v0.1.0

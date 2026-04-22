@@ -93,7 +93,7 @@ Goal: Any contributor can clone the repo, run two install commands, and have lin
     -   **AC**: Staging a malformed PHP file and committing auto-fixes it.
     -   **Commit**: `chore: add husky + lint-staged pre-commit hook`
 
--   [ ] **1.6** 🏷️ **Release v0.2.0** — Tooling & developer loop
+-   [x] **1.6** 🏷️ **Release v0.2.0** — Tooling & developer loop
     -   Bump `Version:` in [logscope.php](logscope.php) to `0.2.0`.
     -   Move `[Unreleased]` block in [CHANGELOG.md](CHANGELOG.md) under a new `[0.2.0] - YYYY-MM-DD` heading; create a fresh `[Unreleased]`.
     -   **AC**: `git tag v0.2.0` succeeds; `git log --oneline` shows the release commit.
