@@ -22,10 +22,12 @@
 /tests            export-ignore
 /docs             export-ignore
 /.github          export-ignore
+/.husky           export-ignore
 /.wordpress-org   export-ignore
 /.editorconfig    export-ignore
 /.gitattributes   export-ignore
 /.gitignore       export-ignore
+/.npmrc           export-ignore
 AGENTS.md         export-ignore
 CLAUDE.md         export-ignore
 CHANGELOG.md      export-ignore
@@ -35,6 +37,7 @@ phpcs.xml         export-ignore
 .prettierrc       export-ignore
 .prettierignore   export-ignore
 eslint.config.js  export-ignore
+eslint.config.mjs export-ignore
 composer.json     export-ignore
 composer.lock     export-ignore
 package.json      export-ignore
