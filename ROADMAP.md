@@ -49,7 +49,7 @@ Pre-1.0 bumps are git tags only — nothing leaves the repo. **The wp.org releas
 
 Goal: Any contributor can clone the repo, run two install commands, and have linting + the React build pipeline working.
 
-- [ ] **1.1** Add `composer.json`
+- [x] **1.1** Add `composer.json`
   - PSR-4: `Logscope\\` → `src/`
   - Dev deps: `squizlabs/php_codesniffer`, `wp-coding-standards/wpcs`, `phpcompatibility/phpcompatibility-wp`, `dealerdirect/phpcodesniffer-composer-installer`, `phpunit/phpunit` (^9 for PHP 8.0)
   - Scripts: `lint` (phpcs), `lint:fix` (phpcbf), `test` (phpunit)
