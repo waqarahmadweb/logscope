@@ -57,7 +57,7 @@ Goal: Any contributor can clone the repo, run two install commands, and have lin
   - **AC**: `composer lint` runs (will find nothing to lint in empty `src/` — that's fine).
   - **Commit**: `chore: add composer tooling (phpcs + phpunit)`
 
-- [ ] **1.2** Add `phpcs.xml.dist`
+- [x] **1.2** Add `phpcs.xml.dist`
   - Rules: `WordPress-Core`, `WordPress-Docs`, `WordPress-Extra`, `PHPCompatibilityWP`
   - `testVersion: 8.0-`, text domain `logscope`, exclude `vendor/`, `node_modules/`, `assets/build/`
   - **AC**: `composer lint` still passes.

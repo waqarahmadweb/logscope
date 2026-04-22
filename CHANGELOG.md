@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format is based on 
 ### Added
 
 - Composer tooling: `composer.json` with PSR-4 autoload (`Logscope\` → `src/`), WordPress Coding Standards (phpcs + wpcs + PHPCompatibilityWP) and PHPUnit ^9 as dev dependencies, and `lint` / `lint:fix` / `test` scripts. Platform pinned to PHP 8.0 to match plugin minimum.
+- PHPCS ruleset `phpcs.xml.dist`: WordPress-Core / -Docs / -Extra + PHPCompatibilityWP, `testVersion` 8.0-, `minimum_supported_wp_version` 6.2, text domain `logscope`. Excludes `vendor/`, `node_modules/`, `assets/build/`, `languages/`. `WordPress.Files.FileName` sniff disabled to allow PSR-4 file naming.
 
 ## [0.1.0] - 2026-04-20
 

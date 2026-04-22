@@ -24,8 +24,8 @@
         }
     },
     "scripts": {
-        "lint": "phpcs src/",
-        "lint:fix": "phpcbf src/",
+        "lint": "phpcs",
+        "lint:fix": "phpcbf",
         "test": "phpunit"
     },
     "config": {
