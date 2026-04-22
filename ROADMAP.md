@@ -89,7 +89,7 @@ Goal: Any contributor can clone the repo, run two install commands, and have lin
 -   [x] **1.5** Husky + lint-staged
 
     -   `pnpm exec husky init`; hook runs `pnpm exec lint-staged`.
-    -   `lint-staged`: `*.php` → `phpcbf`, `*.{js,jsx,json,md,css}` → `prettier --write`.
+    -   `lint-staged`: `*.php` → `vendor/bin/phpcbf`, `*.{js,jsx,json,md,css,yml,yaml}` → `prettier --write --ignore-unknown`.
     -   **AC**: Staging a malformed PHP file and committing auto-fixes it.
     -   **Commit**: `chore: add husky + lint-staged pre-commit hook`
 
