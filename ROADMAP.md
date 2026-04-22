@@ -63,7 +63,7 @@ Goal: Any contributor can clone the repo, run two install commands, and have lin
   - **AC**: `composer lint` still passes.
   - **Commit**: `chore: add phpcs ruleset`
 
-- [ ] **1.3** Add `package.json` + `@wordpress/scripts`
+- [x] **1.3** Add `package.json` + `@wordpress/scripts`
   - Deps: `@wordpress/scripts`, `@wordpress/components`, `@wordpress/data`, `@wordpress/i18n`, `@wordpress/api-fetch`, `react`, `react-dom`
   - Dev deps: `@wordpress/prettier-config`, `@wordpress/eslint-plugin`, `prettier`, `eslint`
   - Scripts: `build`, `start`, `lint:js`, `format`, `packages-update`

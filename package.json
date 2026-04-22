@@ -1,0 +1,34 @@
+{
+  "name": "logscope",
+  "version": "0.1.0",
+  "description": "Stream, filter, and group your WordPress debug log without leaving wp-admin.",
+  "license": "GPL-2.0-or-later",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "wp-scripts build --webpack-src-dir=assets/src --output-path=assets/build",
+    "start": "wp-scripts start --webpack-src-dir=assets/src --output-path=assets/build",
+    "lint:js": "eslint assets/src eslint.config.mjs",
+    "format": "wp-scripts format assets/src",
+    "packages-update": "wp-scripts packages-update"
+  },
+  "dependencies": {
+    "@wordpress/api-fetch": "^7.0.0",
+    "@wordpress/components": "^29.0.0",
+    "@wordpress/data": "^10.0.0",
+    "@wordpress/i18n": "^5.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@wordpress/eslint-plugin": "^22.0.0",
+    "@wordpress/prettier-config": "^4.0.0",
+    "@wordpress/scripts": "^30.0.0",
+    "eslint": "^8.57.0",
+    "prettier": "npm:wp-prettier@^3.0.3"
+  }
+}
