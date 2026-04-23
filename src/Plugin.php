@@ -118,9 +118,8 @@ final class Plugin {
 		}
 
 		if ( ! isset( $this->factories[ $id ] ) ) {
-			throw new RuntimeException(
-				esc_html( sprintf( 'Logscope: no service registered for id "%s".', $id ) )
-			);
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is not rendered as HTML; escaping belongs at the render layer.
+			throw new RuntimeException( sprintf( 'Logscope: no service registered for id "%s".', $id ) );
 		}
 
 		$instance               = ( $this->factories[ $id ] )( $this );
