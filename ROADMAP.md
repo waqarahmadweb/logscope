@@ -121,7 +121,7 @@ Goal: Plugin activates, wires a DI container, and exposes a stable extension sur
     -   **AC**: Activate → deactivate → uninstall leaves no `logscope_*` rows in `wp_options`.
     -   **Commit**: `feat: add activation, deactivation, uninstall lifecycle`
 
--   [ ] **2.3** `src/Support/Capabilities.php`
+-   [x] **2.3** `src/Support/Capabilities.php`
 
     -   `has_manage_cap()` helper used everywhere a check is needed.
     -   Filter `logscope/required_capability` for custom role mapping.

@@ -34,6 +34,7 @@ CHANGELOG.md      export-ignore
 ROADMAP.md        export-ignore
 phpcs.xml.dist    export-ignore
 phpcs.xml         export-ignore
+phpunit.xml.dist  export-ignore
 .prettierrc       export-ignore
 .prettierignore   export-ignore
 eslint.config.js  export-ignore
