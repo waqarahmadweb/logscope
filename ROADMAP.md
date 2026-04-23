@@ -113,7 +113,7 @@ Goal: Plugin activates, wires a DI container, and exposes a stable extension sur
     -   **AC**: Plugin activates on a fresh WP 6.2 install on PHP 8.0 with zero notices/warnings (`WP_DEBUG=true`, `WP_DEBUG_LOG=true`).
     -   **Commit**: `feat: plugin bootstrap with DI container`
 
--   [ ] **2.2** `Activator` + `Deactivator` + `uninstall.php`
+-   [x] **2.2** `Activator` + `Deactivator` + `uninstall.php`
 
     -   `Activator::activate()`: sets default option values, adds `logscope_manage` cap to administrators.
     -   `Deactivator::deactivate()`: clears scheduled cron events.

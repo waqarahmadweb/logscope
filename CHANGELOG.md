@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format is based on 
 ### Added
 
 -   Plugin bootstrap: `src/Plugin.php` with a hand-rolled lazy service container (`register`/`has`/`get`) and a single `Plugin::boot()` entry point. `logscope.php` now defines `LOGSCOPE_PLUGIN_FILE`, requires Composer autoload, and hooks `Plugin::boot` on `plugins_loaded` priority 5. Fires the `logscope/booted` action once the container is built so extensions can register services. Text domain is loaded on `init`.
+-   Lifecycle hooks: `Activator` seeds default options (`logscope_log_path`, `logscope_tail_interval`, `logscope_db_version`) and grants the `logscope_manage` capability to administrators. `Deactivator` clears Logscope-owned cron events. `uninstall.php` deletes all `logscope_*` options, transient prefixes, and removes `logscope_manage` from every role — works whether the plugin is active at the time of deletion or not.
 
 ## [0.2.0] - 2026-04-22
 
