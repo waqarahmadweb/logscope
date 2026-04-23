@@ -32,3 +32,4 @@ Thumbs.db
 .eslintcache
 .cache/
 .phpcs-cache
+.phpunit.result.cache

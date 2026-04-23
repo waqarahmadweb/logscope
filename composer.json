@@ -1,42 +1,43 @@
 {
-    "name": "logscope/logscope",
-    "description": "Stream, filter, and group your WordPress debug log without leaving wp-admin.",
-    "type": "wordpress-plugin",
-    "license": "GPL-2.0-or-later",
-    "require": {
-        "php": ">=8.0"
-    },
-    "require-dev": {
-        "squizlabs/php_codesniffer": "^3.10",
-        "wp-coding-standards/wpcs": "^3.1",
-        "phpcompatibility/phpcompatibility-wp": "^2.1",
-        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-        "phpunit/phpunit": "^9.6"
-    },
-    "autoload": {
-        "psr-4": {
-            "Logscope\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Logscope\\Tests\\": "tests/php/"
-        }
-    },
-    "scripts": {
-        "lint": "phpcs",
-        "lint:fix": "phpcbf",
-        "test": "phpunit"
-    },
-    "config": {
-        "platform": {
-            "php": "8.0"
-        },
-        "sort-packages": true,
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        }
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true
+	"name": "logscope/logscope",
+	"description": "Stream, filter, and group your WordPress debug log without leaving wp-admin.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=8.0"
+	},
+	"require-dev": {
+		"brain/monkey": "^2.6",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"phpunit/phpunit": "^9.6",
+		"squizlabs/php_codesniffer": "^3.10",
+		"wp-coding-standards/wpcs": "^3.1"
+	},
+	"autoload": {
+		"psr-4": {
+			"Logscope\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Logscope\\Tests\\": "tests/php/"
+		}
+	},
+	"scripts": {
+		"lint": "phpcs",
+		"lint:fix": "phpcbf",
+		"test": "phpunit"
+	},
+	"config": {
+		"platform": {
+			"php": "8.0"
+		},
+		"sort-packages": true,
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+	"minimum-stability": "stable",
+	"prefer-stable": true
 }
