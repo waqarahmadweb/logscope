@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-23
+
+Closes Phase 2 of the [roadmap](ROADMAP.md): the plugin now has a bootstrap entry point, a lightweight DI container, activation/deactivation/uninstall lifecycle, a reusable capability helper, and the PHPUnit + Brain Monkey scaffolding future tests will build on. Still no user-visible features.
+
 ### Added
 
 -   Plugin bootstrap: `src/Plugin.php` with a hand-rolled lazy service container (`register`/`has`/`get`) and a single `Plugin::boot()` entry point. `logscope.php` now defines `LOGSCOPE_PLUGIN_FILE`, requires Composer autoload, and hooks `Plugin::boot` on `plugins_loaded` priority 5. Fires the `logscope/booted` action once the container is built so extensions can register services. Text domain is loaded on `init`.
@@ -30,6 +34,7 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/waqarahmadweb/logscope/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/waqarahmadweb/logscope/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/waqarahmadweb/logscope/releases/tag/v0.1.0
