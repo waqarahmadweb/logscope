@@ -26,4 +26,7 @@ define( 'LOGSCOPE_PLUGIN_FILE', __FILE__ );
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+register_activation_hook( __FILE__, array( \Logscope\Activator::class, 'activate' ) );
+register_deactivation_hook( __FILE__, array( \Logscope\Deactivator::class, 'deactivate' ) );
+
 add_action( 'plugins_loaded', array( \Logscope\Plugin::class, 'boot' ), 5 );
