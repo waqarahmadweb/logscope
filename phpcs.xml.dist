@@ -28,6 +28,11 @@
 	</rule>
 	<rule ref="PHPCompatibilityWP"/>
 
+	<!-- Project convention: slash-namespaced hooks (e.g. `logscope/booted`). -->
+	<rule ref="WordPress.NamingConventions.ValidHookName">
+		<exclude name="WordPress.NamingConventions.ValidHookName.UseUnderscores"/>
+	</rule>
+
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
