@@ -105,7 +105,7 @@ Goal: Any contributor can clone the repo, run two install commands, and have lin
 
 Goal: Plugin activates, wires a DI container, and exposes a stable extension surface. Still no user-visible features.
 
--   [ ] **2.1** `src/Plugin.php` + autoload wire-up
+-   [x] **2.1** `src/Plugin.php` + autoload wire-up
 
     -   Plugin class with hand-rolled DI container (array-based factory map, lazy instantiation).
     -   `logscope.php` now `require vendor/autoload.php` + `Plugin::boot()`.

@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+-   Plugin bootstrap: `src/Plugin.php` with a hand-rolled lazy service container (`register`/`has`/`get`) and a single `Plugin::boot()` entry point. `logscope.php` now defines `LOGSCOPE_PLUGIN_FILE`, requires Composer autoload, and hooks `Plugin::boot` on `plugins_loaded` priority 5. Fires the `logscope/booted` action once the container is built so extensions can register services. Text domain is loaded on `init`.
+
 ## [0.2.0] - 2026-04-22
 
 Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prettier, CI, and pre-commit hooks are all in place. No user-visible plugin behavior yet.

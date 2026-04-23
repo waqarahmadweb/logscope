@@ -22,5 +22,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Scaffold only — bootstrap wiring arrives in a later commit once Composer
-// autoload and the Plugin orchestrator are introduced. See AGENTS.md.
+define( 'LOGSCOPE_PLUGIN_FILE', __FILE__ );
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+add_action( 'plugins_loaded', array( \Logscope\Plugin::class, 'boot' ), 5 );
