@@ -128,7 +128,7 @@ Goal: Plugin activates, wires a DI container, and exposes a stable extension sur
     -   **AC**: Unit test covers the helper returning true/false based on `current_user_can` mock.
     -   **Commit**: `feat(support): add capability helper`
 
--   [ ] **2.4** 🏷️ **Release v0.3.0** — Plugin bootstrap + lifecycle
+-   [x] **2.4** 🏷️ **Release v0.3.0** — Plugin bootstrap + lifecycle
     -   **Commit**: `chore(release): v0.3.0`
 
 ---

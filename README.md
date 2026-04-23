@@ -1,6 +1,6 @@
 # Logscope
 
-> **Status:** `v0.2.0` — tooling & developer loop complete. Still no user-visible features.
+> **Status:** `v0.3.0` — plugin bootstrap, lifecycle hooks, and capability helper in place. Still no user-visible features.
 
 A free, GPL v2 WordPress plugin that streams, filters, and groups the WordPress debug log from inside wp-admin.
 
