@@ -2,12 +2,13 @@
  * Top-level Logscope React app. Renders a two-tab shell (Logs, Settings)
  * with URL-hash routing so refreshing or sharing a URL preserves the tab.
  *
- * The viewer / filter / settings panel components land in later phases;
- * this file is intentionally thin so 6.3 ships a working mount point
- * without dragging future-phase code in.
+ * Tabs are controlled by the `logscope/core` store rather than
+ * `<TabPanel initialTabName>` because the latter only seeds the active
+ * tab once — a back/forward navigation that mutates `location.hash`
+ * wouldn't repaint. The store is the single source of truth; the URL
+ * hash mirrors it via a one-way listener so the back button works.
  */
 import { useEffect } from '@wordpress/element';
-import { TabPanel } from '@wordpress/components';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
@@ -36,8 +37,9 @@ export default function App() {
 	);
 	const { setActiveTab } = useDispatch( STORE_KEY );
 
-	// Sync hash → store on mount + on hashchange. Two-way binding stays
-	// shallow: the store is the source of truth; the hash mirrors it.
+	// Hash → store, one direction. Click handlers below set the hash
+	// only; this listener turns every hash change (click, back button,
+	// manual edit) into a single store dispatch.
 	useEffect( () => {
 		const sync = () => setActiveTab( readTabFromHash() );
 		sync();
@@ -46,23 +48,53 @@ export default function App() {
 	}, [ setActiveTab ] );
 
 	const handleSelect = ( tabName ) => {
-		setActiveTab( tabName );
-		if ( typeof window !== 'undefined' ) {
-			window.location.hash = tabName;
+		if ( typeof window === 'undefined' ) {
+			return;
 		}
+		if ( window.location.hash.replace( /^#/, '' ) === tabName ) {
+			// No hashchange will fire — dispatch directly so a re-click
+			// of the active tab is still a no-op rather than a stale read.
+			setActiveTab( tabName );
+			return;
+		}
+		window.location.hash = tabName;
 	};
 
 	return (
 		<div className="logscope-app">
-			<TabPanel
+			<div
 				className="logscope-tabs"
-				activeClass="is-active"
-				tabs={ TABS }
-				initialTabName={ activeTab }
-				onSelect={ handleSelect }
+				role="tablist"
+				aria-label={ __( 'Logscope sections', 'logscope' ) }
 			>
-				{ ( tab ) => <TabContent name={ tab.name } /> }
-			</TabPanel>
+				{ TABS.map( ( tab ) => {
+					const isActive = tab.name === activeTab;
+					return (
+						<button
+							key={ tab.name }
+							type="button"
+							role="tab"
+							aria-selected={ isActive }
+							className={
+								'logscope-tabs__tab' +
+								( isActive
+									? ' logscope-tabs__tab--active'
+									: '' )
+							}
+							onClick={ () => handleSelect( tab.name ) }
+						>
+							{ tab.title }
+						</button>
+					);
+				} ) }
+			</div>
+			<div
+				className="logscope-tabs__panel"
+				role="tabpanel"
+				aria-live="polite"
+			>
+				<TabContent name={ activeTab } />
+			</div>
 		</div>
 	);
 }

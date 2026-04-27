@@ -2,8 +2,14 @@
  * Single row in the virtualized log viewer. Receives the row index +
  * an inline style from react-window (which absolutely-positions the row
  * inside the viewport), plus the shared `items` array via `rowProps`.
+ *
+ * Rows are pure presentation; per-row state would be lost on scroll
+ * (react-window recycles row components as the viewport moves), so
+ * trace expansion is intentionally deferred to {@link StackTracePanel}
+ * in step 7.3 where it's lifted to a parent-owned map keyed by
+ * signature. A bare row with a `has-trace` indicator is enough for
+ * the Phase 6 shell.
  */
-import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 const SEVERITY_TO_TONE = {
@@ -16,8 +22,6 @@ const SEVERITY_TO_TONE = {
 };
 
 export default function EntryRow( { index, style, items } ) {
-	const [ expanded, setExpanded ] = useState( false );
-
 	const entry = items[ index ];
 	if ( ! entry ) {
 		return <div style={ style } aria-hidden="true" />;
@@ -49,16 +53,13 @@ export default function EntryRow( { index, style, items } ) {
 				{ entry.message || '' }
 			</span>
 			{ hasTrace && (
-				<button
-					type="button"
-					className="logscope-entry__toggle"
-					aria-expanded={ expanded }
-					onClick={ () => setExpanded( ( v ) => ! v ) }
+				<span
+					className="logscope-entry__has-trace"
+					aria-label={ __( 'Stack trace available', 'logscope' ) }
+					title={ __( 'Stack trace available', 'logscope' ) }
 				>
-					{ expanded
-						? __( 'Hide trace', 'logscope' )
-						: __( 'Show trace', 'logscope' ) }
-				</button>
+					{ '⋯' }
+				</span>
 			) }
 		</div>
 	);

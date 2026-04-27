@@ -11,12 +11,19 @@ import apiFetch from '@wordpress/api-fetch';
 const bootstrap =
 	( typeof window !== 'undefined' && window.LogscopeAdmin ) || {};
 
-if ( bootstrap.restRoot ) {
-	apiFetch.use( apiFetch.createRootURLMiddleware( bootstrap.restRoot ) );
-}
-
-if ( bootstrap.nonce ) {
-	apiFetch.use( apiFetch.createNonceMiddleware( bootstrap.nonce ) );
+// Guard against double-registration: HMR or an unexpected double
+// import would otherwise stack the same middleware twice and the
+// later one would prepend its prefix to an already-prefixed URL.
+// Stash the flag on apiFetch itself so both copies of this module
+// (HMR pre/post) see it.
+if ( ! apiFetch.__logscopeMiddlewareInstalled ) {
+	if ( bootstrap.restRoot ) {
+		apiFetch.use( apiFetch.createRootURLMiddleware( bootstrap.restRoot ) );
+	}
+	if ( bootstrap.nonce ) {
+		apiFetch.use( apiFetch.createNonceMiddleware( bootstrap.nonce ) );
+	}
+	apiFetch.__logscopeMiddlewareInstalled = true;
 }
 
 /**

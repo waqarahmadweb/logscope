@@ -43,9 +43,9 @@ const actions = {
 				type: 'API_FETCH_LOGS',
 				params,
 			};
-			return actions.receiveLogs( response );
+			yield actions.receiveLogs( response );
 		} catch ( error ) {
-			return actions.failLogs( error?.message || 'Unknown error' );
+			yield actions.failLogs( error?.message || 'Unknown error' );
 		}
 	},
 };
