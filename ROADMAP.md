@@ -137,7 +137,7 @@ Goal: Plugin activates, wires a DI container, and exposes a stable extension sur
 
 Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This is the single most important de-risking step** — parsers written wrong haunt the whole project.
 
--   [ ] **3.1** 🔒 `src/Support/PathGuard.php`
+-   [x] **3.1** 🔒 `src/Support/PathGuard.php`
 
     -   Allowlist: `ABSPATH`, `WP_CONTENT_DIR`, the configured log path's parent.
     -   Reject `..` in raw input before `realpath`.
@@ -145,7 +145,7 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
     -   **AC**: Unit tests cover: happy path, `../../../etc/passwd`, symlink escape, missing file, readable vs writable checks.
     -   **Commit**: `feat(support): add PathGuard with traversal protection`
 
--   [ ] **3.2** `src/Log/LogSourceInterface.php` + `FileLogSource.php`
+-   [x] **3.2** `src/Log/LogSourceInterface.php` + `FileLogSource.php`
 
     -   Interface: `read_chunk(int $from_byte, int $max_bytes): string`, `size(): int`, `exists(): bool`.
     -   `FileLogSource` uses `fopen`/`fseek`/`fread` (streams, never `file_get_contents` — logs can be huge).
@@ -153,7 +153,7 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
     -   **AC**: Unit test reads a 5MB fixture log and reports correct size + returns expected byte range.
     -   **Commit**: `feat(log): add file-backed log source`
 
--   [ ] **3.3** `src/Log/LogParser.php`
+-   [x] **3.3** `src/Log/LogParser.php`
 
     -   Pure function: `parse(string $chunk): Entry[]`
     -   Detect severity: `Fatal error`, `Parse error`, `Warning`, `Notice`, `Deprecated`, `Strict Standards`.
@@ -162,29 +162,31 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
     -   **AC**: Unit tests cover all 6 severity types, timestamps with/without TZ, multi-line PHP fatals, and entries truncated at chunk boundaries.
     -   **Commit**: `feat(log): add log parser`
 
--   [ ] **3.4** `src/Log/StackTraceParser.php`
+-   [x] **3.4** `src/Log/StackTraceParser.php`
 
     -   Parses `#0 /path/to/file.php(123): Class->method()` lines.
     -   Returns `Frame[]` with `file`, `line`, `class`, `method`, `args` (string only, not eval'd).
     -   **AC**: Unit tests on fixtures from real PHP 8 stack traces.
     -   **Commit**: `feat(log): add stack trace parser`
 
--   [ ] **3.5** `src/Log/LogGrouper.php`
+-   [x] **3.5** `src/Log/LogGrouper.php`
 
     -   Signature = hash of (severity + file + line + normalized message shape — strip quoted strings, numbers, hex addrs).
     -   Groups entries, tracks `first_seen`, `last_seen`, `count`.
     -   **AC**: Unit test — 1000 varied log lines group down to the expected ~N signatures; sort by count desc.
     -   **Commit**: `feat(log): add signature-based grouping`
 
--   [ ] **3.6** `src/Log/LogRepository.php`
+-   [x] **3.6** `src/Log/LogRepository.php`
 
     -   Facade over source + parser + grouper. Paginated, filtered access.
     -   Supports filters: severity, date range, regex (server-side, pattern length ≤ 200), source plugin/theme (parsed from file path).
     -   **AC**: Integration test reads a fixture log and returns page 2 of 50 with severity=Fatal applied.
     -   **Commit**: `feat(log): add repository with pagination + filters`
 
--   [ ] **3.7** 🏷️ **Release v0.4.0** — Log reading & parsing foundation
+-   [x] **3.7** 🏷️ **Release v0.4.0** — Log reading & parsing foundation
     -   **Commit**: `chore(release): v0.4.0`
+
+> Phase 3 complete on 2026-04-27.
 
 ---
 

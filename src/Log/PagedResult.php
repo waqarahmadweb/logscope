@@ -1,0 +1,80 @@
+<?php
+/**
+ * Paginated result wrapper for log queries.
+ *
+ * @package Logscope
+ */
+
+declare(strict_types=1);
+
+namespace Logscope\Log;
+
+/**
+ * Carries one page of items plus the totals needed to build
+ * `X-WP-Total` / `X-WP-TotalPages` REST headers and to render
+ * pagination controls. `items` is `Entry[]` for ungrouped queries
+ * and `Group[]` for grouped queries.
+ *
+ * Public properties because PHP 8.0 lacks `readonly`.
+ */
+final class PagedResult {
+
+	/**
+	 * One page of items.
+	 *
+	 * @var Entry[]|Group[]
+	 */
+	public array $items;
+
+	/**
+	 * Total matching items before pagination was applied.
+	 *
+	 * @var int
+	 */
+	public int $total;
+
+	/**
+	 * 1-based page index that produced `items`.
+	 *
+	 * @var int
+	 */
+	public int $page;
+
+	/**
+	 * Items per page used for the slice.
+	 *
+	 * @var int
+	 */
+	public int $per_page;
+
+	/**
+	 * Total page count given `total` and `per_page`. Always at least 1
+	 * so consumers don't divide-by-zero when totals are empty.
+	 *
+	 * @var int
+	 */
+	public int $total_pages;
+
+	/**
+	 * Builds a result page.
+	 *
+	 * @param Entry[]|Group[] $items       The page slice.
+	 * @param int             $total       Pre-pagination total.
+	 * @param int             $page        Page index.
+	 * @param int             $per_page    Items per page.
+	 * @param int             $total_pages Total pages.
+	 */
+	public function __construct(
+		array $items,
+		int $total,
+		int $page,
+		int $per_page,
+		int $total_pages
+	) {
+		$this->items       = $items;
+		$this->total       = $total;
+		$this->page        = $page;
+		$this->per_page    = $per_page;
+		$this->total_pages = $total_pages;
+	}
+}
