@@ -23,7 +23,7 @@ import EmptyState from '../EmptyState';
 import FilterBar from '../FilterBar';
 import GroupedView from '../GroupedView';
 import { ListSkeleton } from '../Skeleton';
-import { SHORTCUT_EVENT } from '../App';
+import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
 import useUrlQuerySync from '../../hooks/useUrlQuerySync';
 import useTailPolling from '../../hooks/useTailPolling';
 import buildFilterParams from '../../utils/filterParams';
@@ -69,11 +69,11 @@ export default function LogViewer() {
 			return undefined;
 		}
 		const handler = ( event ) => {
-			if ( event.detail === 'toggle-grouped' ) {
+			if ( event.detail === SHORTCUT.TOGGLE_GROUPED ) {
 				setViewMode( viewMode === 'grouped' ? 'list' : 'grouped' );
 				return;
 			}
-			if ( event.detail === 'toggle-tail' ) {
+			if ( event.detail === SHORTCUT.TOGGLE_TAIL ) {
 				if ( ! isTailing && viewMode === 'grouped' ) {
 					setViewMode( 'list' );
 				}

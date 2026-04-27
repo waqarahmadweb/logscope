@@ -19,7 +19,7 @@ import { Button } from '@wordpress/components';
 import { STORE_KEY } from '../../store';
 import { SEVERITY_TOKENS, severityLabel } from '../../utils/severity';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
-import { SHORTCUT_EVENT } from '../App';
+import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
 
 const REGEX_DEBOUNCE_MS = 300;
 
@@ -42,7 +42,7 @@ export default function FilterBar() {
 			return undefined;
 		}
 		const handler = ( event ) => {
-			if ( event.detail !== 'focus-search' ) {
+			if ( event.detail !== SHORTCUT.FOCUS_SEARCH ) {
 				return;
 			}
 			const el = regexInputRef.current;

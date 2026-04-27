@@ -3,15 +3,22 @@
  * keyboard hook) or by clicking the toolbar help button. Plain
  * `Modal` from @wordpress/components provides focus trapping, escape-to-
  * close, and aria-labelledby out of the box.
+ *
+ * The shortcut list inlines `__()` directly into the data array — adding
+ * a new entry needs zero plumbing because the call site IS the make-pot
+ * extraction site, no centralised translator switch to keep in sync.
  */
 import { Modal } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
 const SHORTCUTS = [
-	{ keys: [ '/' ], description: 'Focus the regex search field' },
-	{ keys: [ 'g' ], description: 'Toggle grouped view' },
-	{ keys: [ 't' ], description: 'Toggle tail mode' },
-	{ keys: [ '?' ], description: 'Open this help dialog' },
+	{
+		keys: [ '/' ],
+		description: __( 'Focus the regex search field', 'logscope' ),
+	},
+	{ keys: [ 'g' ], description: __( 'Toggle grouped view', 'logscope' ) },
+	{ keys: [ 't' ], description: __( 'Toggle tail mode', 'logscope' ) },
+	{ keys: [ '?' ], description: __( 'Open this help dialog', 'logscope' ) },
 ];
 
 export default function HelpModal( { onClose } ) {
@@ -35,7 +42,7 @@ export default function HelpModal( { onClose } ) {
 								</span>
 							) ) }
 						</dt>
-						<dd>{ describe( shortcut.description ) }</dd>
+						<dd>{ shortcut.description }</dd>
 					</div>
 				) ) }
 			</dl>
@@ -47,21 +54,4 @@ export default function HelpModal( { onClose } ) {
 			</p>
 		</Modal>
 	);
-}
-
-// Inline so xgettext / make-pot picks up each user-facing string at a
-// __() call site rather than a runtime lookup.
-function describe( token ) {
-	switch ( token ) {
-		case 'Focus the regex search field':
-			return __( 'Focus the regex search field', 'logscope' );
-		case 'Toggle grouped view':
-			return __( 'Toggle grouped view', 'logscope' );
-		case 'Toggle tail mode':
-			return __( 'Toggle tail mode', 'logscope' );
-		case 'Open this help dialog':
-			return __( 'Open this help dialog', 'logscope' );
-		default:
-			return token;
-	}
 }

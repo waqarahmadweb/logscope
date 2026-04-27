@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-27T19:47:19+00:00\n"
+"POT-Creation-Date: 2026-04-27T20:08:10+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: logscope\n"
@@ -174,17 +174,17 @@ msgid "No entries match the current filters."
 msgstr ""
 
 #: assets/build/index.js:2
-#: assets/src/components/EmptyState/index.jsx:31
+#: assets/src/components/EmptyState/index.jsx:28
 msgid "No log entries to show."
 msgstr ""
 
 #: assets/build/index.js:2
-#: assets/src/components/EmptyState/index.jsx:35
+#: assets/src/components/EmptyState/index.jsx:32
 msgid "Try widening the date range or clearing the regex."
 msgstr ""
 
 #: assets/build/index.js:2
-#: assets/src/components/EmptyState/index.jsx:39
+#: assets/src/components/EmptyState/index.jsx:36
 msgid "When WordPress writes to debug.log, entries will appear here."
 msgstr ""
 
@@ -311,7 +311,7 @@ msgstr ""
 
 #. translators: %d is the number of new log entries since the user scrolled away.
 #: assets/build/index.js:4
-#: assets/src/components/LogViewer/index.jsx:251
+#: assets/src/components/LogViewer/index.jsx:252
 #, js-format
 msgid "%d new entry"
 msgid_plural "%d new entries"
@@ -410,52 +410,52 @@ msgid "Allowed roots:"
 msgstr ""
 
 #: assets/build/index.js:7
-#: assets/src/components/App.jsx:139
-#: assets/src/components/HelpModal/index.jsx:20
-msgid "Keyboard shortcuts"
-msgstr ""
-
-#: assets/build/index.js:7
-#: assets/src/components/HelpModal/index.jsx:43
-msgid "Shortcuts are ignored while typing in an input."
-msgstr ""
-
-#: assets/build/index.js:7
-#: assets/src/components/HelpModal/index.jsx:57
+#: assets/src/components/HelpModal/index.jsx:15
 msgid "Focus the regex search field"
 msgstr ""
 
 #: assets/build/index.js:7
-#: assets/src/components/HelpModal/index.jsx:59
+#: assets/src/components/HelpModal/index.jsx:16
 msgid "Toggle grouped view"
 msgstr ""
 
 #: assets/build/index.js:7
-#: assets/src/components/HelpModal/index.jsx:61
+#: assets/src/components/HelpModal/index.jsx:17
 msgid "Toggle tail mode"
 msgstr ""
 
 #: assets/build/index.js:7
-#: assets/src/components/HelpModal/index.jsx:63
+#: assets/src/components/HelpModal/index.jsx:18
 msgid "Open this help dialog"
 msgstr ""
 
 #: assets/build/index.js:7
-#: assets/src/components/App.jsx:32
-msgid "Logs"
+#: assets/src/components/App.jsx:182
+#: assets/src/components/HelpModal/index.jsx:24
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/HelpModal/index.jsx:47
+msgid "Shortcuts are ignored while typing in an input."
 msgstr ""
 
 #: assets/build/index.js:7
 #: assets/src/components/App.jsx:33
+msgid "Logs"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/App.jsx:34
 msgid "Settings"
 msgstr ""
 
 #: assets/build/index.js:7
-#: assets/src/components/App.jsx:111
+#: assets/src/components/App.jsx:152
 msgid "Logscope sections"
 msgstr ""
 
 #: assets/build/index.js:7
-#: assets/src/components/App.jsx:141
+#: assets/src/components/App.jsx:184
 msgid "Shortcuts (?)"
 msgstr ""

@@ -39,8 +39,10 @@ export default function ToastHost() {
 		return null;
 	}
 
+	// Snackbar self-announces via its own aria-live region; wrapping
+	// another aria-live around it would double-announce on some readers.
 	return (
-		<div className="logscope-toast-host" aria-live="polite">
+		<div className="logscope-toast-host">
 			{ toasts.map( ( toast ) => (
 				<Snackbar
 					key={ toast.id }

@@ -22,6 +22,7 @@ import { __ } from '@wordpress/i18n';
 import { Button } from '@wordpress/components';
 
 import { STORE_KEY } from '../store';
+import { SHORTCUT, SHORTCUT_EVENT } from '../shortcuts';
 import LogViewer from './LogViewer';
 import SettingsPanel from './SettingsPanel';
 import ToastHost from './ToastHost';
@@ -34,8 +35,6 @@ const TABS = [
 ];
 
 const VALID_TAB_NAMES = TABS.map( ( tab ) => tab.name );
-
-export const SHORTCUT_EVENT = 'logscope:shortcut';
 
 function readTabFromHash() {
 	if ( typeof window === 'undefined' ) {
@@ -90,18 +89,60 @@ export default function App() {
 	useKeyboardShortcuts( {
 		onFocusSearch: useCallback( () => {
 			ensureLogsTab();
-			emitShortcut( 'focus-search' );
+			emitShortcut( SHORTCUT.FOCUS_SEARCH );
 		}, [ ensureLogsTab ] ),
 		onToggleGrouped: useCallback( () => {
 			ensureLogsTab();
-			emitShortcut( 'toggle-grouped' );
+			emitShortcut( SHORTCUT.TOGGLE_GROUPED );
 		}, [ ensureLogsTab ] ),
 		onToggleTail: useCallback( () => {
 			ensureLogsTab();
-			emitShortcut( 'toggle-tail' );
+			emitShortcut( SHORTCUT.TOGGLE_TAIL );
 		}, [ ensureLogsTab ] ),
 		onShowHelp: useCallback( () => setHelpOpen( true ), [] ),
 	} );
+
+	// WAI-ARIA tabs pattern: Left/Right cycles between tabs, Home / End
+	// jump to the first / last. Roving tabIndex below already handles the
+	// "tab into the strip" case; this fills in the "move within the
+	// strip" expectation that screen-reader users have.
+	const handleTabKeyDown = ( event ) => {
+		const idx = VALID_TAB_NAMES.indexOf( activeTab );
+		if ( idx === -1 ) {
+			return;
+		}
+		let next = null;
+		switch ( event.key ) {
+			case 'ArrowRight':
+				next = VALID_TAB_NAMES[ ( idx + 1 ) % VALID_TAB_NAMES.length ];
+				break;
+			case 'ArrowLeft':
+				next =
+					VALID_TAB_NAMES[
+						( idx - 1 + VALID_TAB_NAMES.length ) %
+							VALID_TAB_NAMES.length
+					];
+				break;
+			case 'Home':
+				next = VALID_TAB_NAMES[ 0 ];
+				break;
+			case 'End':
+				next = VALID_TAB_NAMES[ VALID_TAB_NAMES.length - 1 ];
+				break;
+			default:
+				return;
+		}
+		event.preventDefault();
+		handleSelect( next );
+		// Move focus to the newly-active tab; a fresh render flips its
+		// tabIndex to 0, so document.querySelector picks the right node.
+		requestAnimationFrame( () => {
+			const el = document.querySelector(
+				`[role="tab"][data-logscope-tab="${ next }"]`
+			);
+			el?.focus();
+		} );
+	};
 
 	return (
 		<div className="logscope-app">
@@ -109,6 +150,7 @@ export default function App() {
 				className="logscope-tabs"
 				role="tablist"
 				aria-label={ __( 'Logscope sections', 'logscope' ) }
+				onKeyDown={ handleTabKeyDown }
 			>
 				{ TABS.map( ( tab ) => {
 					const isActive = tab.name === activeTab;
@@ -117,6 +159,7 @@ export default function App() {
 							key={ tab.name }
 							type="button"
 							role="tab"
+							data-logscope-tab={ tab.name }
 							aria-selected={ isActive }
 							tabIndex={ isActive ? 0 : -1 }
 							className={
