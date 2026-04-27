@@ -176,7 +176,7 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
     -   **AC**: Unit test — 1000 varied log lines group down to the expected ~N signatures; sort by count desc.
     -   **Commit**: `feat(log): add signature-based grouping`
 
--   [ ] **3.6** `src/Log/LogRepository.php`
+-   [x] **3.6** `src/Log/LogRepository.php`
 
     -   Facade over source + parser + grouper. Paginated, filtered access.
     -   Supports filters: severity, date range, regex (server-side, pattern length ≤ 200), source plugin/theme (parsed from file path).
