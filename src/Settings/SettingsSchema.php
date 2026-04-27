@@ -20,13 +20,20 @@ use InvalidArgumentException;
  * The activator seeds these same keys on plugin activation so a fresh
  * install never has to fall back to the defaults declared here.
  */
-final class SettingsSchema {
+class SettingsSchema {
+
+	/**
+	 * Closed vocabulary of `type` values a field may declare. Kept as a
+	 * const so {@see SettingsSchema::matches_type()} can be exhaustive
+	 * without a defensive default branch.
+	 */
+	public const TYPES = array( 'string', 'integer' );
 
 	/**
 	 * Field map keyed by the public setting name. Each entry defines:
 	 *
 	 *   - option_key: the underlying `wp_options` row name.
-	 *   - type:       'string' | 'integer'.
+	 *   - type:       one of {@see SettingsSchema::TYPES}.
 	 *   - default:    value returned when the option is missing or the
 	 *                 stored value cannot be coerced into `type`.
 	 *   - sanitizer:  callable that accepts the raw input and returns a
@@ -34,22 +41,16 @@ final class SettingsSchema {
 	 *                 sanitizer is the only place that may reshape input
 	 *                 — never trust the caller to pre-sanitize.
 	 *
-	 * @var array<string, array{option_key:string, type:string, default:mixed, sanitizer:callable}>|null
+	 * @var array<string, array{option_key:string, type:string, default:mixed, sanitizer:callable}>
 	 */
-	private ?array $fields = null;
+	private array $fields;
 
 	/**
-	 * Returns the field map, building it lazily on first access. Closures
-	 * capture `$this` only when needed and stay stateless otherwise so the
-	 * schema is safe to share across requests within a single PHP process.
-	 *
-	 * @return array<string, array{option_key:string, type:string, default:mixed, sanitizer:callable}>
+	 * Builds the schema. The field map is constant per process so it is
+	 * assigned once in the constructor; closures stay `static` to avoid
+	 * binding `$this`.
 	 */
-	public function fields(): array {
-		if ( null !== $this->fields ) {
-			return $this->fields;
-		}
-
+	public function __construct() {
 		$this->fields = array(
 			'log_path'      => array(
 				'option_key' => 'logscope_log_path',
@@ -72,19 +73,24 @@ final class SettingsSchema {
 				'type'       => 'integer',
 				'default'    => 3,
 				'sanitizer'  => static function ( $value ): int {
-					if ( is_string( $value ) && '' !== $value && ctype_digit( ltrim( $value, '-' ) ) ) {
-						$value = (int) $value;
-					}
-
-					if ( ! is_int( $value ) ) {
+					if ( ! is_numeric( $value ) ) {
 						return 1;
 					}
 
-					return $value < 1 ? 1 : $value;
+					$coerced = (int) $value;
+
+					return $coerced < 1 ? 1 : $coerced;
 				},
 			),
 		);
+	}
 
+	/**
+	 * Returns the field map.
+	 *
+	 * @return array<string, array{option_key:string, type:string, default:mixed, sanitizer:callable}>
+	 */
+	public function fields(): array {
 		return $this->fields;
 	}
 
@@ -94,7 +100,7 @@ final class SettingsSchema {
 	 * @return string[]
 	 */
 	public function keys(): array {
-		return array_keys( $this->fields() );
+		return array_keys( $this->fields );
 	}
 
 	/**
@@ -104,7 +110,7 @@ final class SettingsSchema {
 	 * @return bool
 	 */
 	public function has( string $key ): bool {
-		return array_key_exists( $key, $this->fields() );
+		return array_key_exists( $key, $this->fields );
 	}
 
 	/**
@@ -115,13 +121,12 @@ final class SettingsSchema {
 	 * @throws InvalidArgumentException If the key is unknown.
 	 */
 	public function field( string $key ): array {
-		$fields = $this->fields();
-		if ( ! array_key_exists( $key, $fields ) ) {
+		if ( ! array_key_exists( $key, $this->fields ) ) {
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is not rendered as HTML; escaping belongs at the render layer.
 			throw new InvalidArgumentException( sprintf( 'Unknown Logscope setting "%s".', $key ) );
 		}
 
-		return $fields[ $key ];
+		return $this->fields[ $key ];
 	}
 
 	/**
@@ -173,13 +178,14 @@ final class SettingsSchema {
 	 * @throws InvalidArgumentException If the key is unknown.
 	 */
 	public function matches_type( string $key, $value ): bool {
-		switch ( $this->field( $key )['type'] ) {
-			case 'integer':
-				return is_int( $value );
-			case 'string':
-				return is_string( $value );
-			default:
-				return false;
+		$type = $this->field( $key )['type'];
+
+		if ( 'integer' === $type ) {
+			return is_int( $value );
 		}
+
+		// Only 'string' remains; the type vocabulary is closed by
+		// {@see SettingsSchema::TYPES}.
+		return is_string( $value );
 	}
 }

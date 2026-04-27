@@ -138,6 +138,42 @@ final class SettingsControllerTest extends TestCase {
 		);
 	}
 
+	public function test_post_is_atomic_when_sanitizer_throws(): void {
+		// Schema double that sanitises log_path normally but throws when
+		// asked to sanitise tail_interval. Exercises the live
+		// logscope_rest_invalid_setting path and proves phase-1 failure
+		// does not leak phase-2 writes (the AC for the atomicity fix).
+		$throwing_schema = new class() extends SettingsSchema {
+			public function sanitize( string $key, $value ) {
+				if ( 'tail_interval' === $key ) {
+					throw new \InvalidArgumentException( 'tail_interval is currently rejected for testing.' );
+				}
+
+				return parent::sanitize( $key, $value );
+			}
+		};
+
+		$controller = new SettingsController( new Settings( $throwing_schema ) );
+
+		$request = new WP_REST_Request(
+			array(
+				'log_path'      => '/tmp/should-not-persist.log',
+				'tail_interval' => 5,
+			)
+		);
+
+		$result = $controller->handle_post( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'logscope_rest_invalid_setting', $result->get_error_code() );
+		$this->assertSame( 400, $result->get_error_data()['status'] );
+
+		// Neither key landed in wp_options — the sanitiser failure on
+		// tail_interval must not leave log_path partially persisted.
+		$this->assertSame( '', $this->store['logscope_log_path'] );
+		$this->assertSame( 3, $this->store['logscope_tail_interval'] );
+	}
+
 	public function test_register_routes_calls_register_rest_route_with_get_and_post(): void {
 		$captured = null;
 

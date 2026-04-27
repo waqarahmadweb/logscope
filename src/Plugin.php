@@ -263,8 +263,10 @@ final class Plugin {
 		} catch ( Throwable $e ) {
 			// Swallow so a misconfigured log path does not abort
 			// `rest_api_init` for other plugins. Settings routes still
-			// register independently below.
-			unset( $e );
+			// register independently below. Surface the failure to the
+			// PHP error log under WP_DEBUG so the breadcrumb is not
+			// invisible when an admin reports a 404 on /logs.
+			self::log_route_registration_failure( 'logs', $e );
 		}
 
 		try {
@@ -272,8 +274,34 @@ final class Plugin {
 			assert( $settings instanceof SettingsController );
 			$settings->register_routes();
 		} catch ( Throwable $e ) {
-			unset( $e );
+			self::log_route_registration_failure( 'settings', $e );
 		}
+	}
+
+	/**
+	 * Writes a one-line breadcrumb when a route group fails to register,
+	 * gated on `WP_DEBUG` so production sites do not accumulate noise.
+	 * The exception class is included so a misconfigured log path
+	 * (`InvalidPathException`) reads differently from a deeper bug.
+	 *
+	 * @param string    $group Route group name for the message.
+	 * @param Throwable $error Exception that aborted registration.
+	 * @return void
+	 */
+	private static function log_route_registration_failure( string $group, Throwable $error ): void {
+		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug-gated breadcrumb; the only place we surface a swallowed exception.
+		error_log(
+			sprintf(
+				'Logscope: failed to register %s routes (%s): %s',
+				$group,
+				get_class( $error ),
+				$error->getMessage()
+			)
+		);
 	}
 
 	/**

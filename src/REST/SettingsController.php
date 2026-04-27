@@ -118,15 +118,23 @@ final class SettingsController extends RestController {
 			);
 		}
 
+		// Two-phase apply so a sanitiser failure on a later key cannot
+		// leave earlier keys partially persisted. Phase 1 sanitises the
+		// whole body; phase 2 only writes once every value is known to
+		// be safe. The unknown-key gate above already filters keys, so
+		// the only thing the catch can fire on today is a future
+		// schema-side validation that throws on bad values.
+		$sanitized = array();
 		try {
 			foreach ( $body as $key => $value ) {
-				$this->settings->set( (string) $key, $value );
+				$sanitized[ (string) $key ] = $schema->sanitize( (string) $key, $value );
 			}
 		} catch ( InvalidArgumentException $e ) {
-			// Belt-and-suspenders: the unknown-key check above should
-			// have caught this, but the schema is the authority and any
-			// future validation it grows should still surface as 400.
 			return $this->error( 'logscope_rest_invalid_setting', $e->getMessage(), 400 );
+		}
+
+		foreach ( $sanitized as $key => $value ) {
+			$this->settings->set( $key, $value );
 		}
 
 		return new WP_REST_Response( $this->settings->all() );

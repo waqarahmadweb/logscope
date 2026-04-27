@@ -88,6 +88,20 @@ final class SettingsSchemaTest extends TestCase {
 		$this->assertSame( 10, $schema->sanitize( 'tail_interval', '10' ) );
 	}
 
+	public function test_tail_interval_sanitizer_truncates_float_string(): void {
+		$schema = new SettingsSchema();
+
+		// is_numeric( '3.5' ) is true; the (int) cast truncates to 3
+		// rather than falling back to the default 1.
+		$this->assertSame( 3, $schema->sanitize( 'tail_interval', '3.5' ) );
+	}
+
+	public function test_tail_interval_sanitizer_truncates_float(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 4, $schema->sanitize( 'tail_interval', 4.9 ) );
+	}
+
 	public function test_tail_interval_sanitizer_falls_back_for_non_numeric(): void {
 		$schema = new SettingsSchema();
 
