@@ -194,21 +194,21 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
 
 Goal: React can fetch everything it needs via `/wp-json/logscope/v1/*`.
 
--   [ ] **4.1** 🔒 `src/REST/RestController.php` (abstract base)
+-   [x] **4.1** 🔒 `src/REST/RestController.php` (abstract base)
 
     -   Centralizes capability check (`logscope_manage`), nonce verification, JSON schema registration, error responses.
     -   Every subclass calls `$this->check_permission()` in its `permission_callback`.
     -   **AC**: Unit test — an endpoint extending this base rejects unauthenticated requests with 401 and non-caps users with 403.
     -   **Commit**: `feat(rest): add controller base with cap + nonce enforcement`
 
--   [ ] **4.2** `src/REST/LogsController.php` — `GET /logs`
+-   [x] **4.2** `src/REST/LogsController.php` — `GET /logs`
 
     -   Query params: `page`, `per_page`, `severity`, `from`, `to`, `q` (regex), `grouped` (bool), `source`.
     -   Returns paginated entries with `X-WP-Total` / `X-WP-TotalPages` headers.
     -   **AC**: Integration test hits the endpoint with a mock WP install and asserts shape + pagination.
     -   **Commit**: `feat(rest): add GET /logs endpoint`
 
--   [ ] **4.3** `LogsController` — `DELETE /logs` (Clear log) + `GET /logs/download`
+-   [x] **4.3** `LogsController` — `DELETE /logs` (Clear log) + `GET /logs/download`
     -   **Clear log default: soft-delete** (rename `debug.log` → `debug.log.cleared-YYYYMMDD-HHMMSS`). Resolves open question from AGENTS.md §11.
     -   Confirmation via `?confirm=true` query param required.
     -   Download streams the file with `Content-Disposition: attachment`.

@@ -225,6 +225,36 @@ final class PathGuardTest extends TestCase {
 		$this->assertSame( array(), $roots );
 	}
 
+	public function test_is_writable_parent_of_returns_true_when_parent_is_writable(): void {
+		$guard = new PathGuard( array( $this->root ) );
+
+		// Pretend we are about to create a sibling of an existing file —
+		// the file itself need not exist yet.
+		$candidate = $this->root . DIRECTORY_SEPARATOR . 'debug.log';
+
+		$this->assertTrue( $guard->is_writable_parent_of( $candidate ) );
+	}
+
+	public function test_is_writable_parent_of_returns_false_when_parent_outside_allowlist(): void {
+		$guard = new PathGuard( array( $this->root ) );
+
+		$outside = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'somewhere-else' . DIRECTORY_SEPARATOR . 'file.log';
+
+		$this->assertFalse( $guard->is_writable_parent_of( $outside ) );
+	}
+
+	public function test_is_writable_parent_of_rejects_null_byte_input(): void {
+		$guard = new PathGuard( array( $this->root ) );
+
+		$this->assertFalse( $guard->is_writable_parent_of( $this->root . "\0/x" ) );
+	}
+
+	public function test_is_writable_parent_of_rejects_empty_input(): void {
+		$guard = new PathGuard( array( $this->root ) );
+
+		$this->assertFalse( $guard->is_writable_parent_of( '' ) );
+	}
+
 	private function rrmdir( string $dir ): void {
 		if ( ! is_dir( $dir ) ) {
 			return;
