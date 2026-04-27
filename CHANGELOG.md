@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+-   `Logscope\Support\PathGuard` — filesystem path validator with two-stage rejection (raw-string checks for null bytes and `..` segments before any filesystem call, then `realpath()` canonicalisation with allowlist containment). Symlink escapes are caught implicitly because `realpath()` resolves links before the containment check; sibling-prefix attacks (e.g. `/var/www-evil` against root `/var/www`) are rejected by the exact-separator suffix match. Constructor fails closed: a non-existent root is silently dropped so a misconfigured root cannot widen the allowlist. Companion `InvalidPathException` carries plain-English internal messages; translation happens at the REST/UI boundary later.
+
+### Security
+
+-   PathGuard is the foundation for all log-file access in later phases — every `FileLogSource` and settings-side path test will route through it before touching disk.
+
 ## [0.3.0] - 2026-04-23
 
 Closes Phase 2 of the [roadmap](ROADMAP.md): the plugin now has a bootstrap entry point, a lightweight DI container, activation/deactivation/uninstall lifecycle, a reusable capability helper, and the PHPUnit + Brain Monkey scaffolding future tests will build on. Still no user-visible features.

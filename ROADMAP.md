@@ -137,7 +137,7 @@ Goal: Plugin activates, wires a DI container, and exposes a stable extension sur
 
 Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This is the single most important de-risking step** — parsers written wrong haunt the whole project.
 
--   [ ] **3.1** 🔒 `src/Support/PathGuard.php`
+-   [x] **3.1** 🔒 `src/Support/PathGuard.php`
 
     -   Allowlist: `ABSPATH`, `WP_CONTENT_DIR`, the configured log path's parent.
     -   Reject `..` in raw input before `realpath`.
