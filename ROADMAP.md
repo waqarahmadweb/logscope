@@ -369,8 +369,10 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
 
     -   **Commit**: `feat(i18n): wrap strings and generate .pot`
 
--   [ ] **11.6** 🏷️ **Release v0.9.0** — Polish, a11y, i18n
+-   [x] **11.6** 🏷️ **Release v0.9.0** — Polish, a11y, i18n
     -   **Commit**: `chore(release): v0.9.0`
+
+> Phase 11 complete on 2026-04-28.
 
 ---
 

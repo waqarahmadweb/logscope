@@ -1,6 +1,6 @@
 # Logscope
 
-> **Status:** `v0.8.0` — Settings UI + custom log path. The Settings tab now ships a real editor for `log_path` and `tail_interval`, with a side-effect-free "Test path" probe that runs `PathGuard` server-side and renders the verdict (resolved absolute path, allowed roots, rejection reason) inline. Polish, accessibility, and i18n land in Phase 11 before the v1.0.0-rc.1 cut.
+> **Status:** `v0.9.0` — Polish, accessibility, dark mode, and i18n. The admin page picks up its first dedicated stylesheet (variable-driven for light, OS-dark via `prefers-color-scheme`, and the WordPress `admin-color-midnight` admin scheme), loading skeletons replace the bare spinner, REST failures and save successes surface as `@wordpress/components` Snackbars, four global keyboard shortcuts (`/` focus search, `g` grouped, `t` tail, `?` help) land alongside arrow-key tablist navigation, and `languages/logscope.pot` ships covering all 87 PHP and JS strings. Next up: the v1.0.0-rc.1 cut (`readme.txt`, banner / icon / screenshots, release workflow).
 
 A free, GPL v2 WordPress plugin that streams, filters, and groups the WordPress debug log from inside wp-admin.
 

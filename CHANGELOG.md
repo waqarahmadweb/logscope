@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-04-28
+
+Closes Phase 11 of the [roadmap](ROADMAP.md): polish, accessibility, dark mode, and i18n. The Logscope admin page picks up its first dedicated stylesheet (variable-driven for light / OS-dark / `admin-color-midnight`), loading skeletons replace the bare spinner on initial fetch, REST failures and save successes surface as `@wordpress/components` Snackbars from a new `toasts` slice, four global keyboard shortcuts (`/`, `g`, `t`, `?`) land alongside WAI-ARIA-compliant tablist arrow-key navigation, and `languages/logscope.pot` now covers all 87 PHP and JS strings. With Phase 11 done the next milestone is the v1.0.0-rc.1 cut: `readme.txt`, the wp.org banner / icon / screenshot set, and the release workflow that strips dev assets from the published zip.
+
 ### Added
 
 -   Phase 11.1–11.5: polish, accessibility, dark mode, and i18n. The Logscope admin page picks up its first dedicated stylesheet (`assets/src/style.scss`, imported from the React entry); previously every `logscope-*` class name was a semantic hook with no rules attached and the page inherited whatever wp-admin shipped, which left rows visually undifferentiated and gave dark-mode users on `admin-color-midnight` an effectively unstyled UI. The new sheet is variable-driven so component rules reference `--logscope-*` tokens exclusively and every theme variant — light, OS dark via `prefers-color-scheme`, and the WP `admin-color-midnight` admin scheme — is one variable-block remap rather than a parallel rule set, keeping the cascade as the single source of truth. A `prefers-reduced-motion` block disables the skeleton shimmer for users who opt out.
