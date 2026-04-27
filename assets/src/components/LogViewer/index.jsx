@@ -1,41 +1,130 @@
 /**
- * Virtualized log viewer. Wraps react-window's `<List>` so a 5k-entry
- * (or 50k-entry) result set scrolls at 60fps without the DOM growing
- * linearly with the result set.
+ * Logs-tab body. Owns the filter bar, the list/grouped/tail toggles,
+ * and the data-fetch effect that ties them together.
  *
- * The fixed row height is intentional for the Phase 6 shell: variable
- * heights require measuring each row, which doubles the rendering cost
- * and pushes the "show trace" panel into a second virtualizer. We'll
- * revisit if/when 7.3 reveals a UX problem with the truncated message.
+ * react-window v2's `<List>` exposes the scroll container via the
+ * imperative `element` field on `useListRef`; we capture `scrollTop`
+ * on each scroll and restore it across mode toggles (Phase 7.2 AC) and
+ * use the same handle for the "scroll to top" affordance on the tail
+ * "N new" pill (Phase 7.4). Row heights are dynamic — collapsed rows
+ * are 48px and expanded rows grow to fit their stack-trace panel — and
+ * the rowHeight function closes over the store's `expandedTraces` map
+ * so toggling expansion forces a measure pass.
  */
-import { useEffect } from '@wordpress/element';
+import { useCallback, useEffect, useRef } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
-import { Spinner } from '@wordpress/components';
-import { List } from 'react-window';
+import { __, sprintf, _n } from '@wordpress/i18n';
+import { Button, Spinner } from '@wordpress/components';
+import { List, useListRef } from 'react-window';
 
 import { STORE_KEY } from '../../store';
-import EntryRow from '../EntryRow';
+import EntryRow, { entryKey, rowHeightFor, ROW_HEIGHT_BASE } from '../EntryRow';
 import EmptyState from '../EmptyState';
+import FilterBar from '../FilterBar';
+import GroupedView from '../GroupedView';
+import useUrlQuerySync from '../../hooks/useUrlQuerySync';
+import useTailPolling from '../../hooks/useTailPolling';
+import buildFilterParams from '../../utils/filterParams';
 
-const ROW_HEIGHT = 48;
 const LIST_HEIGHT = 600;
 
-export default function LogViewer() {
-	const { items, isLoading, error } = useSelect( ( select ) => {
-		const store = select( STORE_KEY );
-		return {
-			items: store.getLogs(),
-			isLoading: store.isLoadingLogs(),
-			error: store.getLogsError(),
-		};
-	}, [] );
+function buildQueryParams( filters, viewMode ) {
+	const params = { page: 1, ...buildFilterParams( filters ) };
+	if ( viewMode === 'grouped' ) {
+		params.grouped = true;
+	}
+	return params;
+}
 
-	const { fetchLogs } = useDispatch( STORE_KEY );
+export default function LogViewer() {
+	const { items, isLoading, error, viewMode, filters, isTailing } = useSelect(
+		( select ) => {
+			const store = select( STORE_KEY );
+			return {
+				items: store.getLogs(),
+				isLoading: store.isLoadingLogs(),
+				error: store.getLogsError(),
+				viewMode: store.getViewMode(),
+				filters: store.getFilters(),
+				isTailing: store.isTailActive(),
+			};
+		},
+		[]
+	);
+	const { fetchLogs, setViewMode, setTailActive } = useDispatch( STORE_KEY );
+
+	useUrlQuerySync( viewMode, filters );
 
 	useEffect( () => {
-		fetchLogs();
-	}, [ fetchLogs ] );
+		fetchLogs( buildQueryParams( filters, viewMode ) );
+	}, [ fetchLogs, viewMode, filters ] );
 
+	const handleSetMode = ( mode ) => {
+		if ( mode !== viewMode ) {
+			setViewMode( mode );
+		}
+	};
+
+	const handleToggleTail = () => {
+		// Tail polling appends raw entries — switch out of grouped
+		// mode on activation so the appended rows have somewhere to
+		// land. The reverse case (mode flipped to grouped while tail
+		// is active) is handled in the SET_VIEW_MODE reducer, which
+		// auto-stops tail rather than leaving the loop running
+		// invisibly.
+		if ( ! isTailing && viewMode === 'grouped' ) {
+			setViewMode( 'list' );
+		}
+		setTailActive( ! isTailing );
+	};
+
+	return (
+		<div className="logscope-logs">
+			<FilterBar />
+
+			<div
+				className="logscope-mode-toggle"
+				role="tablist"
+				aria-label={ __( 'View mode', 'logscope' ) }
+			>
+				<Button
+					variant={ viewMode === 'list' ? 'primary' : 'secondary' }
+					role="tab"
+					aria-selected={ viewMode === 'list' }
+					onClick={ () => handleSetMode( 'list' ) }
+				>
+					{ __( 'List', 'logscope' ) }
+				</Button>
+				<Button
+					variant={ viewMode === 'grouped' ? 'primary' : 'secondary' }
+					role="tab"
+					aria-selected={ viewMode === 'grouped' }
+					onClick={ () => handleSetMode( 'grouped' ) }
+				>
+					{ __( 'Grouped', 'logscope' ) }
+				</Button>
+				<Button
+					variant={ isTailing ? 'primary' : 'tertiary' }
+					onClick={ handleToggleTail }
+					aria-pressed={ isTailing }
+				>
+					{ isTailing
+						? __( 'Stop tail', 'logscope' )
+						: __( 'Tail', 'logscope' ) }
+				</Button>
+			</div>
+
+			<ViewerBody
+				items={ items }
+				isLoading={ isLoading }
+				error={ error }
+				viewMode={ viewMode }
+			/>
+		</div>
+	);
+}
+
+function ViewerBody( { items, isLoading, error, viewMode } ) {
 	if ( isLoading && items.length === 0 ) {
 		return (
 			<div className="logscope-viewer logscope-viewer--loading">
@@ -44,9 +133,74 @@ export default function LogViewer() {
 		);
 	}
 
-	if ( items.length === 0 ) {
+	if ( error && items.length === 0 ) {
 		return <EmptyState error={ error } />;
 	}
+
+	if ( items.length === 0 ) {
+		return <EmptyState />;
+	}
+
+	if ( viewMode === 'grouped' ) {
+		return <GroupedScrollPane />;
+	}
+
+	return <ListScrollPane items={ items } isLoading={ isLoading } />;
+}
+
+function ListScrollPane( { items, isLoading } ) {
+	const listRef = useListRef( null );
+	const scrollElementRef = useRef( null );
+	const { savedOffset, expandedTraces, newCount } = useSelect( ( select ) => {
+		const store = select( STORE_KEY );
+		return {
+			savedOffset: store.getScrollOffset( 'list' ),
+			expandedTraces: store.getExpandedTraces(),
+			newCount: store.getTailNewCount(),
+		};
+	}, [] );
+	const { setScrollOffset, clearTailNewCount } = useDispatch( STORE_KEY );
+
+	useEffect( () => {
+		const element = listRef.current?.element;
+		if ( ! element ) {
+			return undefined;
+		}
+		scrollElementRef.current = element;
+		element.scrollTop = savedOffset;
+		const onScroll = () => setScrollOffset( 'list', element.scrollTop );
+		element.addEventListener( 'scroll', onScroll, { passive: true } );
+		return () => {
+			element.removeEventListener( 'scroll', onScroll );
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [] );
+
+	useTailPolling( scrollElementRef );
+
+	// rowHeight closes over expandedTraces; recreating the function on
+	// every change of that map is what tells react-window to re-measure.
+	const rowHeight = useCallback(
+		( index ) => {
+			const entry = items[ index ];
+			if ( ! entry ) {
+				return ROW_HEIGHT_BASE;
+			}
+			return rowHeightFor(
+				entry,
+				!! expandedTraces[ entryKey( entry ) ]
+			);
+		},
+		[ items, expandedTraces ]
+	);
+
+	const handleNewPill = () => {
+		const el = scrollElementRef.current;
+		if ( el ) {
+			el.scrollTop = 0;
+		}
+		clearTailNewCount();
+	};
 
 	return (
 		<div
@@ -54,14 +208,67 @@ export default function LogViewer() {
 			role="list"
 			aria-busy={ isLoading ? 'true' : 'false' }
 		>
+			{ newCount > 0 && (
+				<button
+					type="button"
+					className="logscope-viewer__new-pill"
+					onClick={ handleNewPill }
+					aria-live="polite"
+				>
+					{ sprintf(
+						/* translators: %d is the number of new log entries since the user scrolled away. */
+						_n(
+							'%d new entry',
+							'%d new entries',
+							newCount,
+							'logscope'
+						),
+						newCount
+					) }
+				</button>
+			) }
 			<List
 				className="logscope-viewer__list"
+				listRef={ listRef }
 				rowCount={ items.length }
-				rowHeight={ ROW_HEIGHT }
+				rowHeight={ rowHeight }
 				rowComponent={ EntryRow }
 				rowProps={ { items } }
 				style={ { height: LIST_HEIGHT } }
 			/>
+		</div>
+	);
+}
+
+function GroupedScrollPane() {
+	const containerRef = useRef( null );
+	const savedOffset = useSelect(
+		( select ) => select( STORE_KEY ).getScrollOffset( 'grouped' ),
+		[]
+	);
+	const { setScrollOffset } = useDispatch( STORE_KEY );
+
+	useEffect( () => {
+		const element = containerRef.current;
+		if ( ! element ) {
+			return undefined;
+		}
+		element.scrollTop = savedOffset;
+		const onScroll = () => setScrollOffset( 'grouped', element.scrollTop );
+		element.addEventListener( 'scroll', onScroll, { passive: true } );
+		return () => {
+			element.removeEventListener( 'scroll', onScroll );
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [] );
+
+	return (
+		<div
+			ref={ containerRef }
+			className="logscope-viewer logscope-viewer--grouped"
+			style={ { height: LIST_HEIGHT, overflow: 'auto' } }
+		>
+			<GroupedView />
 		</div>
 	);
 }

@@ -11,12 +11,14 @@ namespace Logscope\REST;
 
 use Logscope\Log\Entry;
 use Logscope\Log\FileLogSource;
+use Logscope\Log\Frame;
 use Logscope\Log\Group;
 use Logscope\Log\LogQuery;
 use Logscope\Log\LogQueryException;
 use Logscope\Log\LogRepository;
 use Logscope\Log\PagedResult;
 use Logscope\Log\Severity;
+use Logscope\Log\StackTraceParser;
 use Logscope\Support\PathGuard;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -185,6 +187,10 @@ final class LogsController extends RestController {
 			),
 			'source'   => array(
 				'type' => 'string',
+			),
+			'since'    => array(
+				'type'    => 'integer',
+				'minimum' => 0,
 			),
 		);
 	}
@@ -379,8 +385,11 @@ final class LogsController extends RestController {
 		$grouped    = (bool) ( $params['grouped'] ?? false );
 		$page       = (int) ( $params['page'] ?? 1 );
 		$per_page   = (int) ( $params['per_page'] ?? self::DEFAULT_PER_PAGE );
+		$since      = isset( $params['since'] ) && '' !== $params['since']
+			? (int) $params['since']
+			: null;
 
-		return new LogQuery( $severities, $from, $to, $regex, $source, $grouped, $page, $per_page );
+		return new LogQuery( $severities, $from, $to, $regex, $source, $grouped, $page, $per_page, $since );
 	}
 
 	/**
@@ -407,6 +416,8 @@ final class LogsController extends RestController {
 			'page'        => $result->page,
 			'per_page'    => $result->per_page,
 			'total_pages' => $result->total_pages,
+			'last_byte'   => $result->last_byte,
+			'rotated'     => $result->rotated,
 		);
 	}
 
@@ -471,6 +482,18 @@ final class LogsController extends RestController {
 	 * @return array<string, mixed>
 	 */
 	private function shape_entry( Entry $entry ): array {
+		// Only fatals and parse errors carry a stack trace in WP's
+		// debug-log format; running StackTraceParser over a notice or
+		// warning is a 50× wasted regex sweep on a typical noisy log.
+		// Gating here keeps the per-row cost off the warning-heavy
+		// majority while still emitting frames where the UI needs them.
+		$frames = array();
+		if ( Severity::FATAL === $entry->severity || Severity::PARSE === $entry->severity ) {
+			foreach ( StackTraceParser::parse( $entry->raw ) as $frame ) {
+				$frames[] = self::shape_frame( $frame );
+			}
+		}
+
 		return array(
 			'severity'  => $entry->severity,
 			'timestamp' => $entry->timestamp,
@@ -479,6 +502,26 @@ final class LogsController extends RestController {
 			'file'      => $entry->file,
 			'line'      => $entry->line,
 			'raw'       => $entry->raw,
+			'frames'    => $frames,
+		);
+	}
+
+	/**
+	 * Shapes one Frame for JSON output. Public so a future filter
+	 * pipeline can mutate frames without round-tripping through the
+	 * private serialiser.
+	 *
+	 * @param Frame $frame Parsed frame.
+	 * @return array<string, mixed>
+	 */
+	public static function shape_frame( Frame $frame ): array {
+		return array(
+			'file'   => $frame->file,
+			'line'   => $frame->line,
+			'class'  => $frame->class,
+			'method' => $frame->method,
+			'args'   => $frame->args,
+			'raw'    => $frame->raw,
 		);
 	}
 

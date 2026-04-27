@@ -1,66 +1,102 @@
 /**
- * Single row in the virtualized log viewer. Receives the row index +
- * an inline style from react-window (which absolutely-positions the row
- * inside the viewport), plus the shared `items` array via `rowProps`.
+ * Single row in the virtualized log viewer. The row receives the index
+ * + an inline style from react-window (which absolutely-positions the
+ * row with a fixed height) plus the shared `items` array via rowProps.
  *
- * Rows are pure presentation; per-row state would be lost on scroll
- * (react-window recycles row components as the viewport moves), so
- * trace expansion is intentionally deferred to {@link StackTracePanel}
- * in step 7.3 where it's lifted to a parent-owned map keyed by
- * signature. A bare row with a `has-trace` indicator is enough for
- * the Phase 6 shell.
+ * Expansion state lives in the store (`expandedTraces[entryKey]`) so it
+ * survives react-window's row recycling on scroll. The row reads its
+ * own expansion state directly from the store rather than via rowProps,
+ * which keeps rowProps shallow-stable and lets react-window skip
+ * unrelated re-renders.
  */
 import { __ } from '@wordpress/i18n';
+import { useDispatch, useSelect } from '@wordpress/data';
 
-const SEVERITY_TO_TONE = {
-	'Fatal error': 'fatal',
-	'Parse error': 'fatal',
-	Warning: 'warning',
-	Notice: 'notice',
-	Deprecated: 'deprecated',
-	'Strict Standards': 'deprecated',
-};
+import { STORE_KEY } from '../../store';
+import { severityLabel, severityTone } from '../../utils/severity';
+import entryKey from '../../utils/entryKey';
+import StackTracePanel from '../StackTracePanel';
+
+export { entryKey };
+
+export const ROW_HEIGHT_BASE = 48;
+export const ROW_HEIGHT_FRAME = 28;
+export const ROW_HEIGHT_FRAME_PADDING = 16;
+
+export function rowHeightFor( entry, isExpanded ) {
+	if ( ! entry ) {
+		return ROW_HEIGHT_BASE;
+	}
+	const frames = Array.isArray( entry.frames ) ? entry.frames : [];
+	if ( ! isExpanded || frames.length === 0 ) {
+		return ROW_HEIGHT_BASE;
+	}
+	return (
+		ROW_HEIGHT_BASE +
+		frames.length * ROW_HEIGHT_FRAME +
+		ROW_HEIGHT_FRAME_PADDING
+	);
+}
 
 export default function EntryRow( { index, style, items } ) {
 	const entry = items[ index ];
+	const key = entryKey( entry );
+	const isExpanded = useSelect(
+		( select ) => select( STORE_KEY ).isTraceExpanded( key ),
+		[ key ]
+	);
+	const { toggleTraceExpanded } = useDispatch( STORE_KEY );
+
 	if ( ! entry ) {
 		return <div style={ style } aria-hidden="true" />;
 	}
 
-	const tone = SEVERITY_TO_TONE[ entry.severity ] || 'unknown';
-	const hasTrace =
-		Array.isArray( entry.stack_trace ) && entry.stack_trace.length > 0;
+	const tone = severityTone( entry.severity );
+	const label = severityLabel( entry.severity );
+	const frames = Array.isArray( entry.frames ) ? entry.frames : [];
+	const hasTrace = frames.length > 0;
 
 	return (
 		<div
-			className={ `logscope-entry logscope-entry--${ tone }` }
+			className={ `logscope-entry logscope-entry--${ tone }${
+				isExpanded ? ' logscope-entry--expanded' : ''
+			}` }
 			style={ style }
 			role="listitem"
 		>
-			<span
-				className={ `logscope-pill logscope-pill--${ tone }` }
-				aria-label={ entry.severity || __( 'Unknown', 'logscope' ) }
-			>
-				{ entry.severity || __( 'Unknown', 'logscope' ) }
-			</span>
-			<time
-				className="logscope-entry__timestamp"
-				dateTime={ entry.timestamp || '' }
-			>
-				{ entry.timestamp || '' }
-			</time>
-			<span className="logscope-entry__message">
-				{ entry.message || '' }
-			</span>
-			{ hasTrace && (
+			<div className="logscope-entry__head">
 				<span
-					className="logscope-entry__has-trace"
-					aria-label={ __( 'Stack trace available', 'logscope' ) }
-					title={ __( 'Stack trace available', 'logscope' ) }
+					className={ `logscope-pill logscope-pill--${ tone }` }
+					aria-label={ label }
 				>
-					{ '⋯' }
+					{ label }
 				</span>
-			) }
+				<time
+					className="logscope-entry__timestamp"
+					dateTime={ entry.timestamp || '' }
+				>
+					{ entry.timestamp || '' }
+				</time>
+				<span className="logscope-entry__message">
+					{ entry.message || '' }
+				</span>
+				{ hasTrace && (
+					<button
+						type="button"
+						className="logscope-entry__toggle"
+						aria-expanded={ isExpanded }
+						aria-label={
+							isExpanded
+								? __( 'Hide stack trace', 'logscope' )
+								: __( 'Show stack trace', 'logscope' )
+						}
+						onClick={ () => toggleTraceExpanded( key ) }
+					>
+						{ isExpanded ? '▾' : '⋯' }
+					</button>
+				) }
+			</div>
+			{ isExpanded && hasTrace && <StackTracePanel frames={ frames } /> }
 		</div>
 	);
 }

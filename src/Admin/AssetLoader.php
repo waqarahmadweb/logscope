@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Logscope\Admin;
 
 use Logscope\REST\RestController;
+use Logscope\Settings\Settings;
 use Logscope\Support\Capabilities;
 
 /**
@@ -49,12 +50,23 @@ final class AssetLoader {
 	private Menu $menu;
 
 	/**
+	 * Settings facade; the localized payload exposes `tailInterval` so
+	 * the React tail-mode loop can poll on the admin-configured cadence
+	 * without a settings round-trip on every page load.
+	 *
+	 * @var Settings
+	 */
+	private Settings $settings;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Menu $menu Submenu registrar; provides the screen hook to gate on.
+	 * @param Menu     $menu     Submenu registrar; provides the screen hook to gate on.
+	 * @param Settings $settings Settings facade (for `tailInterval`).
 	 */
-	public function __construct( Menu $menu ) {
-		$this->menu = $menu;
+	public function __construct( Menu $menu, Settings $settings ) {
+		$this->menu     = $menu;
+		$this->settings = $settings;
 	}
 
 	/**
@@ -141,10 +153,11 @@ final class AssetLoader {
 	 */
 	public function localized_payload(): array {
 		return array(
-			'restUrl'   => esc_url_raw( rest_url( RestController::REST_NAMESPACE . '/' ) ),
-			'restRoot'  => esc_url_raw( rest_url() ),
-			'nonce'     => wp_create_nonce( 'wp_rest' ),
-			'canManage' => Capabilities::has_manage_cap(),
+			'restUrl'      => esc_url_raw( rest_url( RestController::REST_NAMESPACE . '/' ) ),
+			'restRoot'     => esc_url_raw( rest_url() ),
+			'nonce'        => wp_create_nonce( 'wp_rest' ),
+			'canManage'    => Capabilities::has_manage_cap(),
+			'tailInterval' => (int) $this->settings->get( 'tail_interval' ),
 		);
 	}
 }

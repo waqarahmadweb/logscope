@@ -286,7 +286,7 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
 
 ## Phase 7 — Filters, grouping, trace expansion
 
--   [ ] **7.1** `FilterBar` component
+-   [x] **7.1** `FilterBar` component
 
     -   Severity multi-select, date-range picker, regex search, source dropdown (populated from distinct paths in current result set).
     -   Debounce regex input (300ms).
@@ -294,29 +294,31 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
     -   **AC**: Changing any filter updates the URL query string + refetches.
     -   **Commit**: `feat(ui): filter bar (severity, date, regex, source)`
 
--   [ ] **7.2** `GroupedView` component
+-   [x] **7.2** `GroupedView` component
 
     -   Toggle between "list" and "grouped" modes.
     -   Grouped shows signature, count, first_seen, last_seen, expandable to show all matching entries.
     -   **AC**: Toggling preserves filters and scroll position.
     -   **Commit**: `feat(ui): grouped error view`
 
--   [ ] **7.3** `StackTracePanel` component
+-   [x] **7.3** `StackTracePanel` component
 
     -   Expand/collapse per entry.
     -   Each frame: clickable copy-to-clipboard of file:line.
     -   **AC**: Click frame → clipboard contains exact `path/to/file.php:123`.
     -   **Commit**: `feat(ui): stack trace panel with copy`
 
--   [ ] **7.4** Tail mode
+-   [x] **7.4** Tail mode
 
     -   Toggle in toolbar; when active, polls `/logs?since=<last_byte>` every `tail_interval` seconds.
     -   Auto-scrolls to bottom unless user has scrolled up (then shows "N new" pill).
     -   **AC**: Appending a line to `debug.log` appears in the viewer within `tail_interval` seconds.
     -   **Commit**: `feat(ui): tail mode with polling`
 
--   [ ] **7.5** 🏷️ **Release v0.7.0** — Filters, grouping, trace, tail
+-   [x] **7.5** 🏷️ **Release v0.7.0** — Filters, grouping, trace, tail
     -   **Commit**: `chore(release): v0.7.0`
+
+> Phase 7 complete on 2026-04-27.
 
 ---
 
