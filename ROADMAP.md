@@ -349,23 +349,23 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
 
 > Phases 9 (Alerts) and 10 (Cron scanner) are **deferred to post-1.0** (v1.1.0 and v1.2.0 — see below). Keeping phase numbers stable so existing references don't break.
 
--   [ ] **11.1** Loading skeletons, empty states, error toasts throughout
+-   [x] **11.1** Loading skeletons, empty states, error toasts throughout
 
     -   **Commit**: `feat(ui): loading skeletons, empty states, error toasts`
 
--   [ ] **11.2** Keyboard shortcuts: `/` focus filter, `g` toggle grouped, `t` toggle tail, `?` help modal
+-   [x] **11.2** Keyboard shortcuts: `/` focus filter, `g` toggle grouped, `t` toggle tail, `?` help modal
 
     -   **Commit**: `feat(ui): keyboard shortcuts`
 
--   [ ] **11.3** Full accessibility pass: axe-core clean, keyboard nav for all interactive elements, `aria-live` for tail updates
+-   [x] **11.3** Full accessibility pass: axe-core clean, keyboard nav for all interactive elements, `aria-live` for tail updates
 
     -   **Commit**: `feat(ui): accessibility pass`
 
--   [ ] **11.4** Dark mode parity (WP admin dark mode extensions — respect `prefers-color-scheme` + WP admin schemes)
+-   [x] **11.4** Dark mode parity (WP admin dark mode extensions — respect `prefers-color-scheme` + WP admin schemes)
 
     -   **Commit**: `feat(ui): dark mode parity`
 
--   [ ] **11.5** i18n pass: every user-facing string wrapped, generate `languages/logscope.pot` via `wp i18n make-pot`
+-   [x] **11.5** i18n pass: every user-facing string wrapped, generate `languages/logscope.pot` via `wp i18n make-pot`
 
     -   **Commit**: `feat(i18n): wrap strings and generate .pot`
 

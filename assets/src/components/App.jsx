@@ -7,14 +7,26 @@
  * tab once — a back/forward navigation that mutates `location.hash`
  * wouldn't repaint. The store is the single source of truth; the URL
  * hash mirrors it via a one-way listener so the back button works.
+ *
+ * The toast host and the global keyboard shortcuts (Phase 11) live here
+ * so they apply across both tabs. The shortcut handlers route through
+ * `LogscopeShortcutBus` (a window-level event emitter) — the LogViewer
+ * subscribes to the focus-search and toggle events so they remain a
+ * concern of the component that owns the affected DOM, while keeping
+ * the global key listener (which has to live above the tab switch) free
+ * of knowledge about specific refs.
  */
-import { useEffect } from '@wordpress/element';
+import { useCallback, useEffect, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
+import { Button } from '@wordpress/components';
 
 import { STORE_KEY } from '../store';
 import LogViewer from './LogViewer';
 import SettingsPanel from './SettingsPanel';
+import ToastHost from './ToastHost';
+import HelpModal from './HelpModal';
+import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
 
 const TABS = [
 	{ name: 'logs', title: __( 'Logs', 'logscope' ) },
@@ -22,6 +34,8 @@ const TABS = [
 ];
 
 const VALID_TAB_NAMES = TABS.map( ( tab ) => tab.name );
+
+export const SHORTCUT_EVENT = 'logscope:shortcut';
 
 function readTabFromHash() {
 	if ( typeof window === 'undefined' ) {
@@ -31,16 +45,21 @@ function readTabFromHash() {
 	return VALID_TAB_NAMES.includes( raw ) ? raw : 'logs';
 }
 
+function emitShortcut( name ) {
+	if ( typeof window === 'undefined' ) {
+		return;
+	}
+	window.dispatchEvent( new CustomEvent( SHORTCUT_EVENT, { detail: name } ) );
+}
+
 export default function App() {
 	const activeTab = useSelect(
 		( select ) => select( STORE_KEY ).getActiveTab(),
 		[]
 	);
 	const { setActiveTab } = useDispatch( STORE_KEY );
+	const [ helpOpen, setHelpOpen ] = useState( false );
 
-	// Hash → store, one direction. Click handlers below set the hash
-	// only; this listener turns every hash change (click, back button,
-	// manual edit) into a single store dispatch.
 	useEffect( () => {
 		const sync = () => setActiveTab( readTabFromHash() );
 		sync();
@@ -53,13 +72,36 @@ export default function App() {
 			return;
 		}
 		if ( window.location.hash.replace( /^#/, '' ) === tabName ) {
-			// No hashchange will fire — dispatch directly so a re-click
-			// of the active tab is still a no-op rather than a stale read.
 			setActiveTab( tabName );
 			return;
 		}
 		window.location.hash = tabName;
 	};
+
+	// Shortcuts that target the Logs view ensure the tab is active first
+	// — pressing `g` or `t` from the Settings tab should still do the
+	// expected thing, not silently drop the keystroke.
+	const ensureLogsTab = useCallback( () => {
+		if ( activeTab !== 'logs' ) {
+			handleSelect( 'logs' );
+		}
+	}, [ activeTab ] );
+
+	useKeyboardShortcuts( {
+		onFocusSearch: useCallback( () => {
+			ensureLogsTab();
+			emitShortcut( 'focus-search' );
+		}, [ ensureLogsTab ] ),
+		onToggleGrouped: useCallback( () => {
+			ensureLogsTab();
+			emitShortcut( 'toggle-grouped' );
+		}, [ ensureLogsTab ] ),
+		onToggleTail: useCallback( () => {
+			ensureLogsTab();
+			emitShortcut( 'toggle-tail' );
+		}, [ ensureLogsTab ] ),
+		onShowHelp: useCallback( () => setHelpOpen( true ), [] ),
+	} );
 
 	return (
 		<div className="logscope-app">
@@ -76,6 +118,7 @@ export default function App() {
 							type="button"
 							role="tab"
 							aria-selected={ isActive }
+							tabIndex={ isActive ? 0 : -1 }
 							className={
 								'logscope-tabs__tab' +
 								( isActive
@@ -88,6 +131,15 @@ export default function App() {
 						</button>
 					);
 				} ) }
+				<span style={ { flex: 1 } } />
+				<Button
+					variant="tertiary"
+					size="small"
+					onClick={ () => setHelpOpen( true ) }
+					aria-label={ __( 'Keyboard shortcuts', 'logscope' ) }
+				>
+					{ __( 'Shortcuts (?)', 'logscope' ) }
+				</Button>
 			</div>
 			<div
 				className="logscope-tabs__panel"
@@ -96,6 +148,8 @@ export default function App() {
 			>
 				<TabContent name={ activeTab } />
 			</div>
+			<ToastHost />
+			{ helpOpen && <HelpModal onClose={ () => setHelpOpen( false ) } /> }
 		</div>
 	);
 }

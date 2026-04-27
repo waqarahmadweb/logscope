@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useRef } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf, _n } from '@wordpress/i18n';
-import { Button, Spinner } from '@wordpress/components';
+import { Button } from '@wordpress/components';
 import { List, useListRef } from 'react-window';
 
 import { STORE_KEY } from '../../store';
@@ -22,6 +22,8 @@ import EntryRow, { entryKey, rowHeightFor, ROW_HEIGHT_BASE } from '../EntryRow';
 import EmptyState from '../EmptyState';
 import FilterBar from '../FilterBar';
 import GroupedView from '../GroupedView';
+import { ListSkeleton } from '../Skeleton';
+import { SHORTCUT_EVENT } from '../App';
 import useUrlQuerySync from '../../hooks/useUrlQuerySync';
 import useTailPolling from '../../hooks/useTailPolling';
 import buildFilterParams from '../../utils/filterParams';
@@ -58,6 +60,29 @@ export default function LogViewer() {
 	useEffect( () => {
 		fetchLogs( buildQueryParams( filters, viewMode ) );
 	}, [ fetchLogs, viewMode, filters ] );
+
+	// Subscribe to global keyboard shortcut events from App. Toggle handlers
+	// live in this component because they own the state setters; the focus-
+	// search event is handled inside FilterBar where the input ref lives.
+	useEffect( () => {
+		if ( typeof window === 'undefined' ) {
+			return undefined;
+		}
+		const handler = ( event ) => {
+			if ( event.detail === 'toggle-grouped' ) {
+				setViewMode( viewMode === 'grouped' ? 'list' : 'grouped' );
+				return;
+			}
+			if ( event.detail === 'toggle-tail' ) {
+				if ( ! isTailing && viewMode === 'grouped' ) {
+					setViewMode( 'list' );
+				}
+				setTailActive( ! isTailing );
+			}
+		};
+		window.addEventListener( SHORTCUT_EVENT, handler );
+		return () => window.removeEventListener( SHORTCUT_EVENT, handler );
+	}, [ viewMode, isTailing, setViewMode, setTailActive ] );
 
 	const handleSetMode = ( mode ) => {
 		if ( mode !== viewMode ) {
@@ -119,18 +144,15 @@ export default function LogViewer() {
 				isLoading={ isLoading }
 				error={ error }
 				viewMode={ viewMode }
+				filters={ filters }
 			/>
 		</div>
 	);
 }
 
-function ViewerBody( { items, isLoading, error, viewMode } ) {
+function ViewerBody( { items, isLoading, error, viewMode, filters } ) {
 	if ( isLoading && items.length === 0 ) {
-		return (
-			<div className="logscope-viewer logscope-viewer--loading">
-				<Spinner />
-			</div>
-		);
+		return <ListSkeleton />;
 	}
 
 	if ( error && items.length === 0 ) {
@@ -138,7 +160,17 @@ function ViewerBody( { items, isLoading, error, viewMode } ) {
 	}
 
 	if ( items.length === 0 ) {
-		return <EmptyState />;
+		// `filtersActive` flips the copy from "log is empty" to "your
+		// filters excluded everything" so a user staring at an empty list
+		// after a typo in the regex sees an actionable hint.
+		const filtersActive = !! (
+			filters?.q ||
+			filters?.from ||
+			filters?.to ||
+			filters?.source ||
+			( filters?.severity && filters.severity.length > 0 )
+		);
+		return <EmptyState filtersActive={ filtersActive } />;
 	}
 
 	if ( viewMode === 'grouped' ) {
