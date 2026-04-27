@@ -1,6 +1,6 @@
 {
 	"name": "logscope",
-	"version": "0.4.0",
+	"version": "0.6.0",
 	"description": "Stream, filter, and group your WordPress debug log without leaving wp-admin.",
 	"license": "GPL-2.0-or-later",
 	"private": true,
@@ -22,7 +22,8 @@
 		"@wordpress/data": "^10.0.0",
 		"@wordpress/i18n": "^5.0.0",
 		"react": "^18.3.0",
-		"react-dom": "^18.3.0"
+		"react-dom": "^18.3.0",
+		"react-window": "^2.2.7"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.2.0",
