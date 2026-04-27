@@ -277,8 +277,10 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
     -   **AC**: Renders 5000-entry fixture smoothly (no jank at 60fps when scrolling).
     -   **Commit**: `feat(ui): virtualized log viewer`
 
--   [ ] **6.5** 🏷️ **Release v0.6.0** — Admin page + React viewer shell
+-   [x] **6.5** 🏷️ **Release v0.6.0** — Admin page + React viewer shell
     -   **Commit**: `chore(release): v0.6.0`
+
+> Phase 6 complete on 2026-04-27.
 
 ---
 

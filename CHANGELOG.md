@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-04-27
+
+Closes Phase 6 of the [roadmap](ROADMAP.md): the admin page + React viewer shell. Logscope is now a visible feature in wp-admin — **Tools → Logscope** renders a React app gated by `logscope_manage`, served by a screen-scoped asset pipeline and a `@wordpress/data` store consuming the Phase-4/5 REST surface. Filters, grouping, trace expansion, and tail mode arrive in Phase 7; the settings UI lands in Phase 8.
+
 ### Added
 
 -   `LogViewer`, `EntryRow`, `EmptyState` React components — the Logs tab now renders a virtualized list of debug-log entries fetched from `GET /logs`. Virtualization is `react-window` v2's `<List>` (added as a dep — ~6 KB gz, far less risk than a hand-rolled virtualizer); the rendered DOM is bounded by viewport height regardless of result-set size. Row height is fixed at 48px for the Phase 6 shell — variable heights would push trace expansion into a second virtualizer and double the per-row measure cost; we'll revisit if 7.3 reveals a UX problem with the truncated message. `EntryRow` renders a severity pill (mapped to fatal/warning/notice/deprecated/unknown tones), the WP timestamp, the truncated message, and a small `⋯` indicator on entries that carry a stack trace; the actual trace expansion is intentionally deferred to `StackTracePanel` in step 7.3 because per-row React state is lost when react-window recycles the row component on scroll, so the right home for the expanded/collapsed map is a parent-owned dictionary keyed by signature. `EmptyState` distinguishes a fresh-install zero-results screen from a fetch-failure error screen, so an admin sees a different cue when the network blew up versus when the log is genuinely empty. `LogViewer` dispatches `fetchLogs` on mount and renders a `Spinner` only on the first load (subsequent refreshes show the existing list with `aria-busy=true` so the user isn't punished for refetching). Bundle weight grew from 3.26 KiB to 14 KiB on this step (`react-window` + the three new components). The 5k-entry smoke test the AC calls for has not been run yet — it requires a live WP install to exercise; deferring to the human-eyes pass before the v0.6.0 tag in 6.5.
@@ -76,7 +80,8 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/waqarahmadweb/logscope/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/waqarahmadweb/logscope/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/waqarahmadweb/logscope/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/waqarahmadweb/logscope/compare/v0.2.0...v0.3.0
