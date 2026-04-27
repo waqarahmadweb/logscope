@@ -260,7 +260,7 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
     -   **AC**: View source on Logscope page shows bundle; view source on Dashboard does not.
     -   **Commit**: `feat(admin): enqueue React bundle on plugin page only`
 
--   [ ] **6.3** React app skeleton (`assets/src/index.js`, `App.jsx`)
+-   [x] **6.3** React app skeleton (`assets/src/index.js`, `App.jsx`)
 
     -   Mounts into `#logscope-root`.
     -   `@wordpress/data` store registered at `logscope/core`.
