@@ -14,6 +14,7 @@ import { __ } from '@wordpress/i18n';
 
 import { STORE_KEY } from '../store';
 import LogViewer from './LogViewer';
+import SettingsPanel from './SettingsPanel';
 
 const TABS = [
 	{ name: 'logs', title: __( 'Logs', 'logscope' ) },
@@ -104,11 +105,7 @@ function TabContent( { name } ) {
 		return <LogViewer />;
 	}
 	if ( name === 'settings' ) {
-		return (
-			<p className="logscope-placeholder">
-				{ __( 'Settings panel arrives in Phase 8.', 'logscope' ) }
-			</p>
-		);
+		return <SettingsPanel />;
 	}
 	return null;
 }

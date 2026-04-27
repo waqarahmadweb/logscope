@@ -1,6 +1,6 @@
 # Logscope
 
-> **Status:** `v0.7.0` — filters, grouping, stack-trace expansion, and tail mode. The Logs tab now ships a filter bar (severity multi-select, date range, debounced regex search, source dropdown — URL-mirrored), a list ↔ grouped view toggle backed by signature grouping, click-to-copy frame paths in expanded fatals, and a tail-mode toggle that polls `GET /logs?since=<last_byte>` on the admin-configured cadence with rotation-aware list reset and an "N new entries" pill when the user has scrolled away. Settings UI lands in Phase 8.
+> **Status:** `v0.8.0` — Settings UI + custom log path. The Settings tab now ships a real editor for `log_path` and `tail_interval`, with a side-effect-free "Test path" probe that runs `PathGuard` server-side and renders the verdict (resolved absolute path, allowed roots, rejection reason) inline. Polish, accessibility, and i18n land in Phase 11 before the v1.0.0-rc.1 cut.
 
 A free, GPL v2 WordPress plugin that streams, filters, and groups the WordPress debug log from inside wp-admin.
 
