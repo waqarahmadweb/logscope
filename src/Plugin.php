@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace Logscope;
 
 use Closure;
+use Logscope\Admin\Menu;
+use Logscope\Admin\PageRenderer;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
 use Logscope\REST\LogsController;
@@ -212,6 +214,23 @@ final class Plugin {
 				return new SettingsController( $settings );
 			}
 		);
+
+		$this->register(
+			'admin.page_renderer',
+			static function (): PageRenderer {
+				return new PageRenderer();
+			}
+		);
+
+		$this->register(
+			'admin.menu',
+			static function ( Plugin $plugin ): Menu {
+				$renderer = $plugin->get( 'admin.page_renderer' );
+				assert( $renderer instanceof PageRenderer );
+
+				return new Menu( $renderer );
+			}
+		);
 	}
 
 	/**
@@ -243,6 +262,26 @@ final class Plugin {
 	private function register_hooks(): void {
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
+	}
+
+	/**
+	 * Registers the Tools → Logscope submenu page on `admin_menu`. Wrapped
+	 * in `try/catch` for the same reason {@see Plugin::register_rest_routes()}
+	 * is: a constructor-time failure in the admin DI subgraph should not
+	 * abort menu registration for unrelated plugins. The breadcrumb goes
+	 * through the same `WP_DEBUG`-gated helper.
+	 *
+	 * @return void
+	 */
+	public function register_admin_menu(): void {
+		try {
+			$menu = $this->get( 'admin.menu' );
+			assert( $menu instanceof Menu );
+			$menu->register();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'admin_menu', $e );
+		}
 	}
 
 	/**

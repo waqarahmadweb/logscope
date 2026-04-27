@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+-   `Logscope\Admin\Menu` and `Logscope\Admin\PageRenderer` — register the **Tools → Logscope** submenu (slug `logscope`) gated by the `logscope_manage` capability (resolved through `Capabilities::required()` so the `logscope/required_capability` filter still applies). The renderer outputs the wp-admin `<div class="wrap">` shell with a translated `<h1>Logscope</h1>` and a single mount node (`<div id="logscope-root">`) the React app will hydrate in step 6.3 — kept intentionally bare so a JS bundle failure surfaces as a visibly empty page rather than a half-rendered hybrid. `PageRenderer::ROOT_ELEMENT_ID` is the canonical contract between PHP and the React entry. `Plugin` registers `admin.page_renderer` + `admin.menu` services and wires `register_admin_menu()` on `admin_menu`, wrapped in the same `Throwable` trap as `register_rest_routes()` so a DI-graph failure routes through the `WP_DEBUG`-gated breadcrumb instead of aborting menu registration for unrelated plugins. Unit tests cover the `add_submenu_page` invocation shape, the filter override path, the `false` return defensiveness, and the renderer markup contract.
+
 ## [0.5.0] - 2026-04-27
 
 Closes Phases 4 and 5 of the [roadmap](ROADMAP.md): the REST surface React will consume in Phase 6 (`GET/DELETE /logs`, `GET /logs/download`, `GET/POST /settings`) plus the schema-driven settings backend. The `RestController` abstract base centralises capability + authentication enforcement so every Logscope route inherits a uniform 401/403 contract; the `Plugin` DI graph wires `path_guard` → `log_source` → `log_repository` → controllers and registers logs and settings routes in independent `try/catch` blocks so a misconfiguration in one cannot abort `rest_api_init` for the other or for unrelated plugins. Still no user-visible features — the React admin page lands in Phase 6.

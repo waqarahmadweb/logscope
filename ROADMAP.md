@@ -245,7 +245,7 @@ Goal: React can fetch everything it needs via `/wp-json/logscope/v1/*`.
 
 Goal: A mount point under **Tools → Logscope** that renders the log viewer.
 
--   [ ] **6.1** `src/Admin/Menu.php` + `PageRenderer.php`
+-   [x] **6.1** `src/Admin/Menu.php` + `PageRenderer.php`
 
     -   Registers submenu under `tools.php`, capability `logscope_manage`.
     -   Renders `<div id="logscope-root"></div>`.
