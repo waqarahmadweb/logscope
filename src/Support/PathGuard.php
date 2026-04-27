@@ -151,6 +151,38 @@ final class PathGuard {
 	}
 
 	/**
+	 * True when `$raw_path`'s parent directory resolves successfully and
+	 * is writable by the PHP process. Used by callers that need to write
+	 * a sibling of an existing file (log clear's soft-delete rename, the
+	 * future "Test path" settings probe) without the file itself
+	 * necessarily existing yet.
+	 *
+	 * @param string $raw_path Untrusted path whose parent directory we test.
+	 * @return bool
+	 */
+	public function is_writable_parent_of( string $raw_path ): bool {
+		if ( '' === $raw_path || false !== strpos( $raw_path, "\0" ) ) {
+			return false;
+		}
+
+		$parent = dirname( $raw_path );
+		if ( '' === $parent || '.' === $parent ) {
+			return false;
+		}
+
+		try {
+			$resolved_parent = $this->resolve( $parent );
+		} catch ( InvalidPathException $e ) {
+			return false;
+		}
+
+		// PathGuard is the filesystem-boundary validator; WP_Filesystem is
+		// the wrong tool here because we are answering "can the PHP process
+		// write to this parent directory?" rather than performing a write.
+		return is_writable( $resolved_parent ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
+	}
+
+	/**
 	 * Returns the configured allowlist roots (post-canonicalisation).
 	 *
 	 * Exposed for diagnostic surfaces such as the future "Test path"

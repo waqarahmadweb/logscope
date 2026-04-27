@@ -173,7 +173,13 @@ final class Plugin {
 				$repo = $plugin->get( 'log_repository' );
 				assert( $repo instanceof LogRepository );
 
-				return new LogsController( $repo );
+				$source = $plugin->get( 'log_source' );
+				assert( $source instanceof FileLogSource );
+
+				$guard = $plugin->get( 'path_guard' );
+				assert( $guard instanceof PathGuard );
+
+				return new LogsController( $repo, $source, $guard );
 			}
 		);
 	}

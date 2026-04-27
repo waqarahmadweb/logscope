@@ -47,7 +47,7 @@ final class LogsControllerTest extends TestCase {
 
 		$guard            = new PathGuard( array( $this->root ) );
 		$source           = new FileLogSource( $this->log_path, $guard );
-		$this->controller = new LogsController( new LogRepository( $source ) );
+		$this->controller = new LogsController( new LogRepository( $source ), $source, $guard );
 	}
 
 	protected function tearDown(): void {
@@ -175,23 +175,121 @@ final class LogsControllerTest extends TestCase {
 	}
 
 	public function test_register_routes_calls_register_rest_route_with_namespace_and_path(): void {
+		$collection_routes = null;
+		$download_routes   = null;
+
 		Functions\expect( 'register_rest_route' )
-			->once()
+			->twice()
 			->with(
 				LogsController::REST_NAMESPACE,
-				LogsController::ROUTE,
-				\Mockery::on(
-					function ( $routes ) {
-						$this->assertIsArray( $routes );
-						$this->assertSame( 'GET', $routes[0]['methods'] );
-						$this->assertIsArray( $routes[0]['args'] );
-						$this->assertArrayHasKey( 'page', $routes[0]['args'] );
-						return true;
+				\Mockery::type( 'string' ),
+				\Mockery::type( 'array' )
+			)
+			->andReturnUsing(
+				function ( string $ns, string $route, array $config ) use ( &$collection_routes, &$download_routes ) {
+					if ( LogsController::ROUTE === $route ) {
+						$collection_routes = $config;
+					} elseif ( LogsController::ROUTE_DOWNLOAD === $route ) {
+						$download_routes = $config;
 					}
-				)
+					return true;
+				}
 			);
 
 		$this->controller->register_routes();
+
+		$this->assertIsArray( $collection_routes );
+		$methods = array_map(
+			static function ( array $route ): string {
+				return $route['methods'];
+			},
+			$collection_routes
+		);
+		$this->assertContains( 'GET', $methods );
+		$this->assertContains( 'DELETE', $methods );
+
+		$this->assertIsArray( $download_routes );
+		$this->assertSame( 'GET', $download_routes[0]['methods'] );
+	}
+
+	public function test_clear_without_confirm_returns_400(): void {
+		file_put_contents( $this->log_path, "[27-Apr-2026 12:00:00 UTC] PHP Notice:  ok in /a.php on line 1\n" );
+
+		$request = new WP_REST_Request();
+		$result  = $this->controller->handle_clear( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'logscope_rest_confirmation_required', $result->get_error_code() );
+		$this->assertSame( 400, $result->get_error_data()['status'] );
+
+		$this->assertFileExists( $this->log_path );
+	}
+
+	public function test_clear_when_log_missing_returns_404(): void {
+		$request = new WP_REST_Request( array( 'confirm' => true ) );
+		$result  = $this->controller->handle_clear( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'logscope_rest_log_missing', $result->get_error_code() );
+		$this->assertSame( 404, $result->get_error_data()['status'] );
+	}
+
+	public function test_clear_renames_log_to_archived_filename(): void {
+		file_put_contents( $this->log_path, "[27-Apr-2026 12:00:00 UTC] PHP Notice:  ok in /a.php on line 1\n" );
+
+		$request  = new WP_REST_Request( array( 'confirm' => true ) );
+		$response = $this->controller->handle_clear( $request );
+
+		self::assertInstanceOf( WP_REST_Response::class, $response );
+		$body = $response->get_data();
+
+		$this->assertTrue( $body['cleared'] );
+		$this->assertMatchesRegularExpression(
+			'/^debug\.log\.cleared-\d{8}-\d{6}$/',
+			$body['archived_as']
+		);
+
+		$this->assertFileDoesNotExist( $this->log_path );
+		$this->assertFileExists( $this->root . DIRECTORY_SEPARATOR . $body['archived_as'] );
+	}
+
+	public function test_archive_path_for_appends_cleared_suffix(): void {
+		$path = LogsController::archive_path_for( '/var/log/debug.log', '20260427-123456' );
+
+		$this->assertSame( '/var/log/debug.log.cleared-20260427-123456', $path );
+	}
+
+	public function test_download_when_log_missing_returns_404(): void {
+		$request = new WP_REST_Request();
+		$result  = $this->controller->handle_download( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'logscope_rest_log_missing', $result->get_error_code() );
+		$this->assertSame( 404, $result->get_error_data()['status'] );
+	}
+
+	public function test_download_headers_for_returns_attachment_headers(): void {
+		$headers = LogsController::download_headers_for( '/var/log/debug.log', 1234 );
+
+		$this->assertSame( 'text/plain; charset=utf-8', $headers['Content-Type'] );
+		$this->assertSame( 'attachment; filename="debug.log"', $headers['Content-Disposition'] );
+		$this->assertSame( 'nosniff', $headers['X-Content-Type-Options'] );
+		$this->assertSame( '1234', $headers['Content-Length'] );
+		$this->assertStringContainsString( 'no-store', $headers['Cache-Control'] );
+	}
+
+	public function test_download_streams_file_contents(): void {
+		$body = "log line 1\nlog line 2\n";
+		file_put_contents( $this->log_path, $body );
+
+		$request = new WP_REST_Request( array( '_logscope_skip_exit_for_tests' => true ) );
+
+		ob_start();
+		$result = $this->controller->handle_download( $request );
+		$output = ob_get_clean();
+
+		$this->assertNull( $result );
+		$this->assertSame( $body, $output );
 	}
 
 	private function rrmdir( string $dir ): void {

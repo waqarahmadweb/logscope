@@ -10,12 +10,14 @@ declare(strict_types=1);
 namespace Logscope\REST;
 
 use Logscope\Log\Entry;
+use Logscope\Log\FileLogSource;
 use Logscope\Log\Group;
 use Logscope\Log\LogQuery;
 use Logscope\Log\LogQueryException;
 use Logscope\Log\LogRepository;
 use Logscope\Log\PagedResult;
 use Logscope\Log\Severity;
+use Logscope\Support\PathGuard;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -31,12 +33,19 @@ use WP_REST_Response;
  */
 final class LogsController extends RestController {
 
-	public const ROUTE = '/logs';
+	public const ROUTE          = '/logs';
+	public const ROUTE_DOWNLOAD = '/logs/download';
 
 	/**
 	 * Default page size when the caller does not supply `per_page`.
 	 */
 	public const DEFAULT_PER_PAGE = 50;
+
+	/**
+	 * Soft-delete suffix template used to archive `debug.log` on clear.
+	 * `gmdate( 'Ymd-His' )` is interpolated at call time.
+	 */
+	private const CLEAR_SUFFIX_FORMAT = '.cleared-%s';
 
 	/**
 	 * Repository the controller queries.
@@ -46,14 +55,36 @@ final class LogsController extends RestController {
 	private LogRepository $repository;
 
 	/**
-	 * Builds the controller around a ready-to-query repository. The
-	 * repository encapsulates path resolution and parser wiring; the
-	 * controller stays free of filesystem concerns.
+	 * Underlying log source — used by clear and download to reach the
+	 * resolved file path without re-running PathGuard validation.
+	 *
+	 * @var FileLogSource
+	 */
+	private FileLogSource $source;
+
+	/**
+	 * Path validator scoped to the same allowlist the source was built
+	 * against. The clear route uses it to confirm the parent directory
+	 * is writable before attempting the rename.
+	 *
+	 * @var PathGuard
+	 */
+	private PathGuard $guard;
+
+	/**
+	 * Builds the controller around a ready-to-query repository, the file
+	 * source it wraps (clear and download read the raw path from it),
+	 * and the path guard scoped to the same allowlist (used to confirm
+	 * the parent directory is writable before the soft-delete rename).
 	 *
 	 * @param LogRepository $repository Configured repository.
+	 * @param FileLogSource $source     Source the repository wraps.
+	 * @param PathGuard     $guard      Validator for parent-writable check.
 	 */
-	public function __construct( LogRepository $repository ) {
+	public function __construct( LogRepository $repository, FileLogSource $source, PathGuard $guard ) {
 		$this->repository = $repository;
+		$this->source     = $source;
+		$this->guard      = $guard;
 	}
 
 	/**
@@ -75,7 +106,40 @@ final class LogsController extends RestController {
 					'permission_callback' => array( $this, 'permission_callback' ),
 					'args'                => $this->index_args(),
 				),
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => array( $this, 'handle_clear' ),
+					'permission_callback' => array( $this, 'permission_callback' ),
+					'args'                => $this->clear_args(),
+				),
 			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			self::ROUTE_DOWNLOAD,
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'handle_download' ),
+					'permission_callback' => array( $this, 'permission_callback' ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Returns the args schema for `DELETE /logs`. Public so tests can
+	 * assert against it without dispatching through core.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	public function clear_args(): array {
+		return array(
+			'confirm' => array(
+				'type'    => 'boolean',
+				'default' => false,
+			),
 		);
 	}
 
@@ -147,6 +211,140 @@ final class LogsController extends RestController {
 		$response->header( 'X-WP-TotalPages', (string) $result->total_pages );
 
 		return $response;
+	}
+
+	/**
+	 * `DELETE /logs` handler. Soft-deletes the active log by renaming it
+	 * to `<basename>.cleared-YYYYMMDD-HHMMSS`, preserving the file for
+	 * post-mortem inspection while immediately freeing the live log path
+	 * for new writes. The destructive verb requires `?confirm=true` so a
+	 * mistaken navigation cannot wipe the log; AGENTS.md §11 enshrines
+	 * the soft-delete decision.
+	 *
+	 * @param WP_REST_Request $request Incoming request.
+	 * @return WP_REST_Response|\WP_Error
+	 */
+	public function handle_clear( WP_REST_Request $request ) {
+		if ( true !== (bool) $request->get_param( 'confirm' ) ) {
+			return $this->error(
+				'logscope_rest_confirmation_required',
+				__( 'Pass confirm=true to clear the log.', 'logscope' ),
+				400
+			);
+		}
+
+		if ( ! $this->source->exists() ) {
+			return $this->error(
+				'logscope_rest_log_missing',
+				__( 'There is no log file to clear.', 'logscope' ),
+				404
+			);
+		}
+
+		$path = $this->source->path();
+		if ( ! $this->guard->is_writable_parent_of( $path ) ) {
+			return $this->error(
+				'logscope_rest_log_not_writable',
+				__( 'The log directory is not writable by the server.', 'logscope' ),
+				403
+			);
+		}
+
+		$archive_path = self::archive_path_for( $path, gmdate( 'Ymd-His' ) );
+
+		// PathGuard validated the parent directory; the suffix is built
+		// internally from gmdate() and the existing basename, so the
+		// rename target sits inside the same allowlisted directory and
+		// cannot be influenced by the request.
+		if ( ! @rename( $path, $archive_path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions
+			return $this->error(
+				'logscope_rest_clear_failed',
+				__( 'The log could not be archived.', 'logscope' ),
+				500
+			);
+		}
+
+		return new WP_REST_Response(
+			array(
+				'cleared'     => true,
+				'archived_as' => basename( $archive_path ),
+			)
+		);
+	}
+
+	/**
+	 * `GET /logs/download` handler. Streams the active log with
+	 * attachment headers so browsers prompt a save dialog. The body is
+	 * the raw file rather than a JSON wrapper, so we send headers
+	 * directly and `exit` after `readfile()` to bypass core's REST
+	 * response serialiser. `_logscope_skip_exit_for_tests` is honoured
+	 * as a single-use parameter so the unit suite can drive the handler
+	 * past the streaming step without halting PHPUnit.
+	 *
+	 * @param WP_REST_Request $request Incoming request.
+	 * @return WP_REST_Response|\WP_Error|null
+	 */
+	public function handle_download( WP_REST_Request $request ) {
+		if ( ! $this->source->exists() ) {
+			return $this->error(
+				'logscope_rest_log_missing',
+				__( 'There is no log file to download.', 'logscope' ),
+				404
+			);
+		}
+
+		$path      = $this->source->path();
+		$size      = $this->source->size();
+		$test_mode = true === $request->get_param( '_logscope_skip_exit_for_tests' );
+
+		if ( ! $test_mode ) {
+			foreach ( self::download_headers_for( $path, $size ) as $name => $value ) {
+				header( $name . ': ' . $value );
+			}
+		}
+
+		// Streaming the file directly keeps memory bounded for large
+		// debug logs; readfile uses an internal 8KB buffer.
+		readfile( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
+
+		if ( $test_mode ) {
+			return null;
+		}
+
+		exit;
+	}
+
+	/**
+	 * Returns the response headers a download response should carry.
+	 * Kept static and pure so the unit suite can assert the contract
+	 * without invoking PHP's `header()`.
+	 *
+	 * @param string $path Resolved log path.
+	 * @param int    $size File size in bytes.
+	 * @return array<string, string>
+	 */
+	public static function download_headers_for( string $path, int $size ): array {
+		$filename = basename( $path );
+
+		return array(
+			'Content-Type'           => 'text/plain; charset=utf-8',
+			'Content-Disposition'    => sprintf( 'attachment; filename="%s"', $filename ),
+			'X-Content-Type-Options' => 'nosniff',
+			'Content-Length'         => (string) $size,
+			'Cache-Control'          => 'no-store, no-cache, must-revalidate, max-age=0',
+		);
+	}
+
+	/**
+	 * Builds the archive target for a soft-delete given the source path
+	 * and a UTC timestamp string. Pure helper, exposed for tests.
+	 *
+	 * @param string $path      Resolved log path.
+	 * @param string $timestamp UTC stamp in `Ymd-His` form.
+	 * @return string
+	 */
+	public static function archive_path_for( string $path, string $timestamp ): string {
+		return $path . sprintf( self::CLEAR_SUFFIX_FORMAT, $timestamp );
 	}
 
 	/**

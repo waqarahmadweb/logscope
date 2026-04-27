@@ -208,7 +208,7 @@ Goal: React can fetch everything it needs via `/wp-json/logscope/v1/*`.
     -   **AC**: Integration test hits the endpoint with a mock WP install and asserts shape + pagination.
     -   **Commit**: `feat(rest): add GET /logs endpoint`
 
--   [ ] **4.3** `LogsController` — `DELETE /logs` (Clear log) + `GET /logs/download`
+-   [x] **4.3** `LogsController` — `DELETE /logs` (Clear log) + `GET /logs/download`
     -   **Clear log default: soft-delete** (rename `debug.log` → `debug.log.cleared-YYYYMMDD-HHMMSS`). Resolves open question from AGENTS.md §11.
     -   Confirmation via `?confirm=true` query param required.
     -   Download streams the file with `Content-Disposition: attachment`.
