@@ -227,7 +227,7 @@ Goal: React can fetch everything it needs via `/wp-json/logscope/v1/*`.
     -   **AC**: Unit test — set invalid `tail_interval=0` → coerces to 1; unknown keys rejected.
     -   **Commit**: `feat(settings): add schema-driven settings`
 
--   [ ] **5.2** `src/REST/SettingsController.php` — `GET` + `POST /settings`
+-   [x] **5.2** `src/REST/SettingsController.php` — `GET` + `POST /settings`
 
     -   Uses `SettingsSchema` to validate incoming payload.
     -   Returns full settings shape on GET.

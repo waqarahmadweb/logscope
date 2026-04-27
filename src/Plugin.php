@@ -13,6 +13,7 @@ use Closure;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
 use Logscope\REST\LogsController;
+use Logscope\REST\SettingsController;
 use Logscope\Settings\Settings;
 use Logscope\Settings\SettingsSchema;
 use Logscope\Support\PathGuard;
@@ -201,6 +202,16 @@ final class Plugin {
 				return new LogsController( $repo, $source, $guard );
 			}
 		);
+
+		$this->register(
+			'rest.settings_controller',
+			static function ( Plugin $plugin ): SettingsController {
+				$settings = $plugin->get( 'settings' );
+				assert( $settings instanceof Settings );
+
+				return new SettingsController( $settings );
+			}
+		);
 	}
 
 	/**
@@ -247,12 +258,22 @@ final class Plugin {
 	public function register_rest_routes(): void {
 		try {
 			$logs = $this->get( 'rest.logs_controller' );
+			assert( $logs instanceof LogsController );
+			$logs->register_routes();
 		} catch ( Throwable $e ) {
-			return;
+			// Swallow so a misconfigured log path does not abort
+			// `rest_api_init` for other plugins. Settings routes still
+			// register independently below.
+			unset( $e );
 		}
 
-		assert( $logs instanceof LogsController );
-		$logs->register_routes();
+		try {
+			$settings = $this->get( 'rest.settings_controller' );
+			assert( $settings instanceof SettingsController );
+			$settings->register_routes();
+		} catch ( Throwable $e ) {
+			unset( $e );
+		}
 	}
 
 	/**
