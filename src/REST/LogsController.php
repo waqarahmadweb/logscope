@@ -417,6 +417,7 @@ final class LogsController extends RestController {
 			'per_page'    => $result->per_page,
 			'total_pages' => $result->total_pages,
 			'last_byte'   => $result->last_byte,
+			'rotated'     => $result->rotated,
 		);
 	}
 
@@ -481,14 +482,16 @@ final class LogsController extends RestController {
 	 * @return array<string, mixed>
 	 */
 	private function shape_entry( Entry $entry ): array {
-		// Frames are parsed lazily on serialise rather than at parse
-		// time: most entries are warnings/notices that have no trace
-		// and the regex sweep is wasted work. The cost only lands on
-		// rows that actually carry a trace, which are the rows the UI
-		// will expand.
+		// Only fatals and parse errors carry a stack trace in WP's
+		// debug-log format; running StackTraceParser over a notice or
+		// warning is a 50× wasted regex sweep on a typical noisy log.
+		// Gating here keeps the per-row cost off the warning-heavy
+		// majority while still emitting frames where the UI needs them.
 		$frames = array();
-		foreach ( StackTraceParser::parse( $entry->raw ) as $frame ) {
-			$frames[] = self::shape_frame( $frame );
+		if ( Severity::FATAL === $entry->severity || Severity::PARSE === $entry->severity ) {
+			foreach ( StackTraceParser::parse( $entry->raw ) as $frame ) {
+				$frames[] = self::shape_frame( $frame );
+			}
 		}
 
 		return array(

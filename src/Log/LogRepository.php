@@ -57,20 +57,31 @@ final class LogRepository {
 	 */
 	public function query( LogQuery $query ): PagedResult {
 		$last_byte = $this->source->exists() ? $this->source->size() : 0;
-		$entries   = $this->load_entries( $query->since_byte, $last_byte );
-		$entries   = $this->apply_filters( $entries, $query );
+
+		// File-shrink detection: if the caller's tail cursor is strictly
+		// past current EOF, the log was rotated or cleared between
+		// polls. We re-read the whole new file (subject to MAX_BYTES)
+		// and signal `rotated=true` so the client can replace its list
+		// rather than appending stale-cursor zero-length deltas.
+		$rotated = null !== $query->since_byte && $query->since_byte > $last_byte;
+		$since   = $rotated ? null : $query->since_byte;
+
+		$entries = $this->load_entries( $since, $last_byte );
+		$entries = $this->apply_filters( $entries, $query );
 
 		// Tail mode: skip grouping and pagination — the client wants
 		// every newly-appended entry in chronological order, smallest
 		// possible response so polling stays cheap.
 		if ( null !== $query->since_byte ) {
+			$count = count( $entries );
 			return new PagedResult(
 				$entries,
-				count( $entries ),
+				$count,
 				1,
-				count( $entries ),
+				max( 1, $count ),
 				1,
-				$last_byte
+				$last_byte,
+				$rotated
 			);
 		}
 

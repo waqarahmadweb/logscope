@@ -65,6 +65,16 @@ final class PagedResult {
 	public int $last_byte;
 
 	/**
+	 * True when the source was detected as rotated/cleared between two
+	 * tail polls — i.e. the caller's `since_byte` pointed past the
+	 * current EOF, meaning the file shrunk. The client treats this as a
+	 * baseline reset rather than a delta append.
+	 *
+	 * @var bool
+	 */
+	public bool $rotated;
+
+	/**
 	 * Builds a result page.
 	 *
 	 * @param Entry[]|Group[] $items       The page slice.
@@ -73,6 +83,7 @@ final class PagedResult {
 	 * @param int             $per_page    Items per page.
 	 * @param int             $total_pages Total pages.
 	 * @param int             $last_byte   Source size at read time.
+	 * @param bool            $rotated     Source detected rotated since last poll.
 	 */
 	public function __construct(
 		array $items,
@@ -80,7 +91,8 @@ final class PagedResult {
 		int $page,
 		int $per_page,
 		int $total_pages,
-		int $last_byte = 0
+		int $last_byte = 0,
+		bool $rotated = false
 	) {
 		$this->items       = $items;
 		$this->total       = $total;
@@ -88,5 +100,6 @@ final class PagedResult {
 		$this->per_page    = $per_page;
 		$this->total_pages = $total_pages;
 		$this->last_byte   = $last_byte;
+		$this->rotated     = $rotated;
 	}
 }

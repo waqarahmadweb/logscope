@@ -23,6 +23,7 @@
 import { createReduxStore, register } from '@wordpress/data';
 
 import { client } from '../api/client';
+import entryKey from '../utils/entryKey';
 import { readInitialQueryState } from '../hooks/useUrlQuerySync';
 
 export const STORE_KEY = 'logscope/core';
@@ -75,8 +76,8 @@ const actions = {
 	toggleGroupExpanded( signature ) {
 		return { type: 'TOGGLE_GROUP_EXPANDED', signature };
 	},
-	toggleTraceExpanded( entryKey ) {
-		return { type: 'TOGGLE_TRACE_EXPANDED', entryKey };
+	toggleTraceExpanded( key ) {
+		return { type: 'TOGGLE_TRACE_EXPANDED', key };
 	},
 	setScrollOffset( mode, offset ) {
 		return { type: 'SET_SCROLL_OFFSET', mode, offset };
@@ -84,12 +85,13 @@ const actions = {
 	setTailActive( active ) {
 		return { type: 'TAIL_SET_ACTIVE', active };
 	},
-	appendTailEntries( entries, lastByte, scrolledToBottom ) {
+	appendTailEntries( entries, lastByte, atTop, rotated = false ) {
 		return {
 			type: 'TAIL_APPEND_ENTRIES',
 			entries,
 			lastByte,
-			scrolledToBottom,
+			atTop,
+			rotated,
 		};
 	},
 	clearTailNewCount() {
@@ -122,11 +124,20 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 	switch ( action.type ) {
 		case 'SET_ACTIVE_TAB':
 			return { ...state, activeTab: action.tab };
-		case 'SET_VIEW_MODE':
+		case 'SET_VIEW_MODE': {
 			if ( state.viewMode === action.mode ) {
 				return state;
 			}
-			return { ...state, viewMode: action.mode };
+			// Tail polling appends raw entries — flipping to grouped
+			// while it's running would mutate state against a list the
+			// user can no longer see. Auto-stop instead of leaving the
+			// loop running invisibly.
+			const tail =
+				action.mode === 'grouped' && state.tail.active
+					? { ...state.tail, active: false, newCount: 0 }
+					: state.tail;
+			return { ...state, viewMode: action.mode, tail };
+		}
 		case 'SET_FILTERS':
 			return {
 				...state,
@@ -145,10 +156,10 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 		}
 		case 'TOGGLE_TRACE_EXPANDED': {
 			const next = { ...state.expandedTraces };
-			if ( next[ action.entryKey ] ) {
-				delete next[ action.entryKey ];
+			if ( next[ action.key ] ) {
+				delete next[ action.key ];
 			} else {
-				next[ action.entryKey ] = true;
+				next[ action.key ] = true;
 			}
 			return { ...state, expandedTraces: next };
 		}
@@ -163,21 +174,34 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 			};
 		case 'TAIL_APPEND_ENTRIES': {
 			const incoming = action.entries || [];
+			// Rotation: server detected the file shrunk, so the response
+			// is a fresh baseline, not a delta. Replace the list, drop
+			// the new-since-you-looked counter, prune expanded-trace
+			// keys whose entries are no longer visible.
+			if ( action.rotated ) {
+				const replacement = incoming.slice().reverse();
+				return {
+					...state,
+					logs: { ...state.logs, items: replacement },
+					expandedTraces: {},
+					tail: {
+						...state.tail,
+						lastByte: action.lastByte,
+						newCount: 0,
+					},
+				};
+			}
 			const items =
 				incoming.length > 0
 					? [ ...incoming.slice().reverse(), ...state.logs.items ]
 					: state.logs.items;
 			return {
 				...state,
-				logs: {
-					...state.logs,
-					items,
-					total: items.length,
-				},
+				logs: { ...state.logs, items },
 				tail: {
 					...state.tail,
 					lastByte: action.lastByte,
-					newCount: action.scrolledToBottom
+					newCount: action.atTop
 						? 0
 						: state.tail.newCount + incoming.length,
 				},
@@ -198,13 +222,34 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				...state,
 				logs: { ...state.logs, isLoading: true, error: null },
 			};
-		case 'LOGS_RECEIVED':
+		case 'LOGS_RECEIVED': {
+			const items = action.payload.items || [];
+			// A re-fetch replaces the list outright, so any expanded-
+			// trace keys whose entries are no longer present become
+			// dead weight that would grow without bound across a long
+			// admin session. Prune to the new keyset (entries carry
+			// `raw` directly; groups are unaffected since their
+			// expansion lives in `expandedGroups`).
+			const liveKeys = {};
+			items.forEach( ( item ) => {
+				const key = entryKey( item );
+				if ( key ) {
+					liveKeys[ key ] = true;
+				}
+			} );
+			const expandedTraces = {};
+			Object.keys( state.expandedTraces ).forEach( ( key ) => {
+				if ( liveKeys[ key ] ) {
+					expandedTraces[ key ] = true;
+				}
+			} );
 			return {
 				...state,
+				expandedTraces,
 				logs: {
 					...state.logs,
 					isLoading: false,
-					items: action.payload.items || [],
+					items,
 					total: action.payload.total || 0,
 					page: action.payload.page || 1,
 					perPage: action.payload.per_page || state.logs.perPage,
@@ -218,6 +263,7 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					newCount: 0,
 				},
 			};
+		}
 		case 'LOGS_FAILED':
 			return {
 				...state,
@@ -234,8 +280,7 @@ const selectors = {
 	getFilters: ( state ) => state.filters,
 	isGroupExpanded: ( state, signature ) =>
 		Boolean( state.expandedGroups[ signature ] ),
-	isTraceExpanded: ( state, entryKey ) =>
-		Boolean( state.expandedTraces[ entryKey ] ),
+	isTraceExpanded: ( state, key ) => Boolean( state.expandedTraces[ key ] ),
 	getExpandedTraces: ( state ) => state.expandedTraces,
 	getScrollOffset: ( state, mode ) => state.scrollOffsets[ mode ] || 0,
 	isTailActive: ( state ) => state.tail.active,

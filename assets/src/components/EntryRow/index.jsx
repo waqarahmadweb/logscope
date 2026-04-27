@@ -14,22 +14,10 @@ import { useDispatch, useSelect } from '@wordpress/data';
 
 import { STORE_KEY } from '../../store';
 import { severityLabel, severityTone } from '../../utils/severity';
+import entryKey from '../../utils/entryKey';
 import StackTracePanel from '../StackTracePanel';
 
-export function entryKey( entry ) {
-	if ( ! entry ) {
-		return '';
-	}
-	if ( entry.raw ) {
-		return entry.raw;
-	}
-	return [
-		entry.timestamp || '',
-		entry.file || '',
-		entry.line || '',
-		entry.message || '',
-	].join( '|' );
-}
+export { entryKey };
 
 export const ROW_HEIGHT_BASE = 48;
 export const ROW_HEIGHT_FRAME = 28;

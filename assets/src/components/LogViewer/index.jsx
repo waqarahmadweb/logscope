@@ -24,22 +24,15 @@ import FilterBar from '../FilterBar';
 import GroupedView from '../GroupedView';
 import useUrlQuerySync from '../../hooks/useUrlQuerySync';
 import useTailPolling from '../../hooks/useTailPolling';
+import buildFilterParams from '../../utils/filterParams';
 
 const LIST_HEIGHT = 600;
 
 function buildQueryParams( filters, viewMode ) {
-	const params = { page: 1 };
+	const params = { page: 1, ...buildFilterParams( filters ) };
 	if ( viewMode === 'grouped' ) {
 		params.grouped = true;
 	}
-	if ( filters.severity.length > 0 ) {
-		params.severity = filters.severity.join( ',' );
-	}
-	[ 'from', 'to', 'q', 'source' ].forEach( ( key ) => {
-		if ( filters[ key ] ) {
-			params[ key ] = filters[ key ];
-		}
-	} );
 	return params;
 }
 
@@ -73,8 +66,12 @@ export default function LogViewer() {
 	};
 
 	const handleToggleTail = () => {
-		// Tail polling appends raw entries — switch out of grouped mode so
-		// the appended rows have somewhere to land.
+		// Tail polling appends raw entries — switch out of grouped
+		// mode on activation so the appended rows have somewhere to
+		// land. The reverse case (mode flipped to grouped while tail
+		// is active) is handled in the SET_VIEW_MODE reducer, which
+		// auto-stops tail rather than leaving the loop running
+		// invisibly.
 		if ( ! isTailing && viewMode === 'grouped' ) {
 			setViewMode( 'list' );
 		}

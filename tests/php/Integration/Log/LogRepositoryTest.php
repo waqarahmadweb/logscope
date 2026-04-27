@@ -204,6 +204,85 @@ final class LogRepositoryTest extends TestCase {
 		);
 	}
 
+	public function test_tail_since_zero_returns_all_entries_with_last_byte(): void {
+		$lines    = array(
+			'[27-Apr-2026 12:00:00 UTC] PHP Notice:  one in /var/www/x.php on line 1',
+			'[27-Apr-2026 12:00:01 UTC] PHP Notice:  two in /var/www/x.php on line 1',
+		);
+		$contents = implode( "\n", $lines ) . "\n";
+		$this->write_log( $contents );
+
+		$query  = new LogQuery( null, null, null, null, null, false, 1, 50, 0 );
+		$result = $this->repo->query( $query );
+
+		$this->assertCount( 2, $result->items );
+		$this->assertSame( strlen( $contents ), $result->last_byte );
+		$this->assertFalse( $result->rotated );
+		// Tail mode skips the newest-first reversal and returns entries
+		// in chronological (file) order so the client can prepend them.
+		$this->assertStringContainsString( 'one', $result->items[0]->message );
+		$this->assertStringContainsString( 'two', $result->items[1]->message );
+	}
+
+	public function test_tail_since_mid_file_returns_only_new_entries(): void {
+		$first = "[27-Apr-2026 12:00:00 UTC] PHP Notice:  one in /var/www/x.php on line 1\n";
+		$this->write_log( $first );
+		$mid = strlen( $first );
+
+		$second = "[27-Apr-2026 12:00:01 UTC] PHP Notice:  two in /var/www/x.php on line 1\n";
+		file_put_contents( $this->log_path, $second, FILE_APPEND );
+
+		$query  = new LogQuery( null, null, null, null, null, false, 1, 50, $mid );
+		$result = $this->repo->query( $query );
+
+		$this->assertCount( 1, $result->items );
+		$this->assertStringContainsString( 'two', $result->items[0]->message );
+		$this->assertSame( $mid + strlen( $second ), $result->last_byte );
+		$this->assertFalse( $result->rotated );
+	}
+
+	public function test_tail_since_at_eof_returns_no_entries(): void {
+		$contents = "[27-Apr-2026 12:00:00 UTC] PHP Notice:  one in /var/www/x.php on line 1\n";
+		$this->write_log( $contents );
+		$size = strlen( $contents );
+
+		$query  = new LogQuery( null, null, null, null, null, false, 1, 50, $size );
+		$result = $this->repo->query( $query );
+
+		$this->assertSame( array(), $result->items );
+		$this->assertSame( $size, $result->last_byte );
+		$this->assertFalse( $result->rotated );
+	}
+
+	public function test_tail_since_past_eof_signals_rotation_and_returns_full_file(): void {
+		// Simulate a log rotation: the caller's cursor is way past the
+		// new file's EOF, so the repository should detect the file
+		// shrunk, signal `rotated=true`, and return the whole new file.
+		$rotated_contents = "[27-Apr-2026 13:00:00 UTC] PHP Notice:  fresh in /var/www/x.php on line 1\n";
+		$this->write_log( $rotated_contents );
+
+		$query  = new LogQuery( null, null, null, null, null, false, 1, 50, 50_000 );
+		$result = $this->repo->query( $query );
+
+		$this->assertTrue( $result->rotated );
+		$this->assertCount( 1, $result->items );
+		$this->assertStringContainsString( 'fresh', $result->items[0]->message );
+		$this->assertSame( strlen( $rotated_contents ), $result->last_byte );
+	}
+
+	public function test_non_tail_response_carries_last_byte_for_both_list_and_grouped(): void {
+		$contents = "[27-Apr-2026 12:00:00 UTC] PHP Notice:  one in /var/www/x.php on line 1\n";
+		$this->write_log( $contents );
+		$size = strlen( $contents );
+
+		$list_result = $this->repo->query( $this->query() );
+		$this->assertSame( $size, $list_result->last_byte );
+
+		$grouped_query  = new LogQuery( null, null, null, null, null, true, 1, 50 );
+		$grouped_result = $this->repo->query( $grouped_query );
+		$this->assertSame( $size, $grouped_result->last_byte );
+	}
+
 	public function test_ungrouped_results_are_newest_first(): void {
 		$lines = array(
 			'[27-Apr-2026 12:00:00 UTC] PHP Notice:  oldest in /var/www/x.php on line 1',

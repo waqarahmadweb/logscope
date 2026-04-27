@@ -206,7 +206,11 @@ final class LogQuery {
 			return null;
 		}
 
-		foreach ( array( 'Y-m-d H:i:s', 'Y-m-d' ) as $format ) {
+		// `Y-m-d` is intentionally suffixed with `|` so missing time
+		// components reset to 00:00:00 rather than inheriting the
+		// current time of day (PHP's createFromFormat default), which
+		// would make the date-range filter flaky after noon UTC.
+		foreach ( array( 'Y-m-d H:i:s', 'Y-m-d|' ) as $format ) {
 			$parsed = DateTimeImmutable::createFromFormat( $format, $value );
 			if ( false !== $parsed ) {
 				return $parsed;

@@ -105,6 +105,94 @@ final class LogsControllerTest extends TestCase {
 
 		$this->assertSame( '75', $headers['X-WP-Total'] );
 		$this->assertSame( '2', $headers['X-WP-TotalPages'] );
+
+		// Every entry carries a `frames` array even when empty (warnings,
+		// notices). Fatals on this fixture have no `Stack trace:` block,
+		// so the array is empty for them too.
+		foreach ( $body['items'] as $item ) {
+			$this->assertArrayHasKey( 'frames', $item );
+			$this->assertSame( array(), $item['frames'] );
+		}
+		$this->assertArrayHasKey( 'last_byte', $body );
+		$this->assertGreaterThan( 0, $body['last_byte'] );
+		$this->assertFalse( $body['rotated'] );
+	}
+
+	public function test_index_emits_frames_for_fatal_with_stack_trace(): void {
+		$contents = "[27-Apr-2026 12:00:00 UTC] PHP Fatal error:  boom in /var/www/a.php:10\n"
+			. "Stack trace:\n"
+			. "#0 /var/www/b.php(20): foo()\n"
+			. "#1 /var/www/c.php(30): bar()\n"
+			. "#2 {main}\n"
+			. "  thrown in /var/www/a.php on line 10\n";
+		file_put_contents( $this->log_path, $contents );
+
+		$response = $this->controller->handle_index( new WP_REST_Request( array() ) );
+		$body     = $response->get_data();
+
+		$this->assertCount( 1, $body['items'] );
+		$frames = $body['items'][0]['frames'];
+		$this->assertCount( 3, $frames );
+		$this->assertSame( '/var/www/b.php', $frames[0]['file'] );
+		$this->assertSame( 20, $frames[0]['line'] );
+		$this->assertSame( 'foo', $frames[0]['method'] );
+	}
+
+	public function test_index_skips_frame_parse_for_non_fatal_severities(): void {
+		// Notice rows would never carry a real PHP stack trace, but we
+		// inject one anyway to prove the gate skips parsing — keeping
+		// the per-row regex sweep off the warning-heavy majority.
+		$contents = "[27-Apr-2026 12:00:00 UTC] PHP Notice:  whatever in /var/www/a.php on line 1\n"
+			. "#0 /var/www/b.php(20): foo()\n";
+		file_put_contents( $this->log_path, $contents );
+
+		$response = $this->controller->handle_index( new WP_REST_Request( array() ) );
+		$body     = $response->get_data();
+
+		$this->assertSame( Severity::NOTICE, $body['items'][0]['severity'] );
+		$this->assertSame( array(), $body['items'][0]['frames'] );
+	}
+
+	public function test_index_with_since_returns_only_new_entries_and_advances_last_byte(): void {
+		$first = "[27-Apr-2026 12:00:00 UTC] PHP Notice:  one in /var/www/x.php on line 1\n";
+		file_put_contents( $this->log_path, $first );
+		$mid = strlen( $first );
+
+		$second = "[27-Apr-2026 12:00:01 UTC] PHP Notice:  two in /var/www/x.php on line 1\n";
+		file_put_contents( $this->log_path, $second, FILE_APPEND );
+
+		$response = $this->controller->handle_index( new WP_REST_Request( array( 'since' => $mid ) ) );
+		$body     = $response->get_data();
+
+		$this->assertCount( 1, $body['items'] );
+		$this->assertStringContainsString( 'two', $body['items'][0]['message'] );
+		$this->assertSame( $mid + strlen( $second ), $body['last_byte'] );
+		$this->assertFalse( $body['rotated'] );
+	}
+
+	public function test_index_with_since_past_eof_signals_rotation(): void {
+		$contents = "[27-Apr-2026 13:00:00 UTC] PHP Notice:  fresh in /var/www/x.php on line 1\n";
+		file_put_contents( $this->log_path, $contents );
+
+		$response = $this->controller->handle_index( new WP_REST_Request( array( 'since' => 50_000 ) ) );
+		$body     = $response->get_data();
+
+		$this->assertTrue( $body['rotated'] );
+		$this->assertCount( 1, $body['items'] );
+		$this->assertStringContainsString( 'fresh', $body['items'][0]['message'] );
+	}
+
+	public function test_index_grouped_response_carries_last_byte(): void {
+		$contents = "[27-Apr-2026 12:00:00 UTC] PHP Notice:  one in /var/www/x.php on line 1\n";
+		file_put_contents( $this->log_path, $contents );
+
+		$response = $this->controller->handle_index(
+			new WP_REST_Request( array( 'grouped' => true ) )
+		);
+		$body     = $response->get_data();
+
+		$this->assertArrayHasKey( 'last_byte', $body );
+		$this->assertSame( strlen( $contents ), $body['last_byte'] );
 	}
 
 	public function test_index_returns_groups_when_grouped_param_is_true(): void {
