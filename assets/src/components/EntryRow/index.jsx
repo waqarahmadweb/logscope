@@ -7,19 +7,11 @@
  * (react-window recycles row components as the viewport moves), so
  * trace expansion is intentionally deferred to {@link StackTracePanel}
  * in step 7.3 where it's lifted to a parent-owned map keyed by
- * signature. A bare row with a `has-trace` indicator is enough for
- * the Phase 6 shell.
+ * signature.
  */
 import { __ } from '@wordpress/i18n';
 
-const SEVERITY_TO_TONE = {
-	'Fatal error': 'fatal',
-	'Parse error': 'fatal',
-	Warning: 'warning',
-	Notice: 'notice',
-	Deprecated: 'deprecated',
-	'Strict Standards': 'deprecated',
-};
+import { severityLabel, severityTone } from '../../utils/severity';
 
 export default function EntryRow( { index, style, items } ) {
 	const entry = items[ index ];
@@ -27,7 +19,8 @@ export default function EntryRow( { index, style, items } ) {
 		return <div style={ style } aria-hidden="true" />;
 	}
 
-	const tone = SEVERITY_TO_TONE[ entry.severity ] || 'unknown';
+	const tone = severityTone( entry.severity );
+	const label = severityLabel( entry.severity );
 	const hasTrace =
 		Array.isArray( entry.stack_trace ) && entry.stack_trace.length > 0;
 
@@ -39,9 +32,9 @@ export default function EntryRow( { index, style, items } ) {
 		>
 			<span
 				className={ `logscope-pill logscope-pill--${ tone }` }
-				aria-label={ entry.severity || __( 'Unknown', 'logscope' ) }
+				aria-label={ label }
 			>
-				{ entry.severity || __( 'Unknown', 'logscope' ) }
+				{ label }
 			</span>
 			<time
 				className="logscope-entry__timestamp"
