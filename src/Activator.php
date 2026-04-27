@@ -19,6 +19,10 @@ final class Activator {
 	 * Default option values seeded on activation. `add_option()` is a no-op
 	 * when the key already exists, so re-activation preserves user settings.
 	 *
+	 * Keep these keys + defaults in sync with {@see \Logscope\Settings\SettingsSchema}.
+	 * The schema is the single source of truth at runtime; this map only
+	 * exists to seed the rows on first activation.
+	 *
 	 * @var array<string, mixed>
 	 */
 	private const DEFAULT_OPTIONS = array(

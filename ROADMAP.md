@@ -219,7 +219,7 @@ Goal: React can fetch everything it needs via `/wp-json/logscope/v1/*`.
 
 ## Phase 5 — Settings
 
--   [ ] **5.1** `src/Settings/SettingsSchema.php` + `Settings.php`
+-   [x] **5.1** `src/Settings/SettingsSchema.php` + `Settings.php`
 
     -   Single source of truth: fields, defaults, sanitizers, types.
     -   `Settings::get($key)` / `Settings::set($key, $value)` — sanitizes on set.
@@ -227,15 +227,17 @@ Goal: React can fetch everything it needs via `/wp-json/logscope/v1/*`.
     -   **AC**: Unit test — set invalid `tail_interval=0` → coerces to 1; unknown keys rejected.
     -   **Commit**: `feat(settings): add schema-driven settings`
 
--   [ ] **5.2** `src/REST/SettingsController.php` — `GET` + `POST /settings`
+-   [x] **5.2** `src/REST/SettingsController.php` — `GET` + `POST /settings`
 
     -   Uses `SettingsSchema` to validate incoming payload.
     -   Returns full settings shape on GET.
     -   **AC**: Integration test — POST with extra keys is rejected; valid POST persists + returns new state.
     -   **Commit**: `feat(rest): add settings endpoints`
 
--   [ ] **5.3** 🏷️ **Release v0.5.0** — REST API + settings backend
+-   [x] **5.3** 🏷️ **Release v0.5.0** — REST API + settings backend
     -   **Commit**: `chore(release): v0.5.0`
+
+> Phase 5 complete on 2026-04-27.
 
 ---
 

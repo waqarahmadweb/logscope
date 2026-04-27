@@ -13,6 +13,9 @@ use Closure;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
 use Logscope\REST\LogsController;
+use Logscope\REST\SettingsController;
+use Logscope\Settings\Settings;
+use Logscope\Settings\SettingsSchema;
 use Logscope\Support\PathGuard;
 use RuntimeException;
 use Throwable;
@@ -168,6 +171,23 @@ final class Plugin {
 		);
 
 		$this->register(
+			'settings.schema',
+			static function (): SettingsSchema {
+				return new SettingsSchema();
+			}
+		);
+
+		$this->register(
+			'settings',
+			static function ( Plugin $plugin ): Settings {
+				$schema = $plugin->get( 'settings.schema' );
+				assert( $schema instanceof SettingsSchema );
+
+				return new Settings( $schema );
+			}
+		);
+
+		$this->register(
 			'rest.logs_controller',
 			static function ( Plugin $plugin ): LogsController {
 				$repo = $plugin->get( 'log_repository' );
@@ -180,6 +200,16 @@ final class Plugin {
 				assert( $guard instanceof PathGuard );
 
 				return new LogsController( $repo, $source, $guard );
+			}
+		);
+
+		$this->register(
+			'rest.settings_controller',
+			static function ( Plugin $plugin ): SettingsController {
+				$settings = $plugin->get( 'settings' );
+				assert( $settings instanceof Settings );
+
+				return new SettingsController( $settings );
 			}
 		);
 	}
@@ -228,12 +258,50 @@ final class Plugin {
 	public function register_rest_routes(): void {
 		try {
 			$logs = $this->get( 'rest.logs_controller' );
+			assert( $logs instanceof LogsController );
+			$logs->register_routes();
 		} catch ( Throwable $e ) {
+			// Swallow so a misconfigured log path does not abort
+			// `rest_api_init` for other plugins. Settings routes still
+			// register independently below. Surface the failure to the
+			// PHP error log under WP_DEBUG so the breadcrumb is not
+			// invisible when an admin reports a 404 on /logs.
+			self::log_route_registration_failure( 'logs', $e );
+		}
+
+		try {
+			$settings = $this->get( 'rest.settings_controller' );
+			assert( $settings instanceof SettingsController );
+			$settings->register_routes();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'settings', $e );
+		}
+	}
+
+	/**
+	 * Writes a one-line breadcrumb when a route group fails to register,
+	 * gated on `WP_DEBUG` so production sites do not accumulate noise.
+	 * The exception class is included so a misconfigured log path
+	 * (`InvalidPathException`) reads differently from a deeper bug.
+	 *
+	 * @param string    $group Route group name for the message.
+	 * @param Throwable $error Exception that aborted registration.
+	 * @return void
+	 */
+	private static function log_route_registration_failure( string $group, Throwable $error ): void {
+		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
 			return;
 		}
 
-		assert( $logs instanceof LogsController );
-		$logs->register_routes();
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug-gated breadcrumb; the only place we surface a swallowed exception.
+		error_log(
+			sprintf(
+				'Logscope: failed to register %s routes (%s): %s',
+				$group,
+				get_class( $error ),
+				$error->getMessage()
+			)
+		);
 	}
 
 	/**
