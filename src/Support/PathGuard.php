@@ -105,7 +105,7 @@ final class PathGuard {
 
 		$resolved = realpath( $raw_path );
 		if ( false === $resolved ) {
-			throw new InvalidPathException( 'Path does not exist or is not accessible.' );
+			throw new MissingPathException( 'Path does not exist or is not accessible.' );
 		}
 
 		if ( ! $this->is_inside_allowed_root( $resolved ) ) {

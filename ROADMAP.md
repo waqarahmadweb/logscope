@@ -324,14 +324,14 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
 
 ## Phase 8 — Settings UI
 
--   [ ] **8.1** `SettingsPanel` component
+-   [x] **8.1** `SettingsPanel` component
 
     -   Fields match `SettingsSchema`. Uses `@wordpress/components` (TextControl, ToggleControl, etc.).
     -   "Save" button + inline validation messages from REST response.
     -   **AC**: Editing `tail_interval`, saving, reloading — value persists.
     -   **Commit**: `feat(ui): settings panel`
 
--   [ ] **8.2** Custom log path UI + validation
+-   [x] **8.2** Custom log path UI + validation
 
     -   Field shows the resolved absolute path and a "Test" button (hits a REST route that runs `PathGuard` without side effects).
     -   Shows clear error when path is rejected ("outside allowed directories").

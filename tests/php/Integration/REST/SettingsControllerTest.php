@@ -13,6 +13,7 @@ use Brain\Monkey\Functions;
 use Logscope\REST\SettingsController;
 use Logscope\Settings\Settings;
 use Logscope\Settings\SettingsSchema;
+use Logscope\Support\PathGuard;
 use Logscope\Tests\TestCase;
 use WP_Error;
 use WP_REST_Request;
@@ -29,6 +30,14 @@ final class SettingsControllerTest extends TestCase {
 	 * @var array<string, mixed>
 	 */
 	private array $store;
+
+	/**
+	 * Sandbox directory used as the PathGuard allowlist root for the
+	 * test-path probe cases. Created in setUp(), torn down in tearDown().
+	 *
+	 * @var string
+	 */
+	private string $sandbox;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -52,7 +61,35 @@ final class SettingsControllerTest extends TestCase {
 			}
 		);
 
-		$this->controller = new SettingsController( new Settings( new SettingsSchema() ) );
+		$this->sandbox = (string) realpath( sys_get_temp_dir() ) . DIRECTORY_SEPARATOR . 'logscope-settings-test-' . bin2hex( random_bytes( 4 ) );
+		mkdir( $this->sandbox, 0777, true );
+
+		$this->controller = new SettingsController(
+			new Settings( new SettingsSchema() ),
+			new PathGuard( array( $this->sandbox ) )
+		);
+	}
+
+	protected function tearDown(): void {
+		if ( isset( $this->sandbox ) && is_dir( $this->sandbox ) ) {
+			$this->rrmdir( $this->sandbox );
+		}
+		parent::tearDown();
+	}
+
+	private function rrmdir( string $dir ): void {
+		foreach ( (array) scandir( $dir ) as $entry ) {
+			if ( '.' === $entry || '..' === $entry ) {
+				continue;
+			}
+			$path = $dir . DIRECTORY_SEPARATOR . $entry;
+			if ( is_dir( $path ) && ! is_link( $path ) ) {
+				$this->rrmdir( $path );
+			} else {
+				unlink( $path );
+			}
+		}
+		rmdir( $dir );
 	}
 
 	public function test_get_returns_full_settings_shape(): void {
@@ -153,7 +190,10 @@ final class SettingsControllerTest extends TestCase {
 			}
 		};
 
-		$controller = new SettingsController( new Settings( $throwing_schema ) );
+		$controller = new SettingsController(
+			new Settings( $throwing_schema ),
+			new PathGuard( array( $this->sandbox ) )
+		);
 
 		$request = new WP_REST_Request(
 			array(
@@ -174,33 +214,118 @@ final class SettingsControllerTest extends TestCase {
 		$this->assertSame( 3, $this->store['logscope_tail_interval'] );
 	}
 
-	public function test_register_routes_calls_register_rest_route_with_get_and_post(): void {
-		$captured = null;
+	public function test_register_routes_calls_register_rest_route_for_settings_and_test_path(): void {
+		$captured = array();
 
 		Functions\expect( 'register_rest_route' )
-			->once()
-			->with(
-				SettingsController::REST_NAMESPACE,
-				SettingsController::ROUTE,
-				\Mockery::type( 'array' )
-			)
+			->twice()
 			->andReturnUsing(
 				function ( string $ns, string $route, array $config ) use ( &$captured ) {
-					$captured = $config;
+					$captured[ $route ] = $config;
 					return true;
 				}
 			);
 
 		$this->controller->register_routes();
 
-		$this->assertIsArray( $captured );
-		$methods = array_map(
+		$this->assertArrayHasKey( SettingsController::ROUTE, $captured );
+		$settings_routes = $captured[ SettingsController::ROUTE ];
+		$methods         = array_map(
 			static function ( array $route ): string {
 				return $route['methods'];
 			},
-			$captured
+			$settings_routes
 		);
 		$this->assertContains( 'GET', $methods );
 		$this->assertContains( 'POST', $methods );
+
+		$this->assertArrayHasKey( SettingsController::ROUTE_TEST_PATH, $captured );
+		$this->assertSame( 'POST', $captured[ SettingsController::ROUTE_TEST_PATH ]['methods'] );
+		$this->assertArrayHasKey( 'path', $captured[ SettingsController::ROUTE_TEST_PATH ]['args'] );
+	}
+
+	public function test_test_path_accepts_existing_file_inside_allowlist(): void {
+		$file = $this->sandbox . DIRECTORY_SEPARATOR . 'debug.log';
+		file_put_contents( $file, '' );
+
+		$response = $this->controller->handle_test_path(
+			new WP_REST_Request( array( 'path' => $file ) )
+		);
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$data = $response->get_data();
+		$this->assertTrue( $data['ok'] );
+		$this->assertSame( realpath( $file ), $data['resolved'] );
+		$this->assertTrue( $data['exists'] );
+		$this->assertTrue( $data['readable'] );
+		$this->assertNull( $data['reason'] );
+	}
+
+	public function test_test_path_accepts_nonexistent_file_when_parent_is_writable(): void {
+		$candidate = $this->sandbox . DIRECTORY_SEPARATOR . 'will-be-created.log';
+
+		$response = $this->controller->handle_test_path(
+			new WP_REST_Request( array( 'path' => $candidate ) )
+		);
+
+		$data = $response->get_data();
+		$this->assertTrue( $data['ok'], 'Parent-dir writable should yield ok=true.' );
+		$this->assertFalse( $data['exists'] );
+		// The candidate itself does not exist, so `writable` (file-level)
+		// is honestly false; `parent_writable` is the field that tells
+		// the admin the path will be creatable on first write.
+		$this->assertFalse( $data['writable'] );
+		$this->assertTrue( $data['parent_writable'] );
+		$this->assertNull( $data['reason'] );
+	}
+
+	public function test_test_path_rejects_nonexistent_file_when_parent_is_outside_allowlist(): void {
+		// Parent is outside the allowlist -> the missing-path branch must
+		// not silently green-light it. Guards against the fallback firing
+		// on any MissingPathException without the parent-writability gate.
+		$candidate = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'logscope-not-allowed-' . bin2hex( random_bytes( 4 ) ) . '.log';
+
+		$response = $this->controller->handle_test_path(
+			new WP_REST_Request( array( 'path' => $candidate ) )
+		);
+
+		$data = $response->get_data();
+		$this->assertFalse( $data['ok'] );
+		$this->assertFalse( $data['parent_writable'] );
+		$this->assertIsString( $data['reason'] );
+	}
+
+	public function test_test_path_rejects_dot_dot_traversal(): void {
+		$response = $this->controller->handle_test_path(
+			new WP_REST_Request( array( 'path' => '../../../etc/passwd' ) )
+		);
+
+		$data = $response->get_data();
+		$this->assertFalse( $data['ok'] );
+		$this->assertNull( $data['resolved'] );
+		$this->assertIsString( $data['reason'] );
+		$this->assertNotSame( '', $data['reason'] );
+	}
+
+	public function test_test_path_rejects_path_outside_allowlist(): void {
+		$outside = (string) realpath( sys_get_temp_dir() );
+
+		$response = $this->controller->handle_test_path(
+			new WP_REST_Request( array( 'path' => $outside ) )
+		);
+
+		$data = $response->get_data();
+		$this->assertFalse( $data['ok'] );
+		$this->assertStringContainsString( 'outside', strtolower( (string) $data['reason'] ) );
+	}
+
+	public function test_test_path_rejects_empty_string(): void {
+		$response = $this->controller->handle_test_path(
+			new WP_REST_Request( array( 'path' => '   ' ) )
+		);
+
+		$data = $response->get_data();
+		$this->assertFalse( $data['ok'] );
+		$this->assertSame( 'Path is empty.', $data['reason'] );
 	}
 }

@@ -212,7 +212,10 @@ final class Plugin {
 				$settings = $plugin->get( 'settings' );
 				assert( $settings instanceof Settings );
 
-				return new SettingsController( $settings );
+				$guard = $plugin->get( 'path_guard' );
+				assert( $guard instanceof PathGuard );
+
+				return new SettingsController( $settings, $guard );
 			}
 		);
 

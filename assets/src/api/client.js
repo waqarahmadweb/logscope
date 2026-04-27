@@ -65,6 +65,13 @@ export const client = {
 			data: body,
 		} );
 	},
+	testLogPath( path ) {
+		return apiFetch( {
+			path: logscopePath( '/settings/test-path' ),
+			method: 'POST',
+			data: { path },
+		} );
+	},
 };
 
 export { bootstrap };

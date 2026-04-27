@@ -19,6 +19,12 @@
  *     `lastByte` mirrors the response's `last_byte` so the next poll
  *     asks for entries strictly after it; `newCount` is shown in the
  *     "N new" pill when the user has scrolled away from the bottom.
+ *   - settings: { values, draft, isLoading, isSaving, loadError,
+ *     saveError, fieldErrors, lastSavedAt, testResult, isTesting } —
+ *     Phase 8. `values` is server-of-record, `draft` is the editing
+ *     buffer the panel renders. `fieldErrors` maps a field key to a
+ *     translated error string when the REST layer rejects per-field.
+ *     `testResult` mirrors the verdict from `/settings/test-path`.
  */
 import { createReduxStore, register } from '@wordpress/data';
 
@@ -57,6 +63,19 @@ const DEFAULT_STATE = {
 		perPage: 50,
 		isLoading: false,
 		error: null,
+	},
+	settings: {
+		values: null,
+		draft: null,
+		isLoading: false,
+		isSaving: false,
+		loadError: null,
+		saveError: null,
+		fieldErrors: {},
+		lastSavedAt: 0,
+		testResult: null,
+		testError: null,
+		isTesting: false,
 	},
 };
 
@@ -116,6 +135,92 @@ const actions = {
 			yield actions.receiveLogs( response );
 		} catch ( error ) {
 			yield actions.failLogs( error?.message || 'Unknown error' );
+		}
+	},
+	setSettingsDraft( partial ) {
+		return { type: 'SETTINGS_SET_DRAFT', partial };
+	},
+	resetSettingsDraft() {
+		return { type: 'SETTINGS_RESET_DRAFT' };
+	},
+	startLoadingSettings() {
+		return { type: 'SETTINGS_LOADING' };
+	},
+	receiveSettings( payload ) {
+		return { type: 'SETTINGS_RECEIVED', payload };
+	},
+	failLoadSettings( error ) {
+		return { type: 'SETTINGS_LOAD_FAILED', error };
+	},
+	startSavingSettings() {
+		return { type: 'SETTINGS_SAVING' };
+	},
+	settingsSaved( payload ) {
+		return { type: 'SETTINGS_SAVED', payload };
+	},
+	failSaveSettings( error, fieldErrors = {} ) {
+		return { type: 'SETTINGS_SAVE_FAILED', error, fieldErrors };
+	},
+	startTestingPath() {
+		return { type: 'SETTINGS_TEST_STARTED' };
+	},
+	receiveTestResult( result ) {
+		return { type: 'SETTINGS_TEST_RECEIVED', result };
+	},
+	failTestPath( error ) {
+		return { type: 'SETTINGS_TEST_FAILED', error };
+	},
+	clearTestResult() {
+		return { type: 'SETTINGS_TEST_CLEARED' };
+	},
+	*fetchSettings() {
+		yield actions.startLoadingSettings();
+		try {
+			const payload = yield { type: 'API_FETCH_SETTINGS' };
+			yield actions.receiveSettings( payload );
+		} catch ( error ) {
+			yield actions.failLoadSettings( error?.message || 'Unknown error' );
+		}
+	},
+	*saveSettings( body ) {
+		yield actions.startSavingSettings();
+		try {
+			const payload = yield {
+				type: 'API_SAVE_SETTINGS',
+				body,
+			};
+			yield actions.settingsSaved( payload );
+		} catch ( error ) {
+			// REST `unknown_setting` rejections come through with a
+			// `data.unknown` array per the controller contract; surface
+			// them as per-field errors so the panel can mark the
+			// offending input rather than just showing a banner.
+			const data = error?.data || {};
+			const fieldErrors = {};
+			if ( Array.isArray( data.unknown ) ) {
+				data.unknown.forEach( ( key ) => {
+					// Record a code rather than a translated string so the
+					// panel owns user-facing copy. Keeps the store's job
+					// to "what went wrong" rather than "how to phrase it."
+					fieldErrors[ key ] = 'unknown_setting';
+				} );
+			}
+			yield actions.failSaveSettings(
+				error?.message || 'Unknown error',
+				fieldErrors
+			);
+		}
+	},
+	*testLogPath( path ) {
+		yield actions.startTestingPath();
+		try {
+			const result = yield {
+				type: 'API_TEST_LOG_PATH',
+				path,
+			};
+			yield actions.receiveTestResult( result );
+		} catch ( error ) {
+			yield actions.failTestPath( error?.message || 'Unknown error' );
 		}
 	},
 };
@@ -269,6 +374,145 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				...state,
 				logs: { ...state.logs, isLoading: false, error: action.error },
 			};
+		case 'SETTINGS_LOADING':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					isLoading: true,
+					loadError: null,
+				},
+			};
+		case 'SETTINGS_RECEIVED':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					isLoading: false,
+					loadError: null,
+					values: { ...action.payload },
+					draft: { ...action.payload },
+					fieldErrors: {},
+				},
+			};
+		case 'SETTINGS_LOAD_FAILED':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					isLoading: false,
+					loadError: action.error,
+				},
+			};
+		case 'SETTINGS_SET_DRAFT':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					draft: {
+						...( state.settings.draft || {} ),
+						...action.partial,
+					},
+					// Clear per-field errors for keys the admin is now
+					// editing; the stale REST verdict no longer applies.
+					fieldErrors: Object.keys( action.partial ).reduce(
+						( acc, key ) => {
+							const next = { ...acc };
+							delete next[ key ];
+							return next;
+						},
+						state.settings.fieldErrors
+					),
+				},
+			};
+		case 'SETTINGS_RESET_DRAFT':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					draft: state.settings.values
+						? { ...state.settings.values }
+						: null,
+					fieldErrors: {},
+					saveError: null,
+				},
+			};
+		case 'SETTINGS_SAVING':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					isSaving: true,
+					saveError: null,
+					fieldErrors: {},
+				},
+			};
+		case 'SETTINGS_SAVED':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					isSaving: false,
+					saveError: null,
+					values: { ...action.payload },
+					draft: { ...action.payload },
+					fieldErrors: {},
+					lastSavedAt: Date.now(),
+				},
+			};
+		case 'SETTINGS_SAVE_FAILED':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					isSaving: false,
+					saveError: action.error,
+					fieldErrors: action.fieldErrors || {},
+				},
+			};
+		case 'SETTINGS_TEST_STARTED':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					isTesting: true,
+					testError: null,
+				},
+			};
+		case 'SETTINGS_TEST_RECEIVED':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					isTesting: false,
+					testResult: action.result,
+					testError: null,
+				},
+			};
+		case 'SETTINGS_TEST_FAILED':
+			// A transport failure (network down, 5xx) is not the same as
+			// a probe verdict of "path rejected" — the admin needs to be
+			// able to tell those apart. Keep the previous testResult (if
+			// any) so the last successful probe stays visible while the
+			// network is sorted out, and surface the transport error in
+			// a separate slot the panel renders with neutral copy.
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					isTesting: false,
+					testError: action.error,
+				},
+			};
+		case 'SETTINGS_TEST_CLEARED':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					testResult: null,
+					testError: null,
+				},
+			};
 		default:
 			return state;
 	}
@@ -290,11 +534,31 @@ const selectors = {
 	getLogsTotal: ( state ) => state.logs.total,
 	isLoadingLogs: ( state ) => state.logs.isLoading,
 	getLogsError: ( state ) => state.logs.error,
+	getSettingsValues: ( state ) => state.settings.values,
+	getSettingsDraft: ( state ) => state.settings.draft,
+	isLoadingSettings: ( state ) => state.settings.isLoading,
+	isSavingSettings: ( state ) => state.settings.isSaving,
+	getSettingsLoadError: ( state ) => state.settings.loadError,
+	getSettingsSaveError: ( state ) => state.settings.saveError,
+	getSettingsFieldErrors: ( state ) => state.settings.fieldErrors,
+	getSettingsLastSavedAt: ( state ) => state.settings.lastSavedAt,
+	getPathTestResult: ( state ) => state.settings.testResult,
+	getPathTestError: ( state ) => state.settings.testError,
+	isTestingPath: ( state ) => state.settings.isTesting,
 };
 
 const controls = {
 	API_FETCH_LOGS( { params } ) {
 		return client.getLogs( params );
+	},
+	API_FETCH_SETTINGS() {
+		return client.getSettings();
+	},
+	API_SAVE_SETTINGS( { body } ) {
+		return client.saveSettings( body );
+	},
+	API_TEST_LOG_PATH( { path } ) {
+		return client.testLogPath( path );
 	},
 };
 
