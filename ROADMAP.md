@@ -315,8 +315,10 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
     -   **AC**: Appending a line to `debug.log` appears in the viewer within `tail_interval` seconds.
     -   **Commit**: `feat(ui): tail mode with polling`
 
--   [ ] **7.5** 🏷️ **Release v0.7.0** — Filters, grouping, trace, tail
+-   [x] **7.5** 🏷️ **Release v0.7.0** — Filters, grouping, trace, tail
     -   **Commit**: `chore(release): v0.7.0`
+
+> Phase 7 complete on 2026-04-27.
 
 ---
 

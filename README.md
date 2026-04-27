@@ -1,6 +1,6 @@
 # Logscope
 
-> **Status:** `v0.6.0` — admin page + React viewer shell. The plugin now exposes a **Tools → Logscope** screen (gated by `logscope_manage`) where a virtualized React viewer renders entries from `GET /logs`. Tabs (Logs · Settings) are URL-hash-routed; the bundle is screen-gated so unrelated wp-admin pages are unchanged. Filters, grouping, trace expansion, and tail mode arrive in Phase 7.
+> **Status:** `v0.7.0` — filters, grouping, stack-trace expansion, and tail mode. The Logs tab now ships a filter bar (severity multi-select, date range, debounced regex search, source dropdown — URL-mirrored), a list ↔ grouped view toggle backed by signature grouping, click-to-copy frame paths in expanded fatals, and a tail-mode toggle that polls `GET /logs?since=<last_byte>` on the admin-configured cadence with rotation-aware list reset and an "N new entries" pill when the user has scrolled away. Settings UI lands in Phase 8.
 
 A free, GPL v2 WordPress plugin that streams, filters, and groups the WordPress debug log from inside wp-admin.
 
