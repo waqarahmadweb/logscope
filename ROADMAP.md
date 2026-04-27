@@ -169,7 +169,7 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
     -   **AC**: Unit tests on fixtures from real PHP 8 stack traces.
     -   **Commit**: `feat(log): add stack trace parser`
 
--   [ ] **3.5** `src/Log/LogGrouper.php`
+-   [x] **3.5** `src/Log/LogGrouper.php`
 
     -   Signature = hash of (severity + file + line + normalized message shape — strip quoted strings, numbers, hex addrs).
     -   Groups entries, tracks `first_seen`, `last_seen`, `count`.
