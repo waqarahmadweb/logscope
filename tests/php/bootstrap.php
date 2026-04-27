@@ -16,3 +16,11 @@ require_once dirname( __DIR__, 2 ) . '/vendor/autoload.php';
 if ( ! class_exists( 'WP_Error' ) ) {
 	require_once __DIR__ . '/Stubs/WP_Error.php';
 }
+
+if ( ! class_exists( 'WP_REST_Request' ) ) {
+	require_once __DIR__ . '/Stubs/WP_REST_Request.php';
+}
+
+if ( ! class_exists( 'WP_REST_Response' ) ) {
+	require_once __DIR__ . '/Stubs/WP_REST_Response.php';
+}

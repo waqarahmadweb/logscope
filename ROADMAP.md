@@ -201,7 +201,7 @@ Goal: React can fetch everything it needs via `/wp-json/logscope/v1/*`.
     -   **AC**: Unit test — an endpoint extending this base rejects unauthenticated requests with 401 and non-caps users with 403.
     -   **Commit**: `feat(rest): add controller base with cap + nonce enforcement`
 
--   [ ] **4.2** `src/REST/LogsController.php` — `GET /logs`
+-   [x] **4.2** `src/REST/LogsController.php` — `GET /logs`
 
     -   Query params: `page`, `per_page`, `severity`, `from`, `to`, `q` (regex), `grouped` (bool), `source`.
     -   Returns paginated entries with `X-WP-Total` / `X-WP-TotalPages` headers.

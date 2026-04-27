@@ -10,6 +10,11 @@ declare(strict_types=1);
 namespace Logscope;
 
 use Closure;
+use Logscope\Log\FileLogSource;
+use Logscope\Log\LogRepository;
+use Logscope\REST\LogsController;
+use Logscope\Support\InvalidPathException;
+use Logscope\Support\PathGuard;
 use RuntimeException;
 
 /**
@@ -135,7 +140,63 @@ final class Plugin {
 	 * @return void
 	 */
 	private function register_services(): void {
-		// Services are registered by later roadmap steps (Activator, PathGuard, etc.).
+		$this->register(
+			'path_guard',
+			static function (): PathGuard {
+				return new PathGuard( PathGuard::default_roots() );
+			}
+		);
+
+		$this->register(
+			'log_source',
+			static function ( Plugin $plugin ): FileLogSource {
+				$guard = $plugin->get( 'path_guard' );
+				assert( $guard instanceof PathGuard );
+
+				return new FileLogSource( self::resolve_log_path(), $guard );
+			}
+		);
+
+		$this->register(
+			'log_repository',
+			static function ( Plugin $plugin ): LogRepository {
+				$source = $plugin->get( 'log_source' );
+				assert( $source instanceof FileLogSource );
+
+				return new LogRepository( $source );
+			}
+		);
+
+		$this->register(
+			'rest.logs_controller',
+			static function ( Plugin $plugin ): LogsController {
+				$repo = $plugin->get( 'log_repository' );
+				assert( $repo instanceof LogRepository );
+
+				return new LogsController( $repo );
+			}
+		);
+	}
+
+	/**
+	 * Resolves the configured log path, falling back to the WordPress
+	 * default `WP_CONTENT_DIR/debug.log` when the option is unset. The
+	 * returned path is untrusted — `PathGuard` validates it on the
+	 * `FileLogSource` boundary.
+	 *
+	 * @return string
+	 */
+	private static function resolve_log_path(): string {
+		$configured = get_option( 'logscope_log_path', '' );
+		if ( is_string( $configured ) && '' !== $configured ) {
+			return $configured;
+		}
+
+		if ( defined( 'WP_CONTENT_DIR' ) ) {
+			return rtrim( (string) constant( 'WP_CONTENT_DIR' ), DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR . 'debug.log';
+		}
+
+		return '';
 	}
 
 	/**
@@ -145,6 +206,28 @@ final class Plugin {
 	 */
 	private function register_hooks(): void {
 		add_action( 'init', array( $this, 'load_textdomain' ) );
+		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+	}
+
+	/**
+	 * Resolves and registers Logscope's REST controllers. A misconfigured
+	 * log path would otherwise throw `InvalidPathException` from the
+	 * `log_source` factory and abort core's `rest_api_init` cycle for
+	 * every other plugin too — so we trap and swallow here, leaving the
+	 * routes unregistered while the rest of the request continues. The
+	 * Settings UI will surface the underlying path problem to the admin.
+	 *
+	 * @return void
+	 */
+	public function register_rest_routes(): void {
+		try {
+			$logs = $this->get( 'rest.logs_controller' );
+		} catch ( InvalidPathException $e ) {
+			return;
+		}
+
+		assert( $logs instanceof LogsController );
+		$logs->register_routes();
 	}
 
 	/**
