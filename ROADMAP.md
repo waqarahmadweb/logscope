@@ -145,7 +145,7 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
     -   **AC**: Unit tests cover: happy path, `../../../etc/passwd`, symlink escape, missing file, readable vs writable checks.
     -   **Commit**: `feat(support): add PathGuard with traversal protection`
 
--   [ ] **3.2** `src/Log/LogSourceInterface.php` + `FileLogSource.php`
+-   [x] **3.2** `src/Log/LogSourceInterface.php` + `FileLogSource.php`
 
     -   Interface: `read_chunk(int $from_byte, int $max_bytes): string`, `size(): int`, `exists(): bool`.
     -   `FileLogSource` uses `fopen`/`fseek`/`fread` (streams, never `file_get_contents` — logs can be huge).
