@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-04-28
+
+Closes Phase 8 of the [roadmap](ROADMAP.md): the Settings tab is now a real form. Admins can edit `log_path` and `tail_interval`, save through the existing `POST /settings` route, and probe a candidate log path through a new side-effect-free `POST /settings/test-path` endpoint that surfaces `PathGuard`'s verdict inline — including a clean fall-through to a parent-directory writability check so a fresh install pointing at a not-yet-created custom path gets a green answer instead of a misleading "does not exist" rejection. With the editor in place the Phase 7.4 tail loop now has a UI for changing its cadence, and the custom log path the rest of the codebase has been validating since Phase 3 finally has a way to be configured from wp-admin. Phase 11 (polish, a11y, i18n) is the next milestone before the v1.0.0-rc.1 cut.
+
 ### Added
 
 -   `SettingsPanel` component (Phase 8.1) — the Settings tab in `App.jsx` now renders a real form built on `@wordpress/components` (`TextControl` × 2, `Button`, `Notice`, `Spinner`) backed by a new `settings` slice in the `logscope/core` store. The slice keeps `draft` and `values` separate so the admin can edit freely and Reset without mutating server-of-record state; Save POSTs the whole draft, the server returns the new authoritative shape, and the reducer copies it into both slots. The slice also carries `loadError` / `saveError` / `fieldErrors` / `testResult` / `testError` / `isTesting`, and the dispatcher gains `*fetchSettings` / `*saveSettings` / `*testLogPath` generator thunks consistent with the existing `*fetchLogs` shape. Per-field rejections from the existing `unknown_setting` 400 surface as inline notices under the offending input (mapping `error.data.unknown[]` into a `fieldErrors` map in the catch arm) rather than just a top-level banner. The dirty check trims `log_path` before comparing so a trailing space doesn't toggle Save into a dirty state for a no-op edit, matching what the server-side sanitiser would have stored anyway. Field-error wording is held in the panel layer (`translateFieldError(code)`) so the store records codes (`'unknown_setting'`) rather than untranslated strings — every user-facing string still goes through `__()`.
@@ -106,7 +110,8 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/waqarahmadweb/logscope/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/waqarahmadweb/logscope/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/waqarahmadweb/logscope/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/waqarahmadweb/logscope/compare/v0.4.0...v0.5.0

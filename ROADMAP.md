@@ -338,8 +338,10 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
     -   **AC**: Entering `../../../etc/passwd` shows a rejection message.
     -   **Commit**: `feat(ui): custom log path with test button`
 
--   [ ] **8.3** 🏷️ **Release v0.8.0** — Settings UI + custom log path
+-   [x] **8.3** 🏷️ **Release v0.8.0** — Settings UI + custom log path
     -   **Commit**: `chore(release): v0.8.0`
+
+> Phase 8 complete on 2026-04-28.
 
 ---
 
