@@ -269,7 +269,7 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
     -   **AC**: `pnpm build` + page loads shows "Logscope" with two tabs. No console errors.
     -   **Commit**: `feat(ui): React app shell with tabs and store`
 
--   [ ] **6.4** `LogViewer` component (virtualized list)
+-   [x] **6.4** `LogViewer` component (virtualized list)
 
     -   Use `react-window` (or a minimal hand-rolled virtualizer — choose based on bundle size) for 10k+ rows.
     -   `EntryRow` renders one line with severity pill, timestamp, truncated message, "show trace" toggle.

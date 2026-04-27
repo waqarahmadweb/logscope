@@ -12,6 +12,7 @@ import { useDispatch, useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
 import { STORE_KEY } from '../store';
+import LogViewer from './LogViewer';
 
 const TABS = [
 	{ name: 'logs', title: __( 'Logs', 'logscope' ) },
@@ -68,11 +69,7 @@ export default function App() {
 
 function TabContent( { name } ) {
 	if ( name === 'logs' ) {
-		return (
-			<p className="logscope-placeholder">
-				{ __( 'Log viewer arrives in 6.4.', 'logscope' ) }
-			</p>
-		);
+		return <LogViewer />;
 	}
 	if ( name === 'settings' ) {
 		return (
