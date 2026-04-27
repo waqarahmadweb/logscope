@@ -13,9 +13,9 @@ use Closure;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
 use Logscope\REST\LogsController;
-use Logscope\Support\InvalidPathException;
 use Logscope\Support\PathGuard;
 use RuntimeException;
+use Throwable;
 
 /**
  * Central plugin class. Owns a tiny hand-rolled service container and
@@ -217,18 +217,18 @@ final class Plugin {
 
 	/**
 	 * Resolves and registers Logscope's REST controllers. A misconfigured
-	 * log path would otherwise throw `InvalidPathException` from the
-	 * `log_source` factory and abort core's `rest_api_init` cycle for
-	 * every other plugin too — so we trap and swallow here, leaving the
-	 * routes unregistered while the rest of the request continues. The
-	 * Settings UI will surface the underlying path problem to the admin.
+	 * log path (or any other constructor-time failure in the DI graph)
+	 * would otherwise abort core's `rest_api_init` cycle for every other
+	 * plugin too — so we trap `Throwable` here and leave the routes
+	 * unregistered while the rest of the request continues. The Settings
+	 * UI will surface the underlying problem to the admin.
 	 *
 	 * @return void
 	 */
 	public function register_rest_routes(): void {
 		try {
 			$logs = $this->get( 'rest.logs_controller' );
-		} catch ( InvalidPathException $e ) {
+		} catch ( Throwable $e ) {
 			return;
 		}
 

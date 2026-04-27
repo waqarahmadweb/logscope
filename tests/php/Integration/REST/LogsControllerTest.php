@@ -278,6 +278,33 @@ final class LogsControllerTest extends TestCase {
 		$this->assertStringContainsString( 'no-store', $headers['Cache-Control'] );
 	}
 
+	public function test_download_headers_for_strips_quote_and_control_chars_from_filename(): void {
+		$headers = LogsController::download_headers_for( '/var/log/debug"evil".log', 0 );
+
+		$this->assertSame( 'attachment; filename="debugevil.log"', $headers['Content-Disposition'] );
+	}
+
+	public function test_download_headers_for_falls_back_when_filename_is_all_stripped(): void {
+		$headers = LogsController::download_headers_for( '/var/log/"""', 0 );
+
+		$this->assertSame( 'attachment; filename="debug.log"', $headers['Content-Disposition'] );
+	}
+
+	public function test_severity_comma_string_drops_unknown_tokens(): void {
+		$lines = array(
+			'[27-Apr-2026 12:00:00 UTC] PHP Fatal error:  one in /a.php:1',
+			'[27-Apr-2026 12:00:01 UTC] PHP Warning:  two in /a.php on line 1',
+			'[27-Apr-2026 12:00:02 UTC] PHP Notice:  three in /a.php on line 1',
+		);
+		file_put_contents( $this->log_path, implode( "\n", $lines ) );
+
+		$request  = new WP_REST_Request( array( 'severity' => 'fatal,bogus,warning' ) );
+		$response = $this->controller->handle_index( $request );
+
+		self::assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 2, $response->get_data()['total'] );
+	}
+
 	public function test_download_streams_file_contents(): void {
 		$body = "log line 1\nlog line 2\n";
 		file_put_contents( $this->log_path, $body );

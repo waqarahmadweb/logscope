@@ -33,17 +33,6 @@ abstract class RestController {
 	public const REST_NAMESPACE = 'logscope/v1';
 
 	/**
-	 * Hooks {@see RestController::register_routes()} on `rest_api_init`.
-	 * Concrete subclasses are wired into the container by `Plugin` and
-	 * call this once during boot.
-	 *
-	 * @return void
-	 */
-	public function register(): void {
-		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-	}
-
-	/**
 	 * Subclasses implement this to register their routes via
 	 * `register_rest_route()`. Each `permission_callback` should be
 	 * `array( $this, 'permission_callback' )` so authorization stays

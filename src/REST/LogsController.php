@@ -277,9 +277,15 @@ final class LogsController extends RestController {
 	 * attachment headers so browsers prompt a save dialog. The body is
 	 * the raw file rather than a JSON wrapper, so we send headers
 	 * directly and `exit` after `readfile()` to bypass core's REST
-	 * response serialiser. `_logscope_skip_exit_for_tests` is honoured
-	 * as a single-use parameter so the unit suite can drive the handler
-	 * past the streaming step without halting PHPUnit.
+	 * response serialiser.
+	 *
+	 * @internal The `_logscope_skip_exit_for_tests` request parameter is
+	 *           honoured as an in-process testing seam so the unit suite
+	 *           can drive the streaming path under PHPUnit's already-
+	 *           flushed output buffer. The route is gated by the
+	 *           `logscope_manage` capability, but if that gate is ever
+	 *           weakened this seam must be removed or hidden behind a
+	 *           build-time guard — it is not a public contract.
 	 *
 	 * @param WP_REST_Request $request Incoming request.
 	 * @return WP_REST_Response|\WP_Error|null
@@ -324,7 +330,16 @@ final class LogsController extends RestController {
 	 * @return array<string, string>
 	 */
 	public static function download_headers_for( string $path, int $size ): array {
-		$filename = basename( $path );
+		// Strip characters that would break the quoted-string form of
+		// Content-Disposition. PathGuard guarantees the directory is
+		// allowlisted, but the basename can in principle still contain
+		// `"`, `\r`, or `\n` if a sibling was renamed by something other
+		// than Logscope; sanitising here means a malformed file on disk
+		// cannot produce a malformed header.
+		$filename = preg_replace( '/[\x00-\x1F"\\\\]+/', '', basename( $path ) );
+		if ( '' === (string) $filename ) {
+			$filename = 'debug.log';
+		}
 
 		return array(
 			'Content-Type'           => 'text/plain; charset=utf-8',
@@ -417,9 +432,15 @@ final class LogsController extends RestController {
 			return null;
 		}
 
-		$out = array();
+		// The args schema's enum constraint only fires for the array form;
+		// the comma-separated string path bypasses it, so we match the
+		// schema's contract here by dropping unknown tokens. LogQuery also
+		// filters internally, but enforcing at the boundary keeps the
+		// wire shape and the schema in lockstep.
+		$known = Severity::all();
+		$out   = array();
 		foreach ( $value as $token ) {
-			if ( is_string( $token ) && '' !== $token ) {
+			if ( is_string( $token ) && in_array( $token, $known, true ) ) {
 				$out[] = $token;
 			}
 		}

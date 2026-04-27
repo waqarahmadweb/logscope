@@ -62,16 +62,6 @@ final class RestControllerTest extends TestCase {
 		$this->assertTrue( $controller->permission_callback() );
 	}
 
-	public function test_register_hooks_register_routes_on_rest_api_init(): void {
-		$controller = new StubRestController();
-
-		Functions\expect( 'add_action' )
-			->once()
-			->with( 'rest_api_init', array( $controller, 'register_routes' ) );
-
-		$controller->register();
-	}
-
 	public function test_error_builds_wp_error_with_expected_status_and_extra_data(): void {
 		$controller = new StubRestController();
 
