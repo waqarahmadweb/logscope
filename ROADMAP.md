@@ -153,7 +153,7 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
     -   **AC**: Unit test reads a 5MB fixture log and reports correct size + returns expected byte range.
     -   **Commit**: `feat(log): add file-backed log source`
 
--   [ ] **3.3** `src/Log/LogParser.php`
+-   [x] **3.3** `src/Log/LogParser.php`
 
     -   Pure function: `parse(string $chunk): Entry[]`
     -   Detect severity: `Fatal error`, `Parse error`, `Warning`, `Notice`, `Deprecated`, `Strict Standards`.
