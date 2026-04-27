@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Logscope;
 
 use Closure;
+use Logscope\Admin\AssetLoader;
 use Logscope\Admin\Menu;
 use Logscope\Admin\PageRenderer;
 use Logscope\Log\FileLogSource;
@@ -231,6 +232,16 @@ final class Plugin {
 				return new Menu( $renderer );
 			}
 		);
+
+		$this->register(
+			'admin.asset_loader',
+			static function ( Plugin $plugin ): AssetLoader {
+				$menu = $plugin->get( 'admin.menu' );
+				assert( $menu instanceof Menu );
+
+				return new AssetLoader( $menu );
+			}
+		);
 	}
 
 	/**
@@ -263,6 +274,7 @@ final class Plugin {
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 	}
 
 	/**
@@ -281,6 +293,24 @@ final class Plugin {
 			$menu->register();
 		} catch ( Throwable $e ) {
 			self::log_route_registration_failure( 'admin_menu', $e );
+		}
+	}
+
+	/**
+	 * `admin_enqueue_scripts` callback. Delegates to {@see AssetLoader}
+	 * which screen-gates the enqueue itself (so registering the hook is
+	 * always safe — the no-op happens inside the loader).
+	 *
+	 * @param string $hook_suffix Hook suffix WordPress passes to enqueue callbacks.
+	 * @return void
+	 */
+	public function enqueue_admin_assets( string $hook_suffix ): void {
+		try {
+			$loader = $this->get( 'admin.asset_loader' );
+			assert( $loader instanceof AssetLoader );
+			$loader->enqueue( $hook_suffix );
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'admin_enqueue', $e );
 		}
 	}
 
