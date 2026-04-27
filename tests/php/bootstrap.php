@@ -9,3 +9,10 @@
 declare(strict_types=1);
 
 require_once dirname( __DIR__, 2 ) . '/vendor/autoload.php';
+
+// Brain Monkey mocks functions but does not stub `WP_Error`. The class
+// is used by REST controllers to surface validation and authorization
+// failures, so a faithful-enough stand-in lives in the test bootstrap.
+if ( ! class_exists( 'WP_Error' ) ) {
+	require_once __DIR__ . '/Stubs/WP_Error.php';
+}

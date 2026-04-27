@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+-   `Logscope\REST\RestController` — abstract base for every Logscope REST controller. Centralises the `logscope/v1` namespace, `register_routes()` registration on `rest_api_init`, a uniform `permission_callback()` returning a 401 `WP_Error` for unauthenticated callers and a 403 for users missing the Logscope manage capability, and an `error()` factory that maps internal failures to `WP_Error` shapes the REST dispatcher will turn into the right HTTP status. Cookie-nonce verification stays delegated to core's `rest_authentication_errors` pipeline so application-password and other auth schemes plug in without bespoke handling. Unit tests cover the 401/403/allowed branches, the `rest_api_init` registration, the `error()` payload shape, and the namespace constant; a slim `WP_Error` stub plus a stub subclass make the base testable without a full WordPress harness.
+
 ## [0.4.0] - 2026-04-27
 
 Closes Phase 3 of the [roadmap](ROADMAP.md): the log-reading and parsing foundation. Logscope can now safely locate a `debug.log` (PathGuard allowlist + traversal protection), stream bytes out of it without loading the whole file into memory, parse the WordPress severity formats and PHP stack traces, group "the same error happening over and over" by signature, and serve filtered, paginated views through a single repository facade. Still no user-visible features — REST routes and the React UI come next in Phase 4 onward.

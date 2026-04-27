@@ -194,7 +194,7 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
 
 Goal: React can fetch everything it needs via `/wp-json/logscope/v1/*`.
 
--   [ ] **4.1** 🔒 `src/REST/RestController.php` (abstract base)
+-   [x] **4.1** 🔒 `src/REST/RestController.php` (abstract base)
 
     -   Centralizes capability check (`logscope_manage`), nonce verification, JSON schema registration, error responses.
     -   Every subclass calls `$this->check_permission()` in its `permission_callback`.
