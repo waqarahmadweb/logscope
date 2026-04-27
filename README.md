@@ -1,6 +1,6 @@
 # Logscope
 
-> **Status:** `v0.3.0` — plugin bootstrap, lifecycle hooks, and capability helper in place. Still no user-visible features.
+> **Status:** `v0.4.0` — log reading & parsing foundation: PathGuard, byte-level FileLogSource, severity-aware LogParser, StackTraceParser, signature-based LogGrouper, and the LogRepository facade with paginated/filtered access. Still no user-visible features (REST + React come next).
 
 A free, GPL v2 WordPress plugin that streams, filters, and groups the WordPress debug log from inside wp-admin.
 

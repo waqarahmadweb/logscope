@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-27
+
+Closes Phase 3 of the [roadmap](ROADMAP.md): the log-reading and parsing foundation. Logscope can now safely locate a `debug.log` (PathGuard allowlist + traversal protection), stream bytes out of it without loading the whole file into memory, parse the WordPress severity formats and PHP stack traces, group "the same error happening over and over" by signature, and serve filtered, paginated views through a single repository facade. Still no user-visible features — REST routes and the React UI come next in Phase 4 onward.
+
 ### Added
 
 -   `Logscope\Support\PathGuard` — filesystem path validator with two-stage rejection (raw-string checks for null bytes and `..` segments before any filesystem call, then `realpath()` canonicalisation with allowlist containment). Symlink escapes are caught implicitly because `realpath()` resolves links before the containment check; sibling-prefix attacks (e.g. `/var/www-evil` against root `/var/www`) are rejected by the exact-separator suffix match. Constructor fails closed: a non-existent root is silently dropped so a misconfigured root cannot widen the allowlist. Companion `InvalidPathException` carries plain-English internal messages; translation happens at the REST/UI boundary later.
@@ -47,7 +51,8 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/waqarahmadweb/logscope/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/waqarahmadweb/logscope/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/waqarahmadweb/logscope/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/waqarahmadweb/logscope/releases/tag/v0.1.0

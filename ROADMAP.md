@@ -183,8 +183,10 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
     -   **AC**: Integration test reads a fixture log and returns page 2 of 50 with severity=Fatal applied.
     -   **Commit**: `feat(log): add repository with pagination + filters`
 
--   [ ] **3.7** 🏷️ **Release v0.4.0** — Log reading & parsing foundation
+-   [x] **3.7** 🏷️ **Release v0.4.0** — Log reading & parsing foundation
     -   **Commit**: `chore(release): v0.4.0`
+
+> Phase 3 complete on 2026-04-27.
 
 ---
 
