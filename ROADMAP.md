@@ -162,7 +162,7 @@ Goal: Prove you can reliably read and parse a real `debug.log` in-memory. **This
     -   **AC**: Unit tests cover all 6 severity types, timestamps with/without TZ, multi-line PHP fatals, and entries truncated at chunk boundaries.
     -   **Commit**: `feat(log): add log parser`
 
--   [ ] **3.4** `src/Log/StackTraceParser.php`
+-   [x] **3.4** `src/Log/StackTraceParser.php`
 
     -   Parses `#0 /path/to/file.php(123): Class->method()` lines.
     -   Returns `Frame[]` with `file`, `line`, `class`, `method`, `args` (string only, not eval'd).
