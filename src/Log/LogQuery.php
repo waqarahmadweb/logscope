@@ -85,6 +85,15 @@ final class LogQuery {
 	public int $per_page;
 
 	/**
+	 * Byte offset at which the previous tail read ended. When set,
+	 * the repository reads only bytes from this offset to EOF and
+	 * skips pagination — tail mode wants every newly-appended entry.
+	 *
+	 * @var int|null
+	 */
+	public ?int $since_byte;
+
+	/**
 	 * Builds and validates a query. Throws on out-of-range pagination,
 	 * malformed/oversize regex, or unparseable date strings.
 	 *
@@ -96,6 +105,7 @@ final class LogQuery {
 	 * @param bool          $grouped    Group results by signature.
 	 * @param int           $page       1-based page index.
 	 * @param int           $per_page   Items per page.
+	 * @param int|null      $since_byte Tail-mode byte offset, or null.
 	 *
 	 * @throws LogQueryException When validation fails.
 	 */
@@ -107,7 +117,8 @@ final class LogQuery {
 		?string $source,
 		bool $grouped,
 		int $page,
-		int $per_page
+		int $per_page,
+		?int $since_byte = null
 	) {
 		$this->severities = self::sanitise_severities( $severities );
 		$this->from       = self::parse_bound( $from, 'from' );
@@ -134,8 +145,13 @@ final class LogQuery {
 			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
-		$this->page     = $page;
-		$this->per_page = $per_page;
+		if ( null !== $since_byte && $since_byte < 0 ) {
+			throw new LogQueryException( 'since_byte must be 0 or greater.' );
+		}
+
+		$this->page       = $page;
+		$this->per_page   = $per_page;
+		$this->since_byte = $since_byte;
 	}
 
 	/**

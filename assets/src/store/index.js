@@ -12,8 +12,13 @@
  *     by reading viewMode, since the wire shape of an item differs.
  *   - expandedGroups: signature → bool, owned at the store level so it
  *     survives react-window row recycling.
+ *   - expandedTraces: entryKey → bool, same rationale (Phase 7.3).
  *   - scrollOffsets: per-mode scroll positions so toggling between list
  *     and grouped restores the previous offset (Phase 7.2 AC).
+ *   - tail: { active, lastByte, newCount } — Phase 7.4 polling state.
+ *     `lastByte` mirrors the response's `last_byte` so the next poll
+ *     asks for entries strictly after it; `newCount` is shown in the
+ *     "N new" pill when the user has scrolled away from the bottom.
  */
 import { createReduxStore, register } from '@wordpress/data';
 
@@ -37,7 +42,13 @@ const DEFAULT_STATE = {
 	viewMode: initialQuery?.viewMode || 'list',
 	filters: { ...DEFAULT_FILTERS, ...( initialQuery?.filters || {} ) },
 	expandedGroups: {},
+	expandedTraces: {},
 	scrollOffsets: { list: 0, grouped: 0 },
+	tail: {
+		active: false,
+		lastByte: 0,
+		newCount: 0,
+	},
 	logs: {
 		items: [],
 		total: 0,
@@ -64,8 +75,25 @@ const actions = {
 	toggleGroupExpanded( signature ) {
 		return { type: 'TOGGLE_GROUP_EXPANDED', signature };
 	},
+	toggleTraceExpanded( entryKey ) {
+		return { type: 'TOGGLE_TRACE_EXPANDED', entryKey };
+	},
 	setScrollOffset( mode, offset ) {
 		return { type: 'SET_SCROLL_OFFSET', mode, offset };
+	},
+	setTailActive( active ) {
+		return { type: 'TAIL_SET_ACTIVE', active };
+	},
+	appendTailEntries( entries, lastByte, scrolledToBottom ) {
+		return {
+			type: 'TAIL_APPEND_ENTRIES',
+			entries,
+			lastByte,
+			scrolledToBottom,
+		};
+	},
+	clearTailNewCount() {
+		return { type: 'TAIL_CLEAR_NEW_COUNT' };
 	},
 	startLoadingLogs() {
 		return { type: 'LOGS_LOADING' };
@@ -115,6 +143,48 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 			}
 			return { ...state, expandedGroups: next };
 		}
+		case 'TOGGLE_TRACE_EXPANDED': {
+			const next = { ...state.expandedTraces };
+			if ( next[ action.entryKey ] ) {
+				delete next[ action.entryKey ];
+			} else {
+				next[ action.entryKey ] = true;
+			}
+			return { ...state, expandedTraces: next };
+		}
+		case 'TAIL_SET_ACTIVE':
+			return {
+				...state,
+				tail: {
+					...state.tail,
+					active: action.active,
+					newCount: action.active ? state.tail.newCount : 0,
+				},
+			};
+		case 'TAIL_APPEND_ENTRIES': {
+			const incoming = action.entries || [];
+			const items =
+				incoming.length > 0
+					? [ ...incoming.slice().reverse(), ...state.logs.items ]
+					: state.logs.items;
+			return {
+				...state,
+				logs: {
+					...state.logs,
+					items,
+					total: items.length,
+				},
+				tail: {
+					...state.tail,
+					lastByte: action.lastByte,
+					newCount: action.scrolledToBottom
+						? 0
+						: state.tail.newCount + incoming.length,
+				},
+			};
+		}
+		case 'TAIL_CLEAR_NEW_COUNT':
+			return { ...state, tail: { ...state.tail, newCount: 0 } };
 		case 'SET_SCROLL_OFFSET':
 			return {
 				...state,
@@ -139,6 +209,14 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					page: action.payload.page || 1,
 					perPage: action.payload.per_page || state.logs.perPage,
 				},
+				tail: {
+					...state.tail,
+					lastByte: action.payload.last_byte ?? state.tail.lastByte,
+					// Re-fetches replace the list outright, so any "new since
+					// you last looked" count from a previous tail loop is
+					// stale by definition.
+					newCount: 0,
+				},
 			};
 		case 'LOGS_FAILED':
 			return {
@@ -156,7 +234,13 @@ const selectors = {
 	getFilters: ( state ) => state.filters,
 	isGroupExpanded: ( state, signature ) =>
 		Boolean( state.expandedGroups[ signature ] ),
+	isTraceExpanded: ( state, entryKey ) =>
+		Boolean( state.expandedTraces[ entryKey ] ),
+	getExpandedTraces: ( state ) => state.expandedTraces,
 	getScrollOffset: ( state, mode ) => state.scrollOffsets[ mode ] || 0,
+	isTailActive: ( state ) => state.tail.active,
+	getTailLastByte: ( state ) => state.tail.lastByte,
+	getTailNewCount: ( state ) => state.tail.newCount,
 	getLogs: ( state ) => state.logs.items,
 	getLogsTotal: ( state ) => state.logs.total,
 	isLoadingLogs: ( state ) => state.logs.isLoading,

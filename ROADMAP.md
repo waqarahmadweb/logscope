@@ -301,14 +301,14 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
     -   **AC**: Toggling preserves filters and scroll position.
     -   **Commit**: `feat(ui): grouped error view`
 
--   [ ] **7.3** `StackTracePanel` component
+-   [x] **7.3** `StackTracePanel` component
 
     -   Expand/collapse per entry.
     -   Each frame: clickable copy-to-clipboard of file:line.
     -   **AC**: Click frame → clipboard contains exact `path/to/file.php:123`.
     -   **Commit**: `feat(ui): stack trace panel with copy`
 
--   [ ] **7.4** Tail mode
+-   [x] **7.4** Tail mode
 
     -   Toggle in toolbar; when active, polls `/logs?since=<last_byte>` every `tail_interval` seconds.
     -   Auto-scrolls to bottom unless user has scrolled up (then shows "N new" pill).

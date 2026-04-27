@@ -239,7 +239,10 @@ final class Plugin {
 				$menu = $plugin->get( 'admin.menu' );
 				assert( $menu instanceof Menu );
 
-				return new AssetLoader( $menu );
+				$settings = $plugin->get( 'settings' );
+				assert( $settings instanceof Settings );
+
+				return new AssetLoader( $menu, $settings );
 			}
 		);
 	}

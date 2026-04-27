@@ -1,30 +1,30 @@
 /**
- * Logs-tab body. Owns the filter bar, the list/grouped mode toggle, and
- * the data-fetch effect that ties them together. The store is the single
- * source of truth for filters + view mode; this component only
- * translates store state into REST query params and back into a body
- * component.
+ * Logs-tab body. Owns the filter bar, the list/grouped/tail toggles,
+ * and the data-fetch effect that ties them together.
  *
- * react-window v2's `<List>` has no public scroll-offset getter, but its
- * imperative API exposes the underlying scroll container as `element`.
- * We capture `scrollTop` on each render-frame's scroll event and restore
- * it on the next mount, so toggling list ↔ grouped preserves where the
- * user was reading (Phase 7.2 AC).
+ * react-window v2's `<List>` exposes the scroll container via the
+ * imperative `element` field on `useListRef`; we capture `scrollTop`
+ * on each scroll and restore it across mode toggles (Phase 7.2 AC) and
+ * use the same handle for the "scroll to top" affordance on the tail
+ * "N new" pill (Phase 7.4). Row heights are dynamic — collapsed rows
+ * are 48px and expanded rows grow to fit their stack-trace panel — and
+ * the rowHeight function closes over the store's `expandedTraces` map
+ * so toggling expansion forces a measure pass.
  */
-import { useEffect, useRef } from '@wordpress/element';
+import { useCallback, useEffect, useRef } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf, _n } from '@wordpress/i18n';
 import { Button, Spinner } from '@wordpress/components';
 import { List, useListRef } from 'react-window';
 
 import { STORE_KEY } from '../../store';
-import EntryRow from '../EntryRow';
+import EntryRow, { entryKey, rowHeightFor, ROW_HEIGHT_BASE } from '../EntryRow';
 import EmptyState from '../EmptyState';
 import FilterBar from '../FilterBar';
 import GroupedView from '../GroupedView';
 import useUrlQuerySync from '../../hooks/useUrlQuerySync';
+import useTailPolling from '../../hooks/useTailPolling';
 
-const ROW_HEIGHT = 48;
 const LIST_HEIGHT = 600;
 
 function buildQueryParams( filters, viewMode ) {
@@ -44,7 +44,7 @@ function buildQueryParams( filters, viewMode ) {
 }
 
 export default function LogViewer() {
-	const { items, isLoading, error, viewMode, filters } = useSelect(
+	const { items, isLoading, error, viewMode, filters, isTailing } = useSelect(
 		( select ) => {
 			const store = select( STORE_KEY );
 			return {
@@ -53,11 +53,12 @@ export default function LogViewer() {
 				error: store.getLogsError(),
 				viewMode: store.getViewMode(),
 				filters: store.getFilters(),
+				isTailing: store.isTailActive(),
 			};
 		},
 		[]
 	);
-	const { fetchLogs, setViewMode } = useDispatch( STORE_KEY );
+	const { fetchLogs, setViewMode, setTailActive } = useDispatch( STORE_KEY );
 
 	useUrlQuerySync( viewMode, filters );
 
@@ -69,6 +70,15 @@ export default function LogViewer() {
 		if ( mode !== viewMode ) {
 			setViewMode( mode );
 		}
+	};
+
+	const handleToggleTail = () => {
+		// Tail polling appends raw entries — switch out of grouped mode so
+		// the appended rows have somewhere to land.
+		if ( ! isTailing && viewMode === 'grouped' ) {
+			setViewMode( 'list' );
+		}
+		setTailActive( ! isTailing );
 	};
 
 	return (
@@ -95,6 +105,15 @@ export default function LogViewer() {
 					onClick={ () => handleSetMode( 'grouped' ) }
 				>
 					{ __( 'Grouped', 'logscope' ) }
+				</Button>
+				<Button
+					variant={ isTailing ? 'primary' : 'tertiary' }
+					onClick={ handleToggleTail }
+					aria-pressed={ isTailing }
+				>
+					{ isTailing
+						? __( 'Stop tail', 'logscope' )
+						: __( 'Tail', 'logscope' ) }
 				</Button>
 			</div>
 
@@ -134,17 +153,23 @@ function ViewerBody( { items, isLoading, error, viewMode } ) {
 
 function ListScrollPane( { items, isLoading } ) {
 	const listRef = useListRef( null );
-	const savedOffset = useSelect(
-		( select ) => select( STORE_KEY ).getScrollOffset( 'list' ),
-		[]
-	);
-	const { setScrollOffset } = useDispatch( STORE_KEY );
+	const scrollElementRef = useRef( null );
+	const { savedOffset, expandedTraces, newCount } = useSelect( ( select ) => {
+		const store = select( STORE_KEY );
+		return {
+			savedOffset: store.getScrollOffset( 'list' ),
+			expandedTraces: store.getExpandedTraces(),
+			newCount: store.getTailNewCount(),
+		};
+	}, [] );
+	const { setScrollOffset, clearTailNewCount } = useDispatch( STORE_KEY );
 
 	useEffect( () => {
 		const element = listRef.current?.element;
 		if ( ! element ) {
 			return undefined;
 		}
+		scrollElementRef.current = element;
 		element.scrollTop = savedOffset;
 		const onScroll = () => setScrollOffset( 'list', element.scrollTop );
 		element.addEventListener( 'scroll', onScroll, { passive: true } );
@@ -154,17 +179,62 @@ function ListScrollPane( { items, isLoading } ) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [] );
 
+	useTailPolling( scrollElementRef );
+
+	// rowHeight closes over expandedTraces; recreating the function on
+	// every change of that map is what tells react-window to re-measure.
+	const rowHeight = useCallback(
+		( index ) => {
+			const entry = items[ index ];
+			if ( ! entry ) {
+				return ROW_HEIGHT_BASE;
+			}
+			return rowHeightFor(
+				entry,
+				!! expandedTraces[ entryKey( entry ) ]
+			);
+		},
+		[ items, expandedTraces ]
+	);
+
+	const handleNewPill = () => {
+		const el = scrollElementRef.current;
+		if ( el ) {
+			el.scrollTop = 0;
+		}
+		clearTailNewCount();
+	};
+
 	return (
 		<div
 			className="logscope-viewer"
 			role="list"
 			aria-busy={ isLoading ? 'true' : 'false' }
 		>
+			{ newCount > 0 && (
+				<button
+					type="button"
+					className="logscope-viewer__new-pill"
+					onClick={ handleNewPill }
+					aria-live="polite"
+				>
+					{ sprintf(
+						/* translators: %d is the number of new log entries since the user scrolled away. */
+						_n(
+							'%d new entry',
+							'%d new entries',
+							newCount,
+							'logscope'
+						),
+						newCount
+					) }
+				</button>
+			) }
 			<List
 				className="logscope-viewer__list"
 				listRef={ listRef }
 				rowCount={ items.length }
-				rowHeight={ ROW_HEIGHT }
+				rowHeight={ rowHeight }
 				rowComponent={ EntryRow }
 				rowProps={ { items } }
 				style={ { height: LIST_HEIGHT } }

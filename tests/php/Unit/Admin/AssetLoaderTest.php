@@ -14,6 +14,8 @@ use Brain\Monkey\Functions;
 use Logscope\Admin\AssetLoader;
 use Logscope\Admin\Menu;
 use Logscope\Admin\PageRenderer;
+use Logscope\Settings\Settings;
+use Logscope\Settings\SettingsSchema;
 use Logscope\Tests\TestCase;
 
 // phpcs:disable WordPress.WP.AlternativeFunctions
@@ -83,6 +85,18 @@ final class AssetLoaderTest extends TestCase {
 		rmdir( $dir );
 	}
 
+	private function make_settings( int $tail_interval = 3 ): Settings {
+		// Settings is `final`, so we use a real instance and stub the
+		// underlying `get_option` lookup rather than a Mockery double.
+		Functions\when( 'get_option' )->alias(
+			static function ( string $key, $fallback = false ) use ( $tail_interval ) {
+				return 'logscope_tail_interval' === $key ? $tail_interval : $fallback;
+			}
+		);
+
+		return new Settings( new SettingsSchema() );
+	}
+
 	private function make_menu_with_hook( string $hook ): Menu {
 		Filters\expectApplied( 'logscope/required_capability' )->andReturn( 'logscope_manage' );
 		Functions\expect( 'add_submenu_page' )->once()->andReturn( $hook );
@@ -115,7 +129,7 @@ final class AssetLoaderTest extends TestCase {
 			)
 		);
 
-		$loader = new AssetLoader( $menu );
+		$loader = new AssetLoader( $menu, $this->make_settings() );
 
 		Functions\expect( 'wp_enqueue_script' )->never();
 		Functions\expect( 'wp_enqueue_style' )->never();
@@ -133,7 +147,7 @@ final class AssetLoaderTest extends TestCase {
 		Functions\expect( 'wp_enqueue_script' )->never();
 		Functions\expect( 'wp_enqueue_style' )->never();
 
-		( new AssetLoader( $menu ) )->enqueue( 'tools_page_logscope' );
+		( new AssetLoader( $menu, $this->make_settings() ) )->enqueue( 'tools_page_logscope' );
 
 		$this->assertTrue( true );
 	}
@@ -181,12 +195,13 @@ final class AssetLoaderTest extends TestCase {
 							&& 'http://example.test/wp-json/logscope/v1/' === $payload['restUrl']
 							&& 'http://example.test/wp-json/' === $payload['restRoot']
 							&& 'NONCE' === $payload['nonce']
-							&& true === $payload['canManage'];
+							&& true === $payload['canManage']
+							&& 5 === $payload['tailInterval'];
 					}
 				)
 			);
 
-		( new AssetLoader( $menu ) )->enqueue( 'tools_page_logscope' );
+		( new AssetLoader( $menu, $this->make_settings( 5 ) ) )->enqueue( 'tools_page_logscope' );
 	}
 
 	public function test_enqueue_includes_style_when_css_present(): void {
@@ -215,7 +230,7 @@ final class AssetLoaderTest extends TestCase {
 		Functions\expect( 'rest_url' )->andReturn( 'http://x/' );
 		Functions\expect( 'wp_create_nonce' )->andReturn( 'N' );
 
-		( new AssetLoader( $menu ) )->enqueue( 'tools_page_logscope' );
+		( new AssetLoader( $menu, $this->make_settings() ) )->enqueue( 'tools_page_logscope' );
 	}
 
 	public function test_localized_payload_reflects_can_manage_false(): void {
@@ -226,8 +241,9 @@ final class AssetLoaderTest extends TestCase {
 		Functions\expect( 'rest_url' )->andReturn( 'http://x/' );
 		Functions\expect( 'wp_create_nonce' )->andReturn( 'N' );
 
-		$payload = ( new AssetLoader( $menu ) )->localized_payload();
+		$payload = ( new AssetLoader( $menu, $this->make_settings( 7 ) ) )->localized_payload();
 
 		$this->assertFalse( $payload['canManage'] );
+		$this->assertSame( 7, $payload['tailInterval'] );
 	}
 }

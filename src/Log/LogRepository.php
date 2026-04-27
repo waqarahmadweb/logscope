@@ -56,20 +56,35 @@ final class LogRepository {
 	 * @return PagedResult
 	 */
 	public function query( LogQuery $query ): PagedResult {
-		$entries = $this->load_entries();
-		$entries = $this->apply_filters( $entries, $query );
+		$last_byte = $this->source->exists() ? $this->source->size() : 0;
+		$entries   = $this->load_entries( $query->since_byte, $last_byte );
+		$entries   = $this->apply_filters( $entries, $query );
+
+		// Tail mode: skip grouping and pagination — the client wants
+		// every newly-appended entry in chronological order, smallest
+		// possible response so polling stays cheap.
+		if ( null !== $query->since_byte ) {
+			return new PagedResult(
+				$entries,
+				count( $entries ),
+				1,
+				count( $entries ),
+				1,
+				$last_byte
+			);
+		}
 
 		if ( $query->grouped ) {
 			$groups = LogGrouper::group( $entries );
 
-			return $this->paginate( $groups, $query );
+			return $this->paginate( $groups, $query, $last_byte );
 		}
 
 		// Newest-first: WP appends to the log so reverse of file order
 		// approximates timestamp-desc without a per-entry sort cost.
 		$entries = array_reverse( $entries );
 
-		return $this->paginate( $entries, $query );
+		return $this->paginate( $entries, $query, $last_byte );
 	}
 
 	/**
@@ -81,7 +96,8 @@ final class LogRepository {
 	 * @return string[] Sorted, deduplicated source slugs.
 	 */
 	public function distinct_sources(): array {
-		$entries = $this->load_entries();
+		$size    = $this->source->exists() ? $this->source->size() : 0;
+		$entries = $this->load_entries( null, $size );
 		$sources = array();
 
 		foreach ( $entries as $entry ) {
@@ -99,22 +115,31 @@ final class LogRepository {
 
 	/**
 	 * Reads the (possibly tail-clipped) log bytes and parses them.
+	 * When `$since` is non-null, reads only bytes from that offset
+	 * forward — the tail-mode fast path.
 	 *
+	 * @param int|null $since Byte offset to start at, or null for full read.
+	 * @param int      $size  Pre-fetched source size (avoids a second stat).
 	 * @return Entry[]
 	 */
-	private function load_entries(): array {
-		if ( ! $this->source->exists() ) {
+	private function load_entries( ?int $since, int $size ): array {
+		if ( ! $this->source->exists() || 0 === $size ) {
 			return array();
 		}
 
-		$size = $this->source->size();
-		if ( 0 === $size ) {
-			return array();
+		if ( null !== $since ) {
+			// `since` past EOF is a no-op (the file may have been rotated
+			// or cleared between polls); a `since` ahead of the file we
+			// can see is treated as "nothing new since you last asked."
+			if ( $since >= $size ) {
+				return array();
+			}
+			$offset = $since;
+		} else {
+			$offset = $size > self::MAX_BYTES_PER_QUERY
+				? $size - self::MAX_BYTES_PER_QUERY
+				: 0;
 		}
-
-		$offset = $size > self::MAX_BYTES_PER_QUERY
-			? $size - self::MAX_BYTES_PER_QUERY
-			: 0;
 
 		$max   = $size - $offset;
 		$chunk = $this->source->read_chunk( $offset, $max );
@@ -165,17 +190,18 @@ final class LogRepository {
 	/**
 	 * Slices a page out of items and wraps it in a PagedResult.
 	 *
-	 * @param Entry[]|Group[] $items All items after filtering.
-	 * @param LogQuery        $query Source query for page/per_page.
+	 * @param Entry[]|Group[] $items     All items after filtering.
+	 * @param LogQuery        $query     Source query for page/per_page.
+	 * @param int             $last_byte Source size at read time.
 	 * @return PagedResult
 	 */
-	private function paginate( array $items, LogQuery $query ): PagedResult {
+	private function paginate( array $items, LogQuery $query, int $last_byte ): PagedResult {
 		$total       = count( $items );
 		$total_pages = $total > 0 ? (int) ceil( $total / $query->per_page ) : 1;
 		$start       = ( $query->page - 1 ) * $query->per_page;
 		$slice       = array_slice( $items, $start, $query->per_page );
 
-		return new PagedResult( $slice, $total, $query->page, $query->per_page, $total_pages );
+		return new PagedResult( $slice, $total, $query->page, $query->per_page, $total_pages, $last_byte );
 	}
 
 	/**
