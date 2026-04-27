@@ -234,8 +234,10 @@ Goal: React can fetch everything it needs via `/wp-json/logscope/v1/*`.
     -   **AC**: Integration test — POST with extra keys is rejected; valid POST persists + returns new state.
     -   **Commit**: `feat(rest): add settings endpoints`
 
--   [ ] **5.3** 🏷️ **Release v0.5.0** — REST API + settings backend
+-   [x] **5.3** 🏷️ **Release v0.5.0** — REST API + settings backend
     -   **Commit**: `chore(release): v0.5.0`
+
+> Phase 5 complete on 2026-04-27.
 
 ---
 

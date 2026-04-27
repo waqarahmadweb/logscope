@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-27
+
+Closes Phases 4 and 5 of the [roadmap](ROADMAP.md): the REST surface React will consume in Phase 6 (`GET/DELETE /logs`, `GET /logs/download`, `GET/POST /settings`) plus the schema-driven settings backend. The `RestController` abstract base centralises capability + authentication enforcement so every Logscope route inherits a uniform 401/403 contract; the `Plugin` DI graph wires `path_guard` → `log_source` → `log_repository` → controllers and registers logs and settings routes in independent `try/catch` blocks so a misconfiguration in one cannot abort `rest_api_init` for the other or for unrelated plugins. Still no user-visible features — the React admin page lands in Phase 6.
+
 ### Changed
 
 -   Phase 4 review follow-ups. Removed the unused `RestController::register()` indirection — `Plugin::register_rest_routes()` is now the single registration point for Logscope routes, eliminating a latent double-registration hazard. `Plugin::register_rest_routes()` now traps `Throwable` (was `InvalidPathException` only) so any constructor-time failure in the `path_guard` → `log_source` → `log_repository` → `rest.logs_controller` graph leaves the routes unregistered without aborting `rest_api_init` for other plugins. `LogsController::normalise_severity_param()` now drops unknown tokens against `Severity::all()` for the comma-separated string path, matching the args-schema enum constraint that already covered the array form. `LogsController::download_headers_for()` strips control chars, double-quotes, and backslashes from the basename before interpolating into `Content-Disposition`, falling back to `debug.log` if everything is stripped, so a sibling renamed externally cannot produce a malformed header. The `_logscope_skip_exit_for_tests` request-param escape hatch now carries an explicit `@internal` docblock noting it must be removed if the cap gate ever weakens.
@@ -64,7 +68,8 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/waqarahmadweb/logscope/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/waqarahmadweb/logscope/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/waqarahmadweb/logscope/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/waqarahmadweb/logscope/compare/v0.1.0...v0.2.0
