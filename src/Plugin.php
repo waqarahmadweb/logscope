@@ -13,6 +13,8 @@ use Closure;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
 use Logscope\REST\LogsController;
+use Logscope\Settings\Settings;
+use Logscope\Settings\SettingsSchema;
 use Logscope\Support\PathGuard;
 use RuntimeException;
 use Throwable;
@@ -164,6 +166,23 @@ final class Plugin {
 				assert( $source instanceof FileLogSource );
 
 				return new LogRepository( $source );
+			}
+		);
+
+		$this->register(
+			'settings.schema',
+			static function (): SettingsSchema {
+				return new SettingsSchema();
+			}
+		);
+
+		$this->register(
+			'settings',
+			static function ( Plugin $plugin ): Settings {
+				$schema = $plugin->get( 'settings.schema' );
+				assert( $schema instanceof SettingsSchema );
+
+				return new Settings( $schema );
 			}
 		);
 

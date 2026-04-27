@@ -219,7 +219,7 @@ Goal: React can fetch everything it needs via `/wp-json/logscope/v1/*`.
 
 ## Phase 5 — Settings
 
--   [ ] **5.1** `src/Settings/SettingsSchema.php` + `Settings.php`
+-   [x] **5.1** `src/Settings/SettingsSchema.php` + `Settings.php`
 
     -   Single source of truth: fields, defaults, sanitizers, types.
     -   `Settings::get($key)` / `Settings::set($key, $value)` — sanitizes on set.
