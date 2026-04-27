@@ -1,6 +1,6 @@
 {
 	"name": "logscope",
-	"version": "0.8.0",
+	"version": "0.9.0",
 	"description": "Stream, filter, and group your WordPress debug log without leaving wp-admin.",
 	"license": "GPL-2.0-or-later",
 	"private": true,
@@ -13,6 +13,7 @@
 		"start": "wp-scripts start --webpack-src-dir=assets/src --output-path=assets/build",
 		"lint:js": "eslint assets/src eslint.config.mjs",
 		"format": "wp-scripts format assets/src",
+		"i18n": "node bin/make-pot.mjs",
 		"packages-update": "wp-scripts packages-update",
 		"prepare": "husky"
 	},

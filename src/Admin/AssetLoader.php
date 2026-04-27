@@ -94,7 +94,16 @@ final class AssetLoader {
 
 		$asset_file = $plugin_dir . 'assets/build/index.asset.php';
 		$script_url = $plugin_url . 'assets/build/index.js';
-		$style_url  = $plugin_url . 'assets/build/index.css';
+
+		// `@wordpress/scripts` (since v23) emits the CSS chunk for an entry
+		// `index` as `style-index.css` rather than `index.css`. Older builds
+		// of this plugin used a JS-only entry, so the CSS path was a
+		// hypothetical; Phase 11 introduced an SCSS import and we now have
+		// to track the actual filename. The legacy `index.css` filename is
+		// kept as a fallback so a hand-built bundle following the older
+		// convention still enqueues.
+		$style_basename     = 'style-index.css';
+		$style_basename_alt = 'index.css';
 
 		// `@wordpress/scripts` writes index.asset.php on every successful
 		// build. If it's missing we either ran before the first build or
@@ -124,12 +133,18 @@ final class AssetLoader {
 
 		// CSS may legitimately be absent (a pure-JS build emits no
 		// stylesheet) — only enqueue when the file exists to avoid a 404
-		// on every page load.
-		$style_path = $plugin_dir . 'assets/build/index.css';
-		if ( file_exists( $style_path ) ) {
+		// on every page load. We try the modern wp-scripts filename first
+		// and fall back to the legacy `index.css` name.
+		$style_basename_resolved = '';
+		if ( file_exists( $plugin_dir . 'assets/build/' . $style_basename ) ) {
+			$style_basename_resolved = $style_basename;
+		} elseif ( file_exists( $plugin_dir . 'assets/build/' . $style_basename_alt ) ) {
+			$style_basename_resolved = $style_basename_alt;
+		}
+		if ( '' !== $style_basename_resolved ) {
 			wp_enqueue_style(
 				self::HANDLE,
-				$style_url,
+				$plugin_url . 'assets/build/' . $style_basename_resolved,
 				array(),
 				$version
 			);

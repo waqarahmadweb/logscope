@@ -1,0 +1,461 @@
+# Copyright (C) 2026 Your Name
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Logscope 0.8.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/logscope\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-04-27T20:08:10+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: logscope\n"
+
+#. Plugin Name of the plugin
+#: logscope.php
+msgid "Logscope — Debug Log Viewer for WordPress"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: logscope.php
+msgid "https://example.com/logscope"
+msgstr ""
+
+#. Description of the plugin
+#: logscope.php
+msgid "Stream, filter, and group your WordPress debug log without leaving wp-admin. Free forever, GPL v2."
+msgstr ""
+
+#. Author of the plugin
+#: logscope.php
+msgid "Your Name"
+msgstr ""
+
+#. Author URI of the plugin
+#: logscope.php
+msgid "https://example.com"
+msgstr ""
+
+#: src/Admin/Menu.php:73
+#: src/Admin/Menu.php:74
+#: src/Admin/PageRenderer.php:36
+msgid "Logscope"
+msgstr ""
+
+#: src/REST/LogsController.php:237
+msgid "Pass confirm=true to clear the log."
+msgstr ""
+
+#: src/REST/LogsController.php:245
+msgid "There is no log file to clear."
+msgstr ""
+
+#: src/REST/LogsController.php:254
+msgid "The log directory is not writable by the server."
+msgstr ""
+
+#: src/REST/LogsController.php:268
+msgid "The log could not be archived."
+msgstr ""
+
+#: src/REST/LogsController.php:303
+msgid "There is no log file to download."
+msgstr ""
+
+#: src/REST/RestController.php:60
+msgid "You must be authenticated to access this endpoint."
+msgstr ""
+
+#: src/REST/RestController.php:68
+msgid "You do not have permission to access Logscope."
+msgstr ""
+
+#. translators: %s is a comma-separated list of unknown setting keys.
+#: src/REST/SettingsController.php:142
+#, php-format
+msgid "Unknown setting(s): %s."
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/build/index.js:2
+#: assets/src/components/EmptyState/index.jsx:17
+#: assets/src/store/index.js:148
+msgid "Could not load logs."
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/src/store/index.js:207
+msgid "Settings saved."
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/src/store/index.js:232
+msgid "Could not save settings."
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/src/store/index.js:250
+msgid "Could not test the path."
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/src/utils/severity.js:37
+msgid "Fatal error"
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/src/utils/severity.js:39
+msgid "Parse error"
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/src/utils/severity.js:41
+msgid "Warning"
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/src/utils/severity.js:43
+msgid "Notice"
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/src/utils/severity.js:45
+msgid "Deprecated"
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/src/utils/severity.js:47
+msgid "Strict Standards"
+msgstr ""
+
+#: assets/build/index.js:1
+#: assets/src/utils/severity.js:49
+msgid "Unknown"
+msgstr ""
+
+#. translators: %d is the frame index.
+#: assets/build/index.js:2
+#: assets/src/components/StackTracePanel/index.jsx:63
+#, js-format
+msgid "Frame %d"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/StackTracePanel/index.jsx:74
+msgid "Copy file:line to clipboard"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/StackTracePanel/index.jsx:79
+msgid "Copied"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/StackTracePanel/index.jsx:86
+msgid "[internal]"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/EntryRow/index.jsx:90
+msgid "Hide stack trace"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/EntryRow/index.jsx:91
+msgid "Show stack trace"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/EmptyState/index.jsx:27
+msgid "No entries match the current filters."
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/EmptyState/index.jsx:28
+msgid "No log entries to show."
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/EmptyState/index.jsx:32
+msgid "Try widening the date range or clearing the regex."
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/EmptyState/index.jsx:36
+msgid "When WordPress writes to debug.log, entries will appear here."
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/FilterBar/index.jsx:95
+msgid "Log filters"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/FilterBar/index.jsx:98
+msgid "Severity"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/FilterBar/index.jsx:115
+msgid "From"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/FilterBar/index.jsx:124
+msgid "To"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/FilterBar/index.jsx:133
+msgid "Search (regex)"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/FilterBar/index.jsx:140
+msgid "e.g. wpdb::query"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/FilterBar/index.jsx:141
+msgid "Search log messages (regex)"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/FilterBar/index.jsx:149
+msgid "Source"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/FilterBar/index.jsx:157
+msgid "All sources"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/build/index.js:6
+#: assets/src/components/FilterBar/index.jsx:174
+#: assets/src/components/SettingsPanel/index.jsx:228
+msgid "Reset"
+msgstr ""
+
+#: assets/build/index.js:2
+#: assets/src/components/GroupedView/index.jsx:27
+msgid "No grouped errors match the current filters."
+msgstr ""
+
+#. translators: %d is the number of times this error occurred.
+#: assets/build/index.js:3
+#: assets/src/components/GroupedView/index.jsx:78
+#, js-format
+msgid "%d occurrence"
+msgid_plural "%d occurrences"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/build/index.js:3
+#: assets/src/components/GroupedView/index.jsx:103
+msgid "Group details"
+msgstr ""
+
+#: assets/build/index.js:3
+#: assets/src/components/GroupedView/index.jsx:106
+msgid "First seen"
+msgstr ""
+
+#: assets/build/index.js:3
+#: assets/src/components/GroupedView/index.jsx:108
+msgid "Last seen"
+msgstr ""
+
+#: assets/build/index.js:3
+#: assets/src/components/GroupedView/index.jsx:112
+msgid "Location"
+msgstr ""
+
+#: assets/build/index.js:3
+#: assets/src/components/Skeleton/index.jsx:16
+msgid "Loading log entries…"
+msgstr ""
+
+#: assets/build/index.js:3
+#: assets/src/components/Skeleton/index.jsx:35
+msgid "Loading settings…"
+msgstr ""
+
+#: assets/build/index.js:3
+#: assets/src/components/LogViewer/index.jsx:113
+msgid "View mode"
+msgstr ""
+
+#: assets/build/index.js:3
+#: assets/src/components/LogViewer/index.jsx:121
+msgid "List"
+msgstr ""
+
+#: assets/build/index.js:3
+#: assets/src/components/LogViewer/index.jsx:129
+msgid "Grouped"
+msgstr ""
+
+#: assets/build/index.js:3
+#: assets/src/components/LogViewer/index.jsx:137
+msgid "Stop tail"
+msgstr ""
+
+#: assets/build/index.js:3
+#: assets/src/components/LogViewer/index.jsx:138
+msgid "Tail"
+msgstr ""
+
+#. translators: %d is the number of new log entries since the user scrolled away.
+#: assets/build/index.js:4
+#: assets/src/components/LogViewer/index.jsx:252
+#, js-format
+msgid "%d new entry"
+msgid_plural "%d new entries"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/build/index.js:4
+#: assets/src/components/SettingsPanel/index.jsx:36
+msgid "Unknown setting key."
+msgstr ""
+
+#. translators: %s is the underlying error message.
+#: assets/build/index.js:5
+#: assets/src/components/SettingsPanel/index.jsx:94
+#, js-format
+msgid "Could not load settings: %s"
+msgstr ""
+
+#: assets/build/index.js:5
+#: assets/src/components/SettingsPanel/index.jsx:135
+msgid "Custom log path"
+msgstr ""
+
+#: assets/build/index.js:5
+#: assets/src/components/SettingsPanel/index.jsx:136
+msgid "Absolute path to your debug log. Leave empty to use the default WordPress location."
+msgstr ""
+
+#: assets/build/index.js:5
+#: assets/src/components/SettingsPanel/index.jsx:164
+msgid "Test path"
+msgstr ""
+
+#. translators: %s is the underlying error message from the failed REST call.
+#: assets/build/index.js:6
+#: assets/src/components/SettingsPanel/index.jsx:173
+#, js-format
+msgid "Could not test the path: %s"
+msgstr ""
+
+#: assets/build/index.js:6
+#: assets/src/components/SettingsPanel/index.jsx:186
+msgid "Tail interval (seconds)"
+msgstr ""
+
+#: assets/build/index.js:6
+#: assets/src/components/SettingsPanel/index.jsx:187
+msgid "How often the live tail polls for new entries. Minimum 1 second."
+msgstr ""
+
+#: assets/build/index.js:6
+#: assets/src/components/SettingsPanel/index.jsx:220
+msgid "Save settings"
+msgstr ""
+
+#. translators: %s is the canonicalised absolute path.
+#: assets/build/index.js:7
+#: assets/src/components/SettingsPanel/index.jsx:241
+#, js-format
+msgid "Resolved: %s"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/SettingsPanel/index.jsx:244
+msgid "Path is allowed. The file does not exist yet — it will be created on first write."
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/SettingsPanel/index.jsx:250
+msgid "Path looks good."
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/SettingsPanel/index.jsx:255
+msgid "Not currently readable."
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/SettingsPanel/index.jsx:263
+msgid "Not currently writable."
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/SettingsPanel/index.jsx:272
+msgid "Path rejected."
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/SettingsPanel/index.jsx:274
+msgid "Path is outside the allowed directories."
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/SettingsPanel/index.jsx:278
+msgid "Allowed roots:"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/HelpModal/index.jsx:15
+msgid "Focus the regex search field"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/HelpModal/index.jsx:16
+msgid "Toggle grouped view"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/HelpModal/index.jsx:17
+msgid "Toggle tail mode"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/HelpModal/index.jsx:18
+msgid "Open this help dialog"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/App.jsx:182
+#: assets/src/components/HelpModal/index.jsx:24
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/HelpModal/index.jsx:47
+msgid "Shortcuts are ignored while typing in an input."
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/App.jsx:33
+msgid "Logs"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/App.jsx:34
+msgid "Settings"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/App.jsx:152
+msgid "Logscope sections"
+msgstr ""
+
+#: assets/build/index.js:7
+#: assets/src/components/App.jsx:184
+msgid "Shortcuts (?)"
+msgstr ""

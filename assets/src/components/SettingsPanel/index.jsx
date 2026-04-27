@@ -18,9 +18,10 @@
 import { useEffect } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
-import { Button, Notice, Spinner, TextControl } from '@wordpress/components';
+import { Button, Notice, TextControl } from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
+import { FormSkeleton } from '../Skeleton';
 
 const TAIL_INTERVAL_MIN = 1;
 
@@ -82,12 +83,7 @@ export default function SettingsPanel() {
 	}, [ values, isLoading, loadError, fetchSettings ] );
 
 	if ( isLoading && ! draft ) {
-		return (
-			<div className="logscope-settings-panel logscope-settings-panel--loading">
-				<Spinner />
-				<span>{ __( 'Loading settings…', 'logscope' ) }</span>
-			</div>
-		);
+		return <FormSkeleton />;
 	}
 
 	if ( loadError && ! draft ) {

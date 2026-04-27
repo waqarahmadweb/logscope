@@ -25,8 +25,12 @@
  *     buffer the panel renders. `fieldErrors` maps a field key to a
  *     translated error string when the REST layer rejects per-field.
  *     `testResult` mirrors the verdict from `/settings/test-path`.
+ *   - toasts: transient Snackbar queue rendered by ToastHost (Phase
+ *     11.1). Each entry has a stable id so dismiss-by-id can race-free
+ *     coexist with auto-prune timers in the host component.
  */
 import { createReduxStore, register } from '@wordpress/data';
+import { __ } from '@wordpress/i18n';
 
 import { client } from '../api/client';
 import entryKey from '../utils/entryKey';
@@ -77,7 +81,11 @@ const DEFAULT_STATE = {
 		testError: null,
 		isTesting: false,
 	},
+	toasts: [],
 };
+
+const TOAST_DEFAULT_TTL_MS = 5000;
+let toastSeq = 0;
 
 const actions = {
 	setActiveTab( tab ) {
@@ -135,6 +143,11 @@ const actions = {
 			yield actions.receiveLogs( response );
 		} catch ( error ) {
 			yield actions.failLogs( error?.message || 'Unknown error' );
+			yield actions.pushToast( {
+				message:
+					error?.message || __( 'Could not load logs.', 'logscope' ),
+				status: 'error',
+			} );
 		}
 	},
 	setSettingsDraft( partial ) {
@@ -190,6 +203,10 @@ const actions = {
 				body,
 			};
 			yield actions.settingsSaved( payload );
+			yield actions.pushToast( {
+				message: __( 'Settings saved.', 'logscope' ),
+				status: 'success',
+			} );
 		} catch ( error ) {
 			// REST `unknown_setting` rejections come through with a
 			// `data.unknown` array per the controller contract; surface
@@ -209,6 +226,12 @@ const actions = {
 				error?.message || 'Unknown error',
 				fieldErrors
 			);
+			yield actions.pushToast( {
+				message:
+					error?.message ||
+					__( 'Could not save settings.', 'logscope' ),
+				status: 'error',
+			} );
 		}
 	},
 	*testLogPath( path ) {
@@ -221,7 +244,30 @@ const actions = {
 			yield actions.receiveTestResult( result );
 		} catch ( error ) {
 			yield actions.failTestPath( error?.message || 'Unknown error' );
+			yield actions.pushToast( {
+				message:
+					error?.message ||
+					__( 'Could not test the path.', 'logscope' ),
+				status: 'error',
+			} );
 		}
+	},
+	pushToast( { message, status = 'info', ttlMs = TOAST_DEFAULT_TTL_MS } ) {
+		// Sequence + timestamp keeps ids unique even within the same ms tick.
+		toastSeq += 1;
+		const id = `t${ Date.now() }-${ toastSeq }`;
+		return {
+			type: 'TOAST_PUSHED',
+			toast: {
+				id,
+				message,
+				status,
+				expiresAt: Date.now() + ttlMs,
+			},
+		};
+	},
+	dismissToast( id ) {
+		return { type: 'TOAST_DISMISSED', id };
 	},
 };
 
@@ -513,6 +559,13 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					testError: null,
 				},
 			};
+		case 'TOAST_PUSHED':
+			return { ...state, toasts: [ ...state.toasts, action.toast ] };
+		case 'TOAST_DISMISSED':
+			return {
+				...state,
+				toasts: state.toasts.filter( ( t ) => t.id !== action.id ),
+			};
 		default:
 			return state;
 	}
@@ -545,6 +598,7 @@ const selectors = {
 	getPathTestResult: ( state ) => state.settings.testResult,
 	getPathTestError: ( state ) => state.settings.testError,
 	isTestingPath: ( state ) => state.settings.isTesting,
+	getToasts: ( state ) => state.toasts,
 };
 
 const controls = {

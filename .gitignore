@@ -33,3 +33,6 @@ Thumbs.db
 .cache/
 .phpcs-cache
 .phpunit.result.cache
+
+# Local toolchain — wp-cli.phar is downloaded on demand by bin/make-pot.mjs
+/tools/

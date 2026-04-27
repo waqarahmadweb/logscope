@@ -11,6 +11,7 @@ import { createRoot } from '@wordpress/element';
 // Importing the store has side effects — register() runs at import time.
 import './store';
 import App from './components/App';
+import './style.scss';
 
 const ROOT_ELEMENT_ID = 'logscope-root';
 

@@ -11,7 +11,7 @@
  * In grouped mode the items expose `file` directly; in list mode they do
  * the same. Either way, we read from `getLogs()`.
  */
-import { useEffect, useMemo, useState } from '@wordpress/element';
+import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { Button } from '@wordpress/components';
@@ -19,6 +19,7 @@ import { Button } from '@wordpress/components';
 import { STORE_KEY } from '../../store';
 import { SEVERITY_TOKENS, severityLabel } from '../../utils/severity';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
+import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
 
 const REGEX_DEBOUNCE_MS = 300;
 
@@ -31,6 +32,28 @@ export default function FilterBar() {
 
 	const [ regexInput, setRegexInput ] = useState( filters.q );
 	const debouncedRegex = useDebouncedValue( regexInput, REGEX_DEBOUNCE_MS );
+	const regexInputRef = useRef( null );
+
+	// `/` shortcut from App focuses (and selects) this input. Listening here
+	// rather than at App keeps the focus side-effect colocated with the
+	// element it targets — App stays generic to a tab-switch event bus.
+	useEffect( () => {
+		if ( typeof window === 'undefined' ) {
+			return undefined;
+		}
+		const handler = ( event ) => {
+			if ( event.detail !== SHORTCUT.FOCUS_SEARCH ) {
+				return;
+			}
+			const el = regexInputRef.current;
+			if ( el ) {
+				el.focus();
+				el.select();
+			}
+		};
+		window.addEventListener( SHORTCUT_EVENT, handler );
+		return () => window.removeEventListener( SHORTCUT_EVENT, handler );
+	}, [] );
 
 	// One-way sync: typed input → debounced → store. Store-side resets
 	// (Reset button) feed back through the `filters.q` selector below.
@@ -109,11 +132,16 @@ export default function FilterBar() {
 			<label className="logscope-filter-bar__field logscope-filter-bar__field--regex">
 				<span>{ __( 'Search (regex)', 'logscope' ) }</span>
 				<input
+					ref={ regexInputRef }
 					type="search"
 					value={ regexInput }
 					onChange={ ( e ) => setRegexInput( e.target.value ) }
 					maxLength={ 200 }
 					placeholder={ __( 'e.g. wpdb::query', 'logscope' ) }
+					aria-label={ __(
+						'Search log messages (regex)',
+						'logscope'
+					) }
 				/>
 			</label>
 

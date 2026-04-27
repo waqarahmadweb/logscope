@@ -7,14 +7,27 @@
  * tab once — a back/forward navigation that mutates `location.hash`
  * wouldn't repaint. The store is the single source of truth; the URL
  * hash mirrors it via a one-way listener so the back button works.
+ *
+ * The toast host and the global keyboard shortcuts (Phase 11) live here
+ * so they apply across both tabs. The shortcut handlers route through
+ * `LogscopeShortcutBus` (a window-level event emitter) — the LogViewer
+ * subscribes to the focus-search and toggle events so they remain a
+ * concern of the component that owns the affected DOM, while keeping
+ * the global key listener (which has to live above the tab switch) free
+ * of knowledge about specific refs.
  */
-import { useEffect } from '@wordpress/element';
+import { useCallback, useEffect, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
+import { Button } from '@wordpress/components';
 
 import { STORE_KEY } from '../store';
+import { SHORTCUT, SHORTCUT_EVENT } from '../shortcuts';
 import LogViewer from './LogViewer';
 import SettingsPanel from './SettingsPanel';
+import ToastHost from './ToastHost';
+import HelpModal from './HelpModal';
+import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
 
 const TABS = [
 	{ name: 'logs', title: __( 'Logs', 'logscope' ) },
@@ -31,16 +44,21 @@ function readTabFromHash() {
 	return VALID_TAB_NAMES.includes( raw ) ? raw : 'logs';
 }
 
+function emitShortcut( name ) {
+	if ( typeof window === 'undefined' ) {
+		return;
+	}
+	window.dispatchEvent( new CustomEvent( SHORTCUT_EVENT, { detail: name } ) );
+}
+
 export default function App() {
 	const activeTab = useSelect(
 		( select ) => select( STORE_KEY ).getActiveTab(),
 		[]
 	);
 	const { setActiveTab } = useDispatch( STORE_KEY );
+	const [ helpOpen, setHelpOpen ] = useState( false );
 
-	// Hash → store, one direction. Click handlers below set the hash
-	// only; this listener turns every hash change (click, back button,
-	// manual edit) into a single store dispatch.
 	useEffect( () => {
 		const sync = () => setActiveTab( readTabFromHash() );
 		sync();
@@ -53,12 +71,77 @@ export default function App() {
 			return;
 		}
 		if ( window.location.hash.replace( /^#/, '' ) === tabName ) {
-			// No hashchange will fire — dispatch directly so a re-click
-			// of the active tab is still a no-op rather than a stale read.
 			setActiveTab( tabName );
 			return;
 		}
 		window.location.hash = tabName;
+	};
+
+	// Shortcuts that target the Logs view ensure the tab is active first
+	// — pressing `g` or `t` from the Settings tab should still do the
+	// expected thing, not silently drop the keystroke.
+	const ensureLogsTab = useCallback( () => {
+		if ( activeTab !== 'logs' ) {
+			handleSelect( 'logs' );
+		}
+	}, [ activeTab ] );
+
+	useKeyboardShortcuts( {
+		onFocusSearch: useCallback( () => {
+			ensureLogsTab();
+			emitShortcut( SHORTCUT.FOCUS_SEARCH );
+		}, [ ensureLogsTab ] ),
+		onToggleGrouped: useCallback( () => {
+			ensureLogsTab();
+			emitShortcut( SHORTCUT.TOGGLE_GROUPED );
+		}, [ ensureLogsTab ] ),
+		onToggleTail: useCallback( () => {
+			ensureLogsTab();
+			emitShortcut( SHORTCUT.TOGGLE_TAIL );
+		}, [ ensureLogsTab ] ),
+		onShowHelp: useCallback( () => setHelpOpen( true ), [] ),
+	} );
+
+	// WAI-ARIA tabs pattern: Left/Right cycles between tabs, Home / End
+	// jump to the first / last. Roving tabIndex below already handles the
+	// "tab into the strip" case; this fills in the "move within the
+	// strip" expectation that screen-reader users have.
+	const handleTabKeyDown = ( event ) => {
+		const idx = VALID_TAB_NAMES.indexOf( activeTab );
+		if ( idx === -1 ) {
+			return;
+		}
+		let next = null;
+		switch ( event.key ) {
+			case 'ArrowRight':
+				next = VALID_TAB_NAMES[ ( idx + 1 ) % VALID_TAB_NAMES.length ];
+				break;
+			case 'ArrowLeft':
+				next =
+					VALID_TAB_NAMES[
+						( idx - 1 + VALID_TAB_NAMES.length ) %
+							VALID_TAB_NAMES.length
+					];
+				break;
+			case 'Home':
+				next = VALID_TAB_NAMES[ 0 ];
+				break;
+			case 'End':
+				next = VALID_TAB_NAMES[ VALID_TAB_NAMES.length - 1 ];
+				break;
+			default:
+				return;
+		}
+		event.preventDefault();
+		handleSelect( next );
+		// Move focus to the newly-active tab; a fresh render flips its
+		// tabIndex to 0, so document.querySelector picks the right node.
+		requestAnimationFrame( () => {
+			const el = document.querySelector(
+				`[role="tab"][data-logscope-tab="${ next }"]`
+			);
+			el?.focus();
+		} );
 	};
 
 	return (
@@ -67,6 +150,7 @@ export default function App() {
 				className="logscope-tabs"
 				role="tablist"
 				aria-label={ __( 'Logscope sections', 'logscope' ) }
+				onKeyDown={ handleTabKeyDown }
 			>
 				{ TABS.map( ( tab ) => {
 					const isActive = tab.name === activeTab;
@@ -75,7 +159,9 @@ export default function App() {
 							key={ tab.name }
 							type="button"
 							role="tab"
+							data-logscope-tab={ tab.name }
 							aria-selected={ isActive }
+							tabIndex={ isActive ? 0 : -1 }
 							className={
 								'logscope-tabs__tab' +
 								( isActive
@@ -88,6 +174,15 @@ export default function App() {
 						</button>
 					);
 				} ) }
+				<span style={ { flex: 1 } } />
+				<Button
+					variant="tertiary"
+					size="small"
+					onClick={ () => setHelpOpen( true ) }
+					aria-label={ __( 'Keyboard shortcuts', 'logscope' ) }
+				>
+					{ __( 'Shortcuts (?)', 'logscope' ) }
+				</Button>
 			</div>
 			<div
 				className="logscope-tabs__panel"
@@ -96,6 +191,8 @@ export default function App() {
 			>
 				<TabContent name={ activeTab } />
 			</div>
+			<ToastHost />
+			{ helpOpen && <HelpModal onClose={ () => setHelpOpen( false ) } /> }
 		</div>
 	);
 }

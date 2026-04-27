@@ -212,6 +212,37 @@ final class AssetLoaderTest extends TestCase {
 				'version'      => 'v1',
 			)
 		);
+		// wp-scripts emits `style-index.css` for the SCSS chunk.
+		file_put_contents( $this->tmp_dir . '/assets/build/style-index.css', '/* css */' );
+
+		Functions\expect( 'wp_enqueue_script' )->once();
+		Functions\expect( 'wp_enqueue_style' )
+			->once()
+			->with(
+				AssetLoader::HANDLE,
+				\Mockery::pattern( '#assets/build/style-index\.css$#' ),
+				array(),
+				'v1'
+			);
+		Functions\expect( 'wp_set_script_translations' )->once();
+		Functions\expect( 'wp_localize_script' )->once();
+		Filters\expectApplied( 'logscope/required_capability' )->andReturn( 'logscope_manage' );
+		Functions\expect( 'current_user_can' )->andReturn( false );
+		Functions\expect( 'rest_url' )->andReturn( 'http://x/' );
+		Functions\expect( 'wp_create_nonce' )->andReturn( 'N' );
+
+		( new AssetLoader( $menu, $this->make_settings() ) )->enqueue( 'tools_page_logscope' );
+	}
+
+	public function test_enqueue_falls_back_to_legacy_index_css(): void {
+		$menu = $this->make_menu_with_hook( 'tools_page_logscope' );
+		$this->write_asset_file(
+			array(
+				'dependencies' => array(),
+				'version'      => 'v2',
+			)
+		);
+		// Legacy filename, no style-index.css present — fallback path.
 		file_put_contents( $this->tmp_dir . '/assets/build/index.css', '/* css */' );
 
 		Functions\expect( 'wp_enqueue_script' )->once();
@@ -221,7 +252,7 @@ final class AssetLoaderTest extends TestCase {
 				AssetLoader::HANDLE,
 				\Mockery::pattern( '#assets/build/index\.css$#' ),
 				array(),
-				'v1'
+				'v2'
 			);
 		Functions\expect( 'wp_set_script_translations' )->once();
 		Functions\expect( 'wp_localize_script' )->once();
