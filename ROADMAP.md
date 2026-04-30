@@ -579,8 +579,10 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
     -   **AC**: Hand-test save → reload page → preset still loadable.
     -   **Commit**: `feat(ui): filter preset save/load UI`
 
--   [ ] **14.11** 🏷️ **Release v0.12.0** — Retention, mute, presets
+-   [x] **14.11** 🏷️ **Release v0.12.0** — Retention, mute, presets
     -   **Commit**: `chore(release): v0.12.0`
+
+> Phase 14 complete on 2026-04-30.
 
 ---
 

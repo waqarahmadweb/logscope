@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-04-30
+
+Closes Phase 14 of the [roadmap](ROADMAP.md): three features bundled into one release. Long-running sites can opt into **size-based log retention** (a daily cron renames `debug.log` to `debug.log.archived-YYYYMMDD-HHMMSS` once it crosses a threshold and prunes the oldest archives beyond a retention cap); admins can **mute noisy signatures** so a known-and-accepted error stops dominating the Logs view (with a Settings-tab management panel for unmuting); power users can **save filter presets** as a per-user list, recall them from a FilterBar dropdown, and overwrite or delete them in place. The mute pipeline filters at the repository layer so totals match the visible page; the preset payload captures `viewMode` alongside the filter values so a saved "grouped Akismet fatals" preset round-trips intact.
+
+The retention path is opt-in (`retention_enabled` defaults off) so a fresh install does not silently rename a user's debug log; the same posture as the Phase 13 scan toggle. The mute filter is on by default but the management UI and the new `?include_muted=true` query string both bypass it. Presets are scoped to user meta — on a multi-admin site, named presets are personal triage tools, and surfacing a colleague's preset to everyone would be friction without value.
+
 ### Added
 
 -   Filter preset save/load UI in FilterBar (Phase 14.10). New "Preset" dropdown above the Reset button: a "Load preset…" select-control listing the user's saved presets (preceded by a "No saved presets" placeholder option when the list is empty) plus a "Save preset" button that captures the current FilterBar state via `window.prompt` for the name. Inline `×` delete buttons next to each preset name with a `window.confirm` guard against fat-finger removals. Loading a preset dispatches `setFilters({severity, from, to, q, source})` + `setViewMode(viewMode)` so the captured grouped/list mode round-trips alongside the filter values. Inputs and outputs are routed through a new `presets` slice (`fetchPresets` / `savePreset` / `deletePreset` thunks, `getPresets` / `isSavingPresets` selectors) wired against the `/presets` endpoints from Phase 14.9. Bundle weight: 58.5 KiB (was 54.6 KiB; +3.9 KiB for the dropdown + thunks + REST methods).
@@ -215,7 +221,8 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/waqarahmadweb/logscope/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/waqarahmadweb/logscope/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/waqarahmadweb/logscope/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/waqarahmadweb/logscope/compare/v0.8.0...v0.9.0
