@@ -638,7 +638,7 @@ Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time 
 
 Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see a silently empty page; admins triaging a flood can act on multiple groups at once.
 
--   [ ] **16.1** `src/Support/DiagnosticsService.php`
+-   [x] **16.1** `src/Support/DiagnosticsService.php`
 
     -   Detects: `WP_DEBUG`, `WP_DEBUG_LOG`, resolved log path (via PathGuard), parent writability, file existence, file size, last-modified time.
     -   Returns a structured snapshot — every field is a typed boolean / int / string, no nulls.
