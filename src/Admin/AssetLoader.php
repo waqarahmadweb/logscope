@@ -173,6 +173,31 @@ final class AssetLoader {
 			'nonce'        => wp_create_nonce( 'wp_rest' ),
 			'canManage'    => Capabilities::has_manage_cap(),
 			'tailInterval' => (int) $this->settings->get( 'tail_interval' ),
+			'cronStatus'   => self::cron_status_payload(),
+		);
+	}
+
+	/**
+	 * Surfaces the last cron-scan summary to the React Settings UI. The
+	 * scan cursor + timestamp + dispatched count are scanner-internal
+	 * state rather than user-editable settings, so they are exposed
+	 * page-load-style through `wp_localize_script` rather than added to
+	 * the schema-driven `/settings` response. Save-then-reload picks up
+	 * the latest tick without needing a polling endpoint, which matches
+	 * how cron status is typically displayed.
+	 *
+	 * @return array{lastScannedAt:int|null, lastScannedDispatched:int}
+	 */
+	private static function cron_status_payload(): array {
+		$last_at = get_option( 'logscope_last_scanned_at', 0 );
+		$last_at = is_numeric( $last_at ) ? (int) $last_at : 0;
+
+		$last_dispatched = get_option( 'logscope_last_scanned_dispatched', 0 );
+		$last_dispatched = is_numeric( $last_dispatched ) ? (int) $last_dispatched : 0;
+
+		return array(
+			'lastScannedAt'         => $last_at > 0 ? $last_at : null,
+			'lastScannedDispatched' => $last_dispatched,
 		);
 	}
 }

@@ -126,17 +126,29 @@ final class SettingsTest extends TestCase {
 			->with( 'logscope_alert_dedup_window', 300 )
 			->andReturn( 300 );
 
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_cron_scan_enabled', 0 )
+			->andReturn( 0 );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_cron_scan_interval_minutes', 5 )
+			->andReturn( 5 );
+
 		$settings = new Settings( new SettingsSchema() );
 
 		$this->assertSame(
 			array(
-				'log_path'              => '/var/log/debug.log',
-				'tail_interval'         => 7,
-				'alert_email_enabled'   => 0,
-				'alert_email_to'        => '',
-				'alert_webhook_enabled' => 0,
-				'alert_webhook_url'     => '',
-				'alert_dedup_window'    => 300,
+				'log_path'                   => '/var/log/debug.log',
+				'tail_interval'              => 7,
+				'alert_email_enabled'        => 0,
+				'alert_email_to'             => '',
+				'alert_webhook_enabled'      => 0,
+				'alert_webhook_url'          => '',
+				'alert_dedup_window'         => 300,
+				'cron_scan_enabled'          => 0,
+				'cron_scan_interval_minutes' => 5,
 			),
 			$settings->all()
 		);

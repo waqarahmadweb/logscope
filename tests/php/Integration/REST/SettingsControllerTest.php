@@ -101,13 +101,15 @@ final class SettingsControllerTest extends TestCase {
 		self::assertInstanceOf( WP_REST_Response::class, $response );
 		$this->assertSame(
 			array(
-				'log_path'              => '/var/log/debug.log',
-				'tail_interval'         => 7,
-				'alert_email_enabled'   => 0,
-				'alert_email_to'        => '',
-				'alert_webhook_enabled' => 0,
-				'alert_webhook_url'     => '',
-				'alert_dedup_window'    => 300,
+				'log_path'                   => '/var/log/debug.log',
+				'tail_interval'              => 7,
+				'alert_email_enabled'        => 0,
+				'alert_email_to'             => '',
+				'alert_webhook_enabled'      => 0,
+				'alert_webhook_url'          => '',
+				'alert_dedup_window'         => 300,
+				'cron_scan_enabled'          => 0,
+				'cron_scan_interval_minutes' => 5,
 			),
 			$response->get_data()
 		);
@@ -129,13 +131,15 @@ final class SettingsControllerTest extends TestCase {
 
 		$this->assertSame(
 			array(
-				'log_path'              => '/tmp/custom.log',
-				'tail_interval'         => 5,
-				'alert_email_enabled'   => 0,
-				'alert_email_to'        => '',
-				'alert_webhook_enabled' => 0,
-				'alert_webhook_url'     => '',
-				'alert_dedup_window'    => 300,
+				'log_path'                   => '/tmp/custom.log',
+				'tail_interval'              => 5,
+				'alert_email_enabled'        => 0,
+				'alert_email_to'             => '',
+				'alert_webhook_enabled'      => 0,
+				'alert_webhook_url'          => '',
+				'alert_dedup_window'         => 300,
+				'cron_scan_enabled'          => 0,
+				'cron_scan_interval_minutes' => 5,
 			),
 			$response->get_data()
 		);
@@ -178,13 +182,15 @@ final class SettingsControllerTest extends TestCase {
 		self::assertInstanceOf( WP_REST_Response::class, $response );
 		$this->assertSame(
 			array(
-				'log_path'              => '',
-				'tail_interval'         => 3,
-				'alert_email_enabled'   => 0,
-				'alert_email_to'        => '',
-				'alert_webhook_enabled' => 0,
-				'alert_webhook_url'     => '',
-				'alert_dedup_window'    => 300,
+				'log_path'                   => '',
+				'tail_interval'              => 3,
+				'alert_email_enabled'        => 0,
+				'alert_email_to'             => '',
+				'alert_webhook_enabled'      => 0,
+				'alert_webhook_url'          => '',
+				'alert_dedup_window'         => 300,
+				'cron_scan_enabled'          => 0,
+				'cron_scan_interval_minutes' => 5,
 			),
 			$response->get_data()
 		);

@@ -460,7 +460,7 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
 
 Goal: Background cron scans the log for new fatals and feeds the AlertCoordinator without the admin needing to open the page.
 
--   [ ] **13.1** `src/Cron/LogScanner.php`
+-   [x] **13.1** `src/Cron/LogScanner.php`
 
     -   Registered event `logscope_scan_fatals` (filter `logscope/scan_interval` for cadence; default 5 min).
     -   Reads log since `logscope_last_scanned_byte` option, parses, filters to fatals + parse errors, groups, feeds to `AlertCoordinator::dispatch_for_groups()`.
@@ -469,7 +469,7 @@ Goal: Background cron scans the log for new fatals and feeds the AlertCoordinato
     -   **AC**: Unit test — given a fixture log with two fatals, scanner calls coordinator once with two groups; second invocation with no new bytes is a no-op.
     -   **Commit**: `feat(cron): scheduled fatal-error scanner`
 
--   [ ] **13.2** `Activator` / `Deactivator` cron lifecycle
+-   [x] **13.2** `Activator` / `Deactivator` cron lifecycle
 
     -   `Activator::activate()` schedules `logscope_scan_fatals` if cron is enabled (default off — opt-in to avoid cron noise on fresh install).
     -   `Deactivator::deactivate()` calls `wp_clear_scheduled_hook('logscope_scan_fatals')`.
@@ -477,21 +477,29 @@ Goal: Background cron scans the log for new fatals and feeds the AlertCoordinato
     -   **AC**: Unit test — enabling the option calls `wp_schedule_event`; disabling calls `wp_clear_scheduled_hook`.
     -   **Commit**: `feat(cron): wire scanner into activation lifecycle`
 
--   [ ] **13.3** SettingsSchema extensions
+-   [x] **13.3** SettingsSchema extensions
 
     -   `cron_scan_enabled` (bool, default false), `cron_scan_interval_minutes` (int, default 5, min 1, max 1440).
     -   Custom interval registered via `cron_schedules` filter so admin choices map to a real schedule.
     -   **AC**: Unit test — schedule appears in `wp_get_schedules()` after plugin boot.
     -   **Commit**: `feat(settings): add cron scanner fields`
 
--   [ ] **13.4** React Settings UI for cron
+-   [x] **13.4** React Settings UI for cron
 
     -   Toggle + interval input + read-only "Last scan: <relative time> · <N> fatals dispatched" status row (read from `logscope_last_scanned_at` + a per-run summary option).
     -   **AC**: Hand-test — enabling the toggle, waiting for one tick, sees the status update.
     -   **Commit**: `feat(ui): cron scanner settings`
 
--   [ ] **13.5** 🏷️ **Release v0.11.0** — Scheduled fatal scanner
+-   [x] **13.5** Test-only manual-trigger guard
+
+    -   Brain Monkey records `add_action` / `do_action` for assertions but does not actually invoke registered callbacks. The integration test stubs both onto a per-test callback registry so `do_action('logscope_scan_fatals')` drives `LogScanner::scan()` end-to-end the same way WP-Cron would in production.
+    -   **AC**: Integration test calls `do_action('logscope_scan_fatals')` against a fixture log and observes the alert pipeline receive the parsed groups; second invocation with no new bytes is a no-op.
+    -   **Commit**: `test(cron): integration test driving scanner via do_action`
+
+-   [x] **13.6** 🏷️ **Release v0.11.0** — Scheduled fatal scanner
     -   **Commit**: `chore(release): v0.11.0`
+
+> Phase 13 complete on 2026-04-30.
 
 ---
 
