@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+-   `Logscope\Cron\LogScanner` (Phase 13.1) — background scanner that reads the slice of the log appended since the last tick, filters parsed entries down to `fatal` and `parse` severities, groups them, and dispatches the resulting groups through `AlertCoordinator::dispatch_for_groups()`. Cursor is the `logscope_last_scanned_byte` option; the run timestamp lands in `logscope_last_scanned_at` and the per-run group count in `logscope_last_scanned_dispatched` so the Settings UI can show "Last scan: …" without inventing a parallel summary store. Rotation is detected by a shrunk file (current `size < last_byte`) — the cursor resets to 0 and the new file is rescanned from the start, with the shrink signalled in the structured return as `rotated: true`. No-op when no new bytes arrived (still updates the timestamp so the UI doesn't show a stale "Last scan"). Wired into `Plugin` as the `cron.scanner` service plus an `add_action('logscope_scan_fatals', ...)` listener on the same `register_hooks()` pass as `rest_api_init` / `admin_menu`; the callback resolves through the same DI graph as the REST controllers and traps `Throwable` so a misconfigured log path does not abort other plugins' scheduled events on the same tick. 4 unit tests cover the two-fatal dispatch path, the no-new-bytes no-op, the rotation reset, and the severity filter (warning/notice are dropped).
+
+### Changed
+
+-   `Logscope\Alerts\AlertCoordinator` is no longer `final`. The cron scanner's unit tests need a Mockery double to assert `dispatch_for_groups()` interaction; matching the precedent set by `AlertDeduplicator` and `SettingsSchema`.
+
 ## [0.10.0] - 2026-04-30
 
 Closes Phase 12 of the [roadmap](ROADMAP.md): the alerts subsystem. Logscope can now notify admins about new fatals via email, webhook, or both — fanned out by a single `AlertCoordinator` that applies signature-keyed dedup per-dispatcher (so silencing email on a noisy fatal does not silence the webhook on the same fatal). Five new settings drive the surface (`alert_email_enabled`, `alert_email_to`, `alert_webhook_enabled`, `alert_webhook_url`, `alert_dedup_window`); the React Settings tab grows an `AlertsPanel` section with a "Send test alert" button that hits a new `POST /wp-json/logscope/v1/alerts/test` endpoint. The webhook dispatcher is the first surface introducing outbound HTTP — hardened with a two-layer http(s) scheme allowlist (settings sanitiser + dispatcher runtime check), `redirection: 0` against SSRF via 30x bounce, and a 5s timeout. A full `security-review` skill pass on the alerts surface returned zero HIGH/MEDIUM findings.

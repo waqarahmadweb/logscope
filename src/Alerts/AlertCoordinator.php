@@ -23,8 +23,12 @@ use Logscope\Log\Group;
  *     that doesn't have to mutate the deduplicator).
  *   - `logscope/alert_sent`   — action; fires only on a successful
  *     dispatch with `(group, dispatcher_name)`.
+ *
+ * Not `final` so {@see \Logscope\Cron\LogScanner} unit tests can stand in
+ * a Mockery double — the class is otherwise treated as effectively
+ * final; do not subclass in production code.
  */
-final class AlertCoordinator {
+class AlertCoordinator {
 
 	/**
 	 * Registered dispatchers.

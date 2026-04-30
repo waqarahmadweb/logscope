@@ -460,7 +460,7 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
 
 Goal: Background cron scans the log for new fatals and feeds the AlertCoordinator without the admin needing to open the page.
 
--   [ ] **13.1** `src/Cron/LogScanner.php`
+-   [x] **13.1** `src/Cron/LogScanner.php`
 
     -   Registered event `logscope_scan_fatals` (filter `logscope/scan_interval` for cadence; default 5 min).
     -   Reads log since `logscope_last_scanned_byte` option, parses, filters to fatals + parse errors, groups, feeds to `AlertCoordinator::dispatch_for_groups()`.

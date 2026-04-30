@@ -17,6 +17,7 @@ use Logscope\Alerts\AlertCoordinator;
 use Logscope\Alerts\AlertDeduplicator;
 use Logscope\Alerts\EmailAlerter;
 use Logscope\Alerts\WebhookAlerter;
+use Logscope\Cron\LogScanner;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
 use Logscope\REST\AlertsController;
@@ -307,6 +308,19 @@ final class Plugin {
 		);
 
 		$this->register(
+			'cron.scanner',
+			static function ( Plugin $plugin ): LogScanner {
+				$source = $plugin->get( 'log_source' );
+				assert( $source instanceof FileLogSource );
+
+				$coordinator = $plugin->get( 'alerts.coordinator' );
+				assert( $coordinator instanceof AlertCoordinator );
+
+				return new LogScanner( $source, $coordinator );
+			}
+		);
+
+		$this->register(
 			'rest.alerts_controller',
 			static function ( Plugin $plugin ): AlertsController {
 				$coordinator = $plugin->get( 'alerts.coordinator' );
@@ -348,6 +362,26 @@ final class Plugin {
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'logscope_scan_fatals', array( $this, 'run_cron_scan' ) );
+	}
+
+	/**
+	 * Cron callback for the `logscope_scan_fatals` event. The scanner
+	 * resolves through the same DI graph as the REST controllers, so a
+	 * misconfigured log path raises an `InvalidPathException` from the
+	 * `log_source` factory — trapped here so a bad option does not abort
+	 * other plugins' scheduled events on the same tick.
+	 *
+	 * @return void
+	 */
+	public function run_cron_scan(): void {
+		try {
+			$scanner = $this->get( 'cron.scanner' );
+			assert( $scanner instanceof LogScanner );
+			$scanner->scan();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'cron.scan', $e );
+		}
 	}
 
 	/**
