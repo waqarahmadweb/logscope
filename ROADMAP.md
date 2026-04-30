@@ -590,45 +590,47 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
 
 Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time without leaving wp-admin.
 
--   [ ] **15.1** `src/Log/LogStats.php`
+-   [x] **15.1** `src/Log/LogStats.php`
 
     -   Time-bucketed aggregations over the current log: counts per severity per `hour` or `day`, configurable range (`24h`, `7d`, `30d`).
     -   Caches per (log size, mtime, range, bucket) in a transient with 60s TTL — re-parsing 50MB on every tab open is wasteful.
     -   **AC**: Unit test — fixture with known severity distribution returns expected bucketed counts; mtime-changed invalidates cache.
     -   **Commit**: `feat(log): add stats aggregation service`
 
--   [ ] **15.2** REST `GET /stats?range=24h|7d|30d&bucket=hour|day`
+-   [x] **15.2** REST `GET /stats?range=24h|7d|30d&bucket=hour|day`
 
     -   Returns `{range, bucket, buckets: [{ts, fatal, warning, notice, …}], totals: {…}, top: [{signature, count, sample}]}`.
     -   **AC**: Integration test — fixture log returns expected bucket count + top-N.
     -   **Commit**: `feat(rest): add GET /stats endpoint`
 
--   [ ] **15.3** New "Stats" React tab
+-   [x] **15.3** New "Stats" React tab
 
     -   Third tab next to Logs / Settings. Tab order: Logs · Stats · Settings (Stats slots between because it shares filter context).
     -   `@wordpress/data` `stats` slice with the same draft/values shape as settings.
     -   **Commit**: `feat(ui): add Stats tab scaffold`
 
--   [ ] **15.4** Sparkline charts per severity
+-   [x] **15.4** Sparkline charts per severity
 
     -   Hand-rolled SVG (no chart library — bundle weight stays under 20KB gz). One sparkline per severity in a small-multiple grid.
     -   `aria-label` per chart describing peak / mean / total for the range; the SVG itself is `aria-hidden`.
     -   **AC**: Smooth render on a 30-day fixture; passes axe-core.
     -   **Commit**: `feat(ui): severity sparklines`
 
--   [ ] **15.5** Top-10 signatures table
+-   [x] **15.5** Top-10 signatures table
 
     -   Click-through dispatches to the Logs tab with the FilterBar pre-populated to the clicked signature's severity + a regex matching its message.
     -   **AC**: Click → tab switch → Logs view filtered.
     -   **Commit**: `feat(ui): top signatures table with click-through`
 
--   [ ] **15.6** Severity breakdown bar (range totals)
+-   [x] **15.6** Severity breakdown bar (range totals)
 
     -   Single horizontal stacked bar showing the proportion of each severity over the selected range.
     -   **Commit**: `feat(ui): severity breakdown bar`
 
--   [ ] **15.7** 🏷️ **Release v0.13.0** — Stats dashboard
+-   [x] **15.7** 🏷️ **Release v0.13.0** — Stats dashboard
     -   **Commit**: `chore(release): v0.13.0`
+
+> Phase 15 complete on 2026-04-30.
 
 ---
 
