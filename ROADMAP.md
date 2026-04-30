@@ -490,7 +490,13 @@ Goal: Background cron scans the log for new fatals and feeds the AlertCoordinato
     -   **AC**: Hand-test — enabling the toggle, waiting for one tick, sees the status update.
     -   **Commit**: `feat(ui): cron scanner settings`
 
--   [ ] **13.5** 🏷️ **Release v0.11.0** — Scheduled fatal scanner
+-   [x] **13.5** Test-only manual-trigger guard
+
+    -   Brain Monkey records `add_action` / `do_action` for assertions but does not actually invoke registered callbacks. The integration test stubs both onto a per-test callback registry so `do_action('logscope_scan_fatals')` drives `LogScanner::scan()` end-to-end the same way WP-Cron would in production.
+    -   **AC**: Integration test calls `do_action('logscope_scan_fatals')` against a fixture log and observes the alert pipeline receive the parsed groups; second invocation with no new bytes is a no-op.
+    -   **Commit**: `test(cron): integration test driving scanner via do_action`
+
+-   [ ] **13.6** 🏷️ **Release v0.11.0** — Scheduled fatal scanner
     -   **Commit**: `chore(release): v0.11.0`
 
 ---
