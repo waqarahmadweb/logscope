@@ -41,12 +41,26 @@ final class LogRepository {
 	private LogSourceInterface $source;
 
 	/**
+	 * Mute store consulted on every non-tail query (Phase 14.6). Optional
+	 * because legacy callers — and the test fixtures — construct the
+	 * repository with a single argument; absent store means "no muting,"
+	 * preserving pre-14.6 behaviour.
+	 *
+	 * @var MuteStore|null
+	 */
+	private ?MuteStore $mute_store;
+
+	/**
 	 * Builds a repository over the given byte source.
 	 *
-	 * @param LogSourceInterface $source Validated, ready-to-read source.
+	 * @param LogSourceInterface $source     Validated, ready-to-read source.
+	 * @param MuteStore|null     $mute_store Optional mute store; when null,
+	 *                                       muted-signature filtering is
+	 *                                       skipped entirely.
 	 */
-	public function __construct( LogSourceInterface $source ) {
-		$this->source = $source;
+	public function __construct( LogSourceInterface $source, ?MuteStore $mute_store = null ) {
+		$this->source     = $source;
+		$this->mute_store = $mute_store;
 	}
 
 	/**
@@ -85,10 +99,20 @@ final class LogRepository {
 			);
 		}
 
+		$muted_signatures = $this->resolve_muted_signatures( $query );
+
 		if ( $query->grouped ) {
 			$groups = LogGrouper::group( $entries );
 
+			if ( array() !== $muted_signatures ) {
+				$groups = $this->filter_groups_by_mute( $groups, $muted_signatures );
+			}
+
 			return $this->paginate( $groups, $query, $last_byte );
+		}
+
+		if ( array() !== $muted_signatures ) {
+			$entries = $this->filter_entries_by_mute( $entries, $muted_signatures );
 		}
 
 		// Newest-first: WP appends to the log so reverse of file order
@@ -96,6 +120,64 @@ final class LogRepository {
 		$entries = array_reverse( $entries );
 
 		return $this->paginate( $entries, $query, $last_byte );
+	}
+
+	/**
+	 * Returns the muted-signature lookup map used by the filter, or an
+	 * empty array when muting is bypassed for this query (no store
+	 * configured, `include_muted=true`, or the store is empty).
+	 *
+	 * @param LogQuery $query Active query.
+	 * @return array<string, true>
+	 */
+	private function resolve_muted_signatures( LogQuery $query ): array {
+		if ( null === $this->mute_store || $query->include_muted ) {
+			return array();
+		}
+
+		$signatures = $this->mute_store->signatures();
+		if ( array() === $signatures ) {
+			return array();
+		}
+
+		return array_fill_keys( $signatures, true );
+	}
+
+	/**
+	 * Drops entries whose signature is in the muted lookup.
+	 *
+	 * @param Entry[]             $entries Filtered entries.
+	 * @param array<string, true> $muted   Muted-signature lookup.
+	 * @return Entry[]
+	 */
+	private function filter_entries_by_mute( array $entries, array $muted ): array {
+		$out = array();
+		foreach ( $entries as $entry ) {
+			$signature = LogGrouper::signature( $entry );
+			if ( isset( $muted[ $signature ] ) ) {
+				continue;
+			}
+			$out[] = $entry;
+		}
+		return $out;
+	}
+
+	/**
+	 * Drops groups whose signature is in the muted lookup.
+	 *
+	 * @param Group[]             $groups Grouped result.
+	 * @param array<string, true> $muted  Muted-signature lookup.
+	 * @return Group[]
+	 */
+	private function filter_groups_by_mute( array $groups, array $muted ): array {
+		$out = array();
+		foreach ( $groups as $group ) {
+			if ( isset( $muted[ $group->signature ] ) ) {
+				continue;
+			}
+			$out[] = $group;
+		}
+		return $out;
 	}
 
 	/**

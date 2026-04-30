@@ -393,6 +393,14 @@ final class LogsControllerTest extends TestCase {
 		$this->assertSame( 2, $response->get_data()['total'] );
 	}
 
+	public function test_build_query_passes_include_muted_through(): void {
+		$default = $this->controller->build_query( array() );
+		$this->assertFalse( $default->include_muted );
+
+		$opted_in = $this->controller->build_query( array( 'include_muted' => true ) );
+		$this->assertTrue( $opted_in->include_muted );
+	}
+
 	public function test_download_streams_file_contents(): void {
 		$body = "log line 1\nlog line 2\n";
 		file_put_contents( $this->log_path, $body );

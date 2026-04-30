@@ -54,6 +54,26 @@ final class CronScheduler {
 	public const DEFAULT_INTERVAL_MINUTES = 5;
 
 	/**
+	 * Cron event hook the rotator listens on (Phase 14.3). Daily cadence
+	 * via WP-Core's built-in `daily` recurrence — no custom interval is
+	 * needed because retention is "check once a day if rotation is due"
+	 * rather than "rotate every N minutes".
+	 */
+	public const HOOK_ROTATE = 'logscope_rotate_logs';
+
+	/**
+	 * Recurrence used for the rotation event. WP-Core registers `daily`,
+	 * so the schedule does not need its own `cron_schedules` filter
+	 * entry.
+	 */
+	public const RECURRENCE_ROTATE = 'daily';
+
+	/**
+	 * Option key for the retention master toggle.
+	 */
+	public const OPT_RETENTION_ENABLED = 'logscope_retention_enabled';
+
+	/**
 	 * Aligns the WP schedule with the current toggle + interval.
 	 *
 	 * Disabled → unschedule. Enabled → unschedule then re-schedule so
@@ -84,5 +104,37 @@ final class CronScheduler {
 	 */
 	public static function clear(): void {
 		wp_clear_scheduled_hook( self::HOOK );
+	}
+
+	/**
+	 * Aligns the WP rotation schedule with the retention toggle.
+	 *
+	 * Mirrors {@see CronScheduler::apply()} for the scan event but uses
+	 * WP-Core's built-in `daily` recurrence rather than a custom one —
+	 * retention does not benefit from sub-daily checks. Disabled →
+	 * unschedule. Enabled → unschedule then re-schedule, matching the
+	 * scan pattern so flipping the toggle is always idempotent.
+	 *
+	 * @return void
+	 */
+	public static function apply_rotation(): void {
+		$enabled = 1 === (int) get_option( self::OPT_RETENTION_ENABLED, 0 );
+
+		if ( ! $enabled ) {
+			wp_clear_scheduled_hook( self::HOOK_ROTATE );
+			return;
+		}
+
+		wp_clear_scheduled_hook( self::HOOK_ROTATE );
+		wp_schedule_event( time() + 60, self::RECURRENCE_ROTATE, self::HOOK_ROTATE );
+	}
+
+	/**
+	 * Clears the rotation event regardless of toggle state.
+	 *
+	 * @return void
+	 */
+	public static function clear_rotation(): void {
+		wp_clear_scheduled_hook( self::HOOK_ROTATE );
 	}
 }

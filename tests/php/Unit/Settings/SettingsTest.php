@@ -136,6 +136,21 @@ final class SettingsTest extends TestCase {
 			->with( 'logscope_cron_scan_interval_minutes', 5 )
 			->andReturn( 5 );
 
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_retention_enabled', 0 )
+			->andReturn( 0 );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_retention_max_size_mb', 50 )
+			->andReturn( 50 );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_retention_max_archives', 5 )
+			->andReturn( 5 );
+
 		$settings = new Settings( new SettingsSchema() );
 
 		$this->assertSame(
@@ -149,6 +164,9 @@ final class SettingsTest extends TestCase {
 				'alert_dedup_window'         => 300,
 				'cron_scan_enabled'          => 0,
 				'cron_scan_interval_minutes' => 5,
+				'retention_enabled'          => 0,
+				'retention_max_size_mb'      => 50,
+				'retention_max_archives'     => 5,
 			),
 			$settings->all()
 		);

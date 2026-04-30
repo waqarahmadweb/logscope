@@ -78,6 +78,42 @@ export const client = {
 			method: 'POST',
 		} );
 	},
+	getMutes( includeMuted = false ) {
+		const qs = includeMuted ? '?include_muted=true' : '';
+		return apiFetch( {
+			path: logscopePath( '/logs/mute' ) + qs,
+		} );
+	},
+	muteSignature( signature, reason = '' ) {
+		return apiFetch( {
+			path: logscopePath( '/logs/mute' ),
+			method: 'POST',
+			data: { signature, reason },
+		} );
+	},
+	unmuteSignature( signature ) {
+		return apiFetch( {
+			path:
+				logscopePath( '/logs/mute/' ) + encodeURIComponent( signature ),
+			method: 'DELETE',
+		} );
+	},
+	getPresets() {
+		return apiFetch( { path: logscopePath( '/presets' ) } );
+	},
+	savePreset( name, filters ) {
+		return apiFetch( {
+			path: logscopePath( '/presets' ),
+			method: 'POST',
+			data: { name, filters },
+		} );
+	},
+	deletePreset( name ) {
+		return apiFetch( {
+			path: logscopePath( '/presets/' ) + encodeURIComponent( name ),
+			method: 'DELETE',
+		} );
+	},
 };
 
 export { bootstrap };

@@ -509,7 +509,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
 
 ### Log retention
 
--   [ ] **14.1** `src/Log/LogRotator.php`
+-   [x] **14.1** `src/Log/LogRotator.php`
 
     -   Archive when `FileLogSource::size() > retention_max_size_mb * 1024 * 1024` by renaming `debug.log` → `debug.log.archived-YYYYMMDD-HHMMSS` (UTC).
     -   Prune oldest archives beyond `retention_max_archives` (default 5) — `unlink()` after sorting matching siblings by mtime.
@@ -517,12 +517,12 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
     -   **AC**: Unit test — fixture with 6 archives prunes oldest 1; size below threshold is a no-op.
     -   **Commit**: `feat(log): add size-based log rotator`
 
--   [ ] **14.2** SettingsSchema additions
+-   [x] **14.2** SettingsSchema additions
 
     -   `retention_enabled` (bool, default false), `retention_max_size_mb` (int, default 50, min 1, max 1024), `retention_max_archives` (int, default 5, min 1, max 50).
     -   **Commit**: `feat(settings): add retention fields`
 
--   [ ] **14.3** Cron event `logscope_rotate_logs` (daily) invoking `LogRotator`
+-   [x] **14.3** Cron event `logscope_rotate_logs` (daily) invoking `LogRotator`
 
     -   `Activator` schedules it on activation if `retention_enabled` is true; toggling the option re-schedules.
     -   **AC**: Unit test — enabling retention calls `wp_schedule_event` with `daily`.
@@ -530,27 +530,27 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
 
 ### Mute signatures
 
--   [ ] **14.4** Mute store
+-   [x] **14.4** Mute store
 
     -   New option `logscope_muted_signatures` — array of `{signature, reason, muted_at, muted_by}`.
     -   `Logscope\Log\MuteStore` service: `add($sig, $reason, $user_id)`, `remove($sig)`, `list()`, `is_muted($sig)`.
     -   **AC**: Unit test — adding the same signature twice updates rather than duplicates.
     -   **Commit**: `feat(log): add mute store for signatures`
 
--   [ ] **14.5** REST `POST /logs/mute` + `DELETE /logs/mute/<signature>` + `GET /logs/mute`
+-   [x] **14.5** REST `POST /logs/mute` + `DELETE /logs/mute/<signature>` + `GET /logs/mute`
 
     -   POST body: `{signature, reason}`. DELETE by URL path. GET returns the full list.
     -   **AC**: Integration tests on all three verbs.
     -   **Commit**: `feat(rest): add mute endpoints`
 
--   [ ] **14.6** `LogRepository` filters out muted signatures by default
+-   [x] **14.6** `LogRepository` filters out muted signatures by default
 
     -   New `LogQuery::$include_muted` flag (default false). When false, ungrouped queries skip entries whose computed signature is in the mute list, and grouped queries omit muted groups entirely.
     -   `LogsController` accepts `?include_muted=true` to expose muted entries (used by the management UI).
     -   **AC**: Integration test — mute a signature; default `/logs` doesn't return it; `/logs?include_muted=true` does.
     -   **Commit**: `feat(log): filter muted signatures from default queries`
 
--   [ ] **14.7** UI: "Mute" button + management panel
+-   [x] **14.7** UI: "Mute" button + management panel
 
     -   Grouped row `EntryRow`: "Mute" button → modal asking for optional reason → POST `/logs/mute`.
     -   Settings tab: new "Muted signatures" panel listing all muted entries with "Unmute" buttons.
@@ -559,19 +559,19 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
 
 ### Filter presets
 
--   [ ] **14.8** Saved filter presets
+-   [x] **14.8** Saved filter presets
 
     -   Stored in user-meta `logscope_filter_presets` (per-user; collaboration on a multi-admin site shouldn't surface a colleague's presets).
     -   Shape: `[{name, filters: {severity, from, to, q, source, viewMode}}, …]`.
     -   **Commit**: `feat(settings): add per-user filter preset store`
 
--   [ ] **14.9** REST `GET /presets` + `POST /presets` + `DELETE /presets/<name>`
+-   [x] **14.9** REST `GET /presets` + `POST /presets` + `DELETE /presets/<name>`
 
     -   GET returns current user's presets. POST creates / overwrites by name. DELETE removes by name.
     -   **AC**: Integration tests on all three.
     -   **Commit**: `feat(rest): add filter preset endpoints`
 
--   [ ] **14.10** UI: preset dropdown in FilterBar
+-   [x] **14.10** UI: preset dropdown in FilterBar
 
     -   "Save current filters as preset" → name prompt → POST.
     -   "Load preset" dropdown lists user's presets; selecting one populates the FilterBar slice + URL.
@@ -579,8 +579,10 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
     -   **AC**: Hand-test save → reload page → preset still loadable.
     -   **Commit**: `feat(ui): filter preset save/load UI`
 
--   [ ] **14.11** 🏷️ **Release v0.12.0** — Retention, mute, presets
+-   [x] **14.11** 🏷️ **Release v0.12.0** — Retention, mute, presets
     -   **Commit**: `chore(release): v0.12.0`
+
+> Phase 14 complete on 2026-04-30.
 
 ---
 

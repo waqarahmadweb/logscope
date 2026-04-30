@@ -24,6 +24,7 @@ import { STORE_KEY } from '../../store';
 import { FormSkeleton } from '../Skeleton';
 import AlertsPanel from '../AlertsPanel';
 import CronPanel from '../CronPanel';
+import MutedSignaturesPanel from '../MutedSignaturesPanel';
 
 const TAIL_INTERVAL_MIN = 1;
 const DEDUP_WINDOW_MIN = 60;
@@ -242,6 +243,8 @@ export default function SettingsPanel() {
 				<AlertsPanel />
 
 				<CronPanel />
+
+				<MutedSignaturesPanel />
 
 				{ saveError && Object.keys( fieldErrors ).length === 0 && (
 					<Notice status="error" isDismissible={ false }>

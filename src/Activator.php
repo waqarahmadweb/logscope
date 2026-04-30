@@ -37,6 +37,9 @@ final class Activator {
 		'logscope_alert_dedup_window'         => 300,
 		'logscope_cron_scan_enabled'          => 0,
 		'logscope_cron_scan_interval_minutes' => 5,
+		'logscope_retention_enabled'          => 0,
+		'logscope_retention_max_size_mb'      => 50,
+		'logscope_retention_max_archives'     => 5,
 		'logscope_db_version'                 => '1',
 	);
 
@@ -60,5 +63,10 @@ final class Activator {
 		// after a user has enabled the scan will recreate the event if
 		// it was lost (e.g. WP-Cron table truncation during a migration).
 		CronScheduler::apply();
+
+		// Same shape for the rotation event: opt-in by default, but
+		// re-activation after the user enabled retention recreates the
+		// daily rotate hook.
+		CronScheduler::apply_rotation();
 	}
 }
