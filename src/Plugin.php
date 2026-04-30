@@ -19,6 +19,7 @@ use Logscope\Alerts\EmailAlerter;
 use Logscope\Alerts\WebhookAlerter;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
+use Logscope\REST\AlertsController;
 use Logscope\REST\LogsController;
 use Logscope\REST\SettingsController;
 use Logscope\Settings\Settings;
@@ -304,6 +305,16 @@ final class Plugin {
 				return new AlertCoordinator( array( $email, $webhook ), $dedup );
 			}
 		);
+
+		$this->register(
+			'rest.alerts_controller',
+			static function ( Plugin $plugin ): AlertsController {
+				$coordinator = $plugin->get( 'alerts.coordinator' );
+				assert( $coordinator instanceof AlertCoordinator );
+
+				return new AlertsController( $coordinator );
+			}
+		);
 	}
 
 	/**
@@ -406,6 +417,14 @@ final class Plugin {
 			$settings->register_routes();
 		} catch ( Throwable $e ) {
 			self::log_route_registration_failure( 'settings', $e );
+		}
+
+		try {
+			$alerts = $this->get( 'rest.alerts_controller' );
+			assert( $alerts instanceof AlertsController );
+			$alerts->register_routes();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'alerts', $e );
 		}
 	}
 

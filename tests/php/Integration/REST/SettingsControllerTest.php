@@ -101,8 +101,13 @@ final class SettingsControllerTest extends TestCase {
 		self::assertInstanceOf( WP_REST_Response::class, $response );
 		$this->assertSame(
 			array(
-				'log_path'      => '/var/log/debug.log',
-				'tail_interval' => 7,
+				'log_path'              => '/var/log/debug.log',
+				'tail_interval'         => 7,
+				'alert_email_enabled'   => 0,
+				'alert_email_to'        => '',
+				'alert_webhook_enabled' => 0,
+				'alert_webhook_url'     => '',
+				'alert_dedup_window'    => 300,
 			),
 			$response->get_data()
 		);
@@ -124,8 +129,13 @@ final class SettingsControllerTest extends TestCase {
 
 		$this->assertSame(
 			array(
-				'log_path'      => '/tmp/custom.log',
-				'tail_interval' => 5,
+				'log_path'              => '/tmp/custom.log',
+				'tail_interval'         => 5,
+				'alert_email_enabled'   => 0,
+				'alert_email_to'        => '',
+				'alert_webhook_enabled' => 0,
+				'alert_webhook_url'     => '',
+				'alert_dedup_window'    => 300,
 			),
 			$response->get_data()
 		);
@@ -168,8 +178,13 @@ final class SettingsControllerTest extends TestCase {
 		self::assertInstanceOf( WP_REST_Response::class, $response );
 		$this->assertSame(
 			array(
-				'log_path'      => '',
-				'tail_interval' => 3,
+				'log_path'              => '',
+				'tail_interval'         => 3,
+				'alert_email_enabled'   => 0,
+				'alert_email_to'        => '',
+				'alert_webhook_enabled' => 0,
+				'alert_webhook_url'     => '',
+				'alert_dedup_window'    => 300,
 			),
 			$response->get_data()
 		);

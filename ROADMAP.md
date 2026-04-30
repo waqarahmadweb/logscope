@@ -424,7 +424,7 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Unit test — invalid email coerces to empty string; non-http URL coerces to empty; dedup window < 60 coerces to 60.
     -   **Commit**: `feat(settings): add alert fields to schema`
 
--   [ ] **12.6** 🔒 `src/REST/AlertsController.php` — `POST /alerts/test`
+-   [x] **12.6** 🔒 `src/REST/AlertsController.php` — `POST /alerts/test`
 
     -   Bypasses dedup; sends one synthetic alert to every enabled dispatcher.
     -   Returns per-dispatcher result: `{dispatcher, ok, error?}`.
