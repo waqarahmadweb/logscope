@@ -698,8 +698,10 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
     -   **AC**: Dry-run on a throwaway tag produces a zip with no `vendor/`, no `node_modules/`, no `tests/`, no `.github/`.
     -   **Commit**: `ci: add release workflow`
 
--   [ ] **17.4** 🏷️ **Release v0.15.0** — Pre-1.0 release infrastructure
+-   [x] **17.4** 🏷️ **Release v0.15.0** — Pre-1.0 release infrastructure
     -   **Commit**: `chore(release): v0.15.0`
+
+> Phase 17 (release infra) ready as of 2026-04-30; v1.0.0 cut deferred for verification.
 
 ### Pre-1.0 changes
 

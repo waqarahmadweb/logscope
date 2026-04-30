@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-04-30
+
+Closes Phase 17.1–17.4 of the [roadmap](ROADMAP.md): the pre-1.0 release infrastructure for the wp.org cut. No runtime changes — this release lands the `readme.txt` the WordPress.org plugin directory will render, the `.wordpress-org/` asset spec the maintainer will fill in with banner / icon / screenshot binaries, and the GitHub release workflow that builds the distribution zip on every `v*.*.*` tag push. The actual v1.0.0 cut is gated on Phase 17.5 (pre-1.0 changes, scope TBD), 17.7 (full security review), and the maintainer's go-ahead — none of which fire automatically from this release.
+
 ### Added
 
 -   `.github/workflows/release.yml` (Phase 17.3) — runs on a `v*.*.*` tag push, sets up PHP 8.0 + Node 20 + pnpm, runs `composer install --no-dev` and `pnpm build`, then assembles a `logscope-<version>.zip` rooted at `logscope/` (the directory layout wp.org expects). The base file set comes from `git archive HEAD` so `.gitattributes export-ignore` is the source of truth for what stays out; `vendor/` (prod-only) and `assets/build/` are then layered in from the workspace because both are gitignored. A verify step inspects the resulting zip and fails the build if any of 26 forbidden paths (tests/, docs/, .github/, .husky/, .wordpress-org/, assets/src/, node_modules/, bin/, tools/, phpunit/phpcs configs, composer/pnpm manifests, eslint/prettier configs, dotfiles, AGENTS.md / CLAUDE.md / CHANGELOG.md / ROADMAP.md) appears, or if any of seven required paths (`logscope.php`, `readme.txt`, `uninstall.php`, `vendor/autoload.php`, `assets/build/index.js`, `assets/build/index.asset.php`, `src/Plugin.php`) is missing. Asset upload uses `softprops/action-gh-release@v2`. The workflow is **not exercised in this commit** — it lands inert and triggers on the next `v*.*.*` tag push.
@@ -273,7 +277,8 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/waqarahmadweb/logscope/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/waqarahmadweb/logscope/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/waqarahmadweb/logscope/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/waqarahmadweb/logscope/compare/v0.11.0...v0.12.0
