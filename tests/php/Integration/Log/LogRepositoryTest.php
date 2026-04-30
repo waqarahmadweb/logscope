@@ -15,10 +15,14 @@ declare(strict_types=1);
 
 namespace Logscope\Tests\Integration\Log;
 
+use Brain\Monkey\Functions;
 use Logscope\Log\Entry;
 use Logscope\Log\FileLogSource;
+use Logscope\Log\LogGrouper;
+use Logscope\Log\LogParser;
 use Logscope\Log\LogQuery;
 use Logscope\Log\LogRepository;
+use Logscope\Log\MuteStore;
 use Logscope\Log\Severity;
 use Logscope\Support\PathGuard;
 use Logscope\Tests\TestCase;
@@ -283,6 +287,83 @@ final class LogRepositoryTest extends TestCase {
 		$this->assertSame( $size, $grouped_result->last_byte );
 	}
 
+	public function test_muted_signature_excluded_from_default_query(): void {
+		$this->stub_option_layer();
+
+		$contents = implode(
+			"\n",
+			array(
+				'[27-Apr-2026 12:00:00 UTC] PHP Fatal error:  noisy thing in /var/www/x.php:10',
+				'[27-Apr-2026 12:00:01 UTC] PHP Fatal error:  quiet thing in /var/www/y.php:11',
+			)
+		);
+		$this->write_log( $contents );
+
+		$noisy_signature = LogGrouper::signature( LogParser::parse( $contents )[0] );
+
+		$store = new MuteStore();
+		$store->add( $noisy_signature, 'noise', 1 );
+
+		$repo = $this->repo_with_mute_store( $store );
+
+		// Ungrouped: muted entries are dropped.
+		$result = $repo->query( $this->query() );
+		$this->assertCount( 1, $result->items );
+		$this->assertStringContainsString( 'quiet', $result->items[0]->message );
+
+		// Grouped: muted groups are dropped entirely.
+		$grouped = $repo->query( new LogQuery( null, null, null, null, null, true, 1, 50 ) );
+		$this->assertCount( 1, $grouped->items );
+		$this->assertNotSame( $noisy_signature, $grouped->items[0]->signature );
+	}
+
+	public function test_include_muted_flag_bypasses_filter(): void {
+		$this->stub_option_layer();
+
+		$contents = implode(
+			"\n",
+			array(
+				'[27-Apr-2026 12:00:00 UTC] PHP Fatal error:  noisy thing in /var/www/x.php:10',
+				'[27-Apr-2026 12:00:01 UTC] PHP Fatal error:  quiet thing in /var/www/y.php:11',
+			)
+		);
+		$this->write_log( $contents );
+
+		$noisy_signature = LogGrouper::signature( LogParser::parse( $contents )[0] );
+
+		$store = new MuteStore();
+		$store->add( $noisy_signature, 'noise', 1 );
+
+		$repo = $this->repo_with_mute_store( $store );
+
+		$query  = new LogQuery(
+			null,
+			null,
+			null,
+			null,
+			null,
+			false,
+			1,
+			50,
+			null,
+			true
+		);
+		$result = $repo->query( $query );
+
+		$this->assertCount( 2, $result->items );
+	}
+
+	public function test_repository_without_mute_store_skips_filtering(): void {
+		$contents = "[27-Apr-2026 12:00:00 UTC] PHP Fatal error:  whatever in /var/www/x.php:10\n";
+		$this->write_log( $contents );
+
+		// Default constructor: $mute_store is null, so filtering is a no-op
+		// even when LogQuery::$include_muted is false.
+		$result = $this->repo->query( $this->query() );
+
+		$this->assertCount( 1, $result->items );
+	}
+
 	public function test_ungrouped_results_are_newest_first(): void {
 		$lines = array(
 			'[27-Apr-2026 12:00:00 UTC] PHP Notice:  oldest in /var/www/x.php on line 1',
@@ -299,6 +380,48 @@ final class LogRepositoryTest extends TestCase {
 
 	private function write_log( string $contents ): void {
 		file_put_contents( $this->log_path, $contents );
+	}
+
+	/**
+	 * Builds a fresh repository wired with the given mute store. Caller
+	 * is responsible for stubbing `get_option` / `update_option` /
+	 * `wp_strip_all_tags` if the store has not already been seeded.
+	 *
+	 * @param MuteStore $store Pre-populated store.
+	 */
+	private function repo_with_mute_store( MuteStore $store ): LogRepository {
+		$guard  = new PathGuard( array( $this->root ) );
+		$source = new FileLogSource( $this->log_path, $guard );
+		return new LogRepository( $source, $store );
+	}
+
+	/**
+	 * Wires Brain Monkey aliases for the option layer + sanitiser
+	 * `MuteStore` reaches into. Held in a per-test in-memory bucket so
+	 * the asserts can call `add()` directly during arrange.
+	 */
+	private function stub_option_layer(): void {
+		$values = array();
+
+		Functions\when( 'get_option' )->alias(
+			static function ( string $key, $fallback = false ) use ( &$values ) {
+				return array_key_exists( $key, $values ) ? $values[ $key ] : $fallback;
+			}
+		);
+
+		Functions\when( 'update_option' )->alias(
+			// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- $autoload mirrors the WP signature so MuteStore::add(..., false) matches the alias.
+			static function ( string $key, $value, $autoload = null ) use ( &$values ) {
+				$values[ $key ] = $value;
+				return true;
+			}
+		);
+
+		Functions\when( 'wp_strip_all_tags' )->alias(
+			static function ( string $text ): string {
+				return preg_replace( '/<[^>]+>/', '', $text ) ?? '';
+			}
+		);
 	}
 
 	private function query(): LogQuery {

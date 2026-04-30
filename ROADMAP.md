@@ -543,7 +543,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
     -   **AC**: Integration tests on all three verbs.
     -   **Commit**: `feat(rest): add mute endpoints`
 
--   [ ] **14.6** `LogRepository` filters out muted signatures by default
+-   [x] **14.6** `LogRepository` filters out muted signatures by default
 
     -   New `LogQuery::$include_muted` flag (default false). When false, ungrouped queries skip entries whose computed signature is in the mute list, and grouped queries omit muted groups entirely.
     -   `LogsController` accepts `?include_muted=true` to expose muted entries (used by the management UI).

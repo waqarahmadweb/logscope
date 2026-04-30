@@ -179,7 +179,10 @@ final class Plugin {
 				$source = $plugin->get( 'log_source' );
 				assert( $source instanceof FileLogSource );
 
-				return new LogRepository( $source );
+				$mute = $plugin->get( 'log.mute_store' );
+				assert( $mute instanceof MuteStore );
+
+				return new LogRepository( $source, $mute );
 			}
 		);
 
