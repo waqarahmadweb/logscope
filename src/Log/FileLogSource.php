@@ -83,6 +83,25 @@ final class FileLogSource implements LogSourceInterface {
 	}
 
 	/**
+	 * Last-modified time as a unix timestamp, or 0 when the file is
+	 * missing or `filemtime()` cannot read it. Used by stats to widen
+	 * the cache key beyond size, so two writes that happen to land at
+	 * the same byte count still mint distinct cache entries.
+	 *
+	 * @return int
+	 */
+	public function mtime(): int {
+		if ( ! $this->exists() ) {
+			return 0;
+		}
+
+		clearstatcache( true, $this->resolved_path );
+		$mtime = filemtime( $this->resolved_path );
+
+		return false === $mtime ? 0 : $mtime;
+	}
+
+	/**
 	 * File size in bytes, or 0 when the file is missing or unreadable.
 	 *
 	 * @return int

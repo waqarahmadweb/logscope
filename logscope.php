@@ -3,7 +3,7 @@
  * Plugin Name:       Logscope — Debug Log Viewer for WordPress
  * Plugin URI:        https://example.com/logscope
  * Description:       Stream, filter, and group your WordPress debug log without leaving wp-admin. Free forever, GPL v2.
- * Version:           0.12.0
+ * Version:           0.13.0
  * Requires at least: 6.2
  * Requires PHP:      8.0
  * Author:            Your Name

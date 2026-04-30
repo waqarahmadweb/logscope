@@ -25,12 +25,14 @@ import { STORE_KEY } from '../store';
 import { SHORTCUT, SHORTCUT_EVENT } from '../shortcuts';
 import LogViewer from './LogViewer';
 import SettingsPanel from './SettingsPanel';
+import StatsTab from './StatsTab';
 import ToastHost from './ToastHost';
 import HelpModal from './HelpModal';
 import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
 
 const TABS = [
 	{ name: 'logs', title: __( 'Logs', 'logscope' ) },
+	{ name: 'stats', title: __( 'Stats', 'logscope' ) },
 	{ name: 'settings', title: __( 'Settings', 'logscope' ) },
 ];
 
@@ -200,6 +202,9 @@ export default function App() {
 function TabContent( { name } ) {
 	if ( name === 'logs' ) {
 		return <LogViewer />;
+	}
+	if ( name === 'stats' ) {
+		return <StatsTab />;
 	}
 	if ( name === 'settings' ) {
 		return <SettingsPanel />;

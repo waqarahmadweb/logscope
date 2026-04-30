@@ -29,7 +29,7 @@
  *     11.1). Each entry has a stable id so dismiss-by-id can race-free
  *     coexist with auto-prune timers in the host component.
  */
-import { createReduxStore, register } from '@wordpress/data';
+import { createReduxStore, register, select } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
 import { client } from '../api/client';
@@ -99,6 +99,13 @@ const DEFAULT_STATE = {
 		isSaving: false,
 		loadError: null,
 		saveError: null,
+	},
+	stats: {
+		range: '24h',
+		bucket: 'hour',
+		data: null,
+		isLoading: false,
+		loadError: null,
 	},
 	toasts: [],
 };
@@ -446,6 +453,30 @@ const actions = {
 					__( 'Could not delete the preset.', 'logscope' ),
 				status: 'error',
 			} );
+		}
+	},
+	setStatsRange( range ) {
+		return { type: 'STATS_SET_RANGE', range };
+	},
+	setStatsBucket( bucket ) {
+		return { type: 'STATS_SET_BUCKET', bucket };
+	},
+	startLoadingStats() {
+		return { type: 'STATS_LOADING' };
+	},
+	receiveStats( payload ) {
+		return { type: 'STATS_RECEIVED', payload };
+	},
+	failLoadStats( error ) {
+		return { type: 'STATS_LOAD_FAILED', error };
+	},
+	*fetchStats() {
+		yield actions.startLoadingStats();
+		try {
+			const payload = yield { type: 'API_FETCH_STATS' };
+			yield actions.receiveStats( payload );
+		} catch ( error ) {
+			yield actions.failLoadStats( error?.message || 'Unknown error' );
 		}
 	},
 	pushToast( { message, status = 'info', ttlMs = TOAST_DEFAULT_TTL_MS } ) {
@@ -891,6 +922,46 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					saveError: action.error,
 				},
 			};
+		case 'STATS_SET_RANGE':
+			if ( state.stats.range === action.range ) {
+				return state;
+			}
+			return {
+				...state,
+				stats: { ...state.stats, range: action.range },
+			};
+		case 'STATS_SET_BUCKET':
+			if ( state.stats.bucket === action.bucket ) {
+				return state;
+			}
+			return {
+				...state,
+				stats: { ...state.stats, bucket: action.bucket },
+			};
+		case 'STATS_LOADING':
+			return {
+				...state,
+				stats: { ...state.stats, isLoading: true, loadError: null },
+			};
+		case 'STATS_RECEIVED':
+			return {
+				...state,
+				stats: {
+					...state.stats,
+					isLoading: false,
+					loadError: null,
+					data: action.payload,
+				},
+			};
+		case 'STATS_LOAD_FAILED':
+			return {
+				...state,
+				stats: {
+					...state.stats,
+					isLoading: false,
+					loadError: action.error,
+				},
+			};
 		case 'TOAST_PUSHED':
 			return { ...state, toasts: [ ...state.toasts, action.toast ] };
 		case 'TOAST_DISMISSED':
@@ -947,6 +1018,11 @@ const selectors = {
 	getMutesSaveError: ( state ) => state.mutes.saveError,
 	isMuted: ( state, signature ) =>
 		state.mutes.items.some( ( m ) => m.signature === signature ),
+	getStatsRange: ( state ) => state.stats.range,
+	getStatsBucket: ( state ) => state.stats.bucket,
+	getStatsData: ( state ) => state.stats.data,
+	isLoadingStats: ( state ) => state.stats.isLoading,
+	getStatsLoadError: ( state ) => state.stats.loadError,
 	getToasts: ( state ) => state.toasts,
 };
 
@@ -983,6 +1059,15 @@ const controls = {
 	},
 	API_DELETE_PRESET( { name } ) {
 		return client.deletePreset( name );
+	},
+	API_FETCH_STATS() {
+		// Read current range/bucket out of the store so the thunk caller
+		// does not have to thread them through. `select` is imported
+		// statically; the registered store is the source of truth for
+		// what to fetch.
+		const range = select( STORE_KEY ).getStatsRange();
+		const bucket = select( STORE_KEY ).getStatsBucket();
+		return client.getStats( { range, bucket } );
 	},
 };
 
