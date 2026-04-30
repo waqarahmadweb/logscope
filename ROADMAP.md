@@ -517,7 +517,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
     -   **AC**: Unit test — fixture with 6 archives prunes oldest 1; size below threshold is a no-op.
     -   **Commit**: `feat(log): add size-based log rotator`
 
--   [ ] **14.2** SettingsSchema additions
+-   [x] **14.2** SettingsSchema additions
 
     -   `retention_enabled` (bool, default false), `retention_max_size_mb` (int, default 50, min 1, max 1024), `retention_max_archives` (int, default 5, min 1, max 50).
     -   **Commit**: `feat(settings): add retention fields`

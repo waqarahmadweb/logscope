@@ -127,8 +127,10 @@ final class LogRotator {
 		// Rotator is the filesystem-boundary writer; WP_Filesystem is the
 		// wrong tool here because we are renaming/unlinking inside an
 		// already-validated allowlisted directory, not performing a
-		// privileged write through a user-facing flow.
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename
+		// privileged write through a user-facing flow. The `@` is
+		// intentional: a failed rename collapses to the structured noop
+		// rather than letting an E_WARNING surface from the cron tick.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename, WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( ! @rename( $path, $target ) ) {
 			return $noop;
 		}
@@ -185,7 +187,11 @@ final class LogRotator {
 		for ( $i = 0; $i < $excess; $i++ ) {
 			$victim = $dated[ $i ]['path'];
 
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
+			// `@` is intentional: a failed `unlink` is non-fatal —
+			// the next tick's prune retries from the still-current
+			// archive list, and surfacing a per-file E_WARNING into
+			// the cron callback would not change that.
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink, WordPress.PHP.NoSilencedErrors.Discouraged
 			if ( @unlink( $victim ) ) {
 				$pruned[] = $victim;
 			}

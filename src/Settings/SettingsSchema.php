@@ -198,6 +198,61 @@ class SettingsSchema {
 					return $coerced;
 				},
 			),
+			'retention_enabled'          => array(
+				'option_key' => 'logscope_retention_enabled',
+				'type'       => 'integer',
+				'default'    => 0,
+				'sanitizer'  => static function ( $value ): int {
+					return self::coerce_bool_to_int( $value );
+				},
+			),
+			'retention_max_size_mb'      => array(
+				'option_key' => 'logscope_retention_max_size_mb',
+				'type'       => 'integer',
+				'default'    => 50,
+				'sanitizer'  => static function ( $value ): int {
+					if ( ! is_numeric( $value ) ) {
+						return 50;
+					}
+					$coerced = (int) $value;
+
+					// 1 MB floor mirrors the cron-interval shape: a
+					// sub-1 MB threshold rotates after one fatal stack
+					// trace and produces noise rather than retention.
+					// 1024 MB (1 GiB) ceiling so a typo cannot suspend
+					// rotation for an unreasonable span.
+					if ( $coerced < 1 ) {
+						return 1;
+					}
+					if ( $coerced > 1024 ) {
+						return 1024;
+					}
+					return $coerced;
+				},
+			),
+			'retention_max_archives'     => array(
+				'option_key' => 'logscope_retention_max_archives',
+				'type'       => 'integer',
+				'default'    => 5,
+				'sanitizer'  => static function ( $value ): int {
+					if ( ! is_numeric( $value ) ) {
+						return 5;
+					}
+					$coerced = (int) $value;
+
+					// 1 archive floor: a 0-cap effectively disables
+					// retention via a side door already covered by
+					// `retention_enabled`. 50 ceiling because more
+					// archives than that defeat the point of pruning.
+					if ( $coerced < 1 ) {
+						return 1;
+					}
+					if ( $coerced > 50 ) {
+						return 50;
+					}
+					return $coerced;
+				},
+			),
 		);
 	}
 
