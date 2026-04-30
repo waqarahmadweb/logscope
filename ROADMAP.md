@@ -559,7 +559,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
 
 ### Filter presets
 
--   [ ] **14.8** Saved filter presets
+-   [x] **14.8** Saved filter presets
 
     -   Stored in user-meta `logscope_filter_presets` (per-user; collaboration on a multi-admin site shouldn't surface a colleague's presets).
     -   Shape: `[{name, filters: {severity, from, to, q, source, viewMode}}, …]`.

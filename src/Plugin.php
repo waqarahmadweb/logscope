@@ -27,6 +27,7 @@ use Logscope\REST\AlertsController;
 use Logscope\REST\LogsController;
 use Logscope\REST\MuteController;
 use Logscope\REST\SettingsController;
+use Logscope\Settings\PresetStore;
 use Logscope\Settings\Settings;
 use Logscope\Settings\SettingsSchema;
 use Logscope\Support\PathGuard;
@@ -331,6 +332,13 @@ final class Plugin {
 			'log.mute_store',
 			static function (): MuteStore {
 				return new MuteStore();
+			}
+		);
+
+		$this->register(
+			'settings.preset_store',
+			static function (): PresetStore {
+				return new PresetStore();
 			}
 		);
 
