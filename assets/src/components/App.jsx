@@ -19,7 +19,6 @@
 import { useCallback, useEffect, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
-import { Button } from '@wordpress/components';
 
 import { STORE_KEY } from '../store';
 import { SHORTCUT, SHORTCUT_EVENT } from '../shortcuts';
@@ -176,15 +175,14 @@ export default function App() {
 						</button>
 					);
 				} ) }
-				<span style={ { flex: 1 } } />
-				<Button
-					variant="tertiary"
-					size="small"
+				<button
+					type="button"
+					className="logscope-tabs__shortcut-anchor"
 					onClick={ () => setHelpOpen( true ) }
 					aria-label={ __( 'Keyboard shortcuts', 'logscope' ) }
 				>
 					{ __( 'Shortcuts (?)', 'logscope' ) }
-				</Button>
+				</button>
 			</div>
 			<div
 				className="logscope-tabs__panel"

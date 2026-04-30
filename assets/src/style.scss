@@ -8,54 +8,80 @@
  */
 
 :root {
-	--logscope-bg: #fff;
-	--logscope-bg-muted: #f6f7f7;
-	--logscope-bg-sunken: #f0f0f1;
-	--logscope-fg: #1e1e1e;
-	--logscope-fg-muted: #50575e;
-	--logscope-border: #dcdcde;
-	--logscope-border-strong: #8c8f94;
+	// Surface palette — warm off-white page, white data surface, soft tan
+	// for inactive pill tracks. Pastel tints back the severity badges.
+	--logscope-bg: #faf7f2;
+	--logscope-bg-muted: #ffffff;
+	--logscope-bg-sunken: #f3efe8;
+	--logscope-bg-track: #efeae0;
+	--logscope-fg: #1a1a1f;
+	--logscope-fg-muted: #6b6b78;
+	--logscope-fg-mute: #9a96a3;
+	--logscope-border: #ece7df;
+	--logscope-border-soft: #f3efe8;
+	--logscope-border-strong: #d8d2c3;
 	--logscope-accent: #2271b1;
 	--logscope-accent-fg: #fff;
 	--logscope-focus-ring: #2271b1;
-	--logscope-pill-fatal-bg: #fde7e9;
-	--logscope-pill-fatal-fg: #b32d2e;
-	--logscope-pill-warning-bg: #fcf0d4;
-	--logscope-pill-warning-fg: #8a6300;
-	--logscope-pill-notice-bg: #e5f0fa;
-	--logscope-pill-notice-fg: #1d4a78;
-	--logscope-pill-deprecated-bg: #f0e9f7;
-	--logscope-pill-deprecated-fg: #5b3a87;
-	--logscope-pill-unknown-bg: #f0f0f1;
-	--logscope-pill-unknown-fg: #50575e;
-	--logscope-skeleton-base: #e8e9eb;
-	--logscope-skeleton-shimmer: #f3f4f5;
+	// Severity dots — saturated, used for filter-pill leading dots and the
+	// 2px edge bar on each table row.
+	--logscope-dot-fatal: #d33545;
+	--logscope-dot-parse: #e8770b;
+	--logscope-dot-warning: #d39c0a;
+	--logscope-dot-notice: #2d6cdf;
+	--logscope-dot-deprecated: #6e3fb5;
+	--logscope-dot-strict: #199e6c;
+	--logscope-dot-unknown: #8a8a92;
+	// Severity badges — pastel tint behind dark-tinted text.
+	--logscope-pill-fatal-bg: #ffe1e3;
+	--logscope-pill-fatal-fg: #9b1c2a;
+	--logscope-pill-warning-bg: #fff3c2;
+	--logscope-pill-warning-fg: #785b00;
+	--logscope-pill-notice-bg: #d8eaff;
+	--logscope-pill-notice-fg: #0c4a8a;
+	--logscope-pill-deprecated-bg: #e6e0ff;
+	--logscope-pill-deprecated-fg: #43308f;
+	--logscope-pill-unknown-bg: #ece8e2;
+	--logscope-pill-unknown-fg: #5b5751;
+	--logscope-skeleton-base: #ece7df;
+	--logscope-skeleton-shimmer: #f6f3ec;
+	// Radii + type scale.
+	--logscope-radius-xs: 4px;
+	--logscope-radius-sm: 6px;
+	--logscope-radius-md: 8px;
+	--logscope-radius-lg: 12px;
+	--logscope-radius-pill: 999px;
+	--logscope-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular,
+		Menlo, Consolas, monospace;
 }
 
 @media ( prefers-color-scheme: dark ) {
 	:root {
-		--logscope-bg: #1d2327;
-		--logscope-bg-muted: #23282d;
-		--logscope-bg-sunken: #14171a;
-		--logscope-fg: #f0f0f1;
-		--logscope-fg-muted: #a7aaad;
-		--logscope-border: #3c434a;
-		--logscope-border-strong: #50575e;
+		--logscope-bg: #15161b;
+		--logscope-bg-muted: #1d1f25;
+		--logscope-bg-sunken: #0f1014;
+		--logscope-bg-track: #23252c;
+		--logscope-fg: #e8e6ea;
+		--logscope-fg-muted: #9a98a3;
+		--logscope-fg-mute: #6b6970;
+		--logscope-border: #2a2c33;
+		--logscope-border-soft: #23252c;
+		--logscope-border-strong: #3a3c44;
 		--logscope-accent: #72aee6;
 		--logscope-accent-fg: #14171a;
 		--logscope-focus-ring: #72aee6;
-		--logscope-pill-fatal-bg: #4a1d1f;
+		--logscope-pill-fatal-bg: #3d1418;
 		--logscope-pill-fatal-fg: #ffabaf;
-		--logscope-pill-warning-bg: #463508;
+		--logscope-pill-warning-bg: #3d2c08;
 		--logscope-pill-warning-fg: #f6c777;
-		--logscope-pill-notice-bg: #1b3550;
+		--logscope-pill-notice-bg: #142a45;
 		--logscope-pill-notice-fg: #a7c8ed;
-		--logscope-pill-deprecated-bg: #312044;
+		--logscope-pill-deprecated-bg: #271938;
 		--logscope-pill-deprecated-fg: #c4a5e8;
-		--logscope-pill-unknown-bg: #23282d;
-		--logscope-pill-unknown-fg: #a7aaad;
-		--logscope-skeleton-base: #2c3338;
-		--logscope-skeleton-shimmer: #3c434a;
+		--logscope-pill-unknown-bg: #23252c;
+		--logscope-pill-unknown-fg: #9a98a3;
+		--logscope-skeleton-base: #23252c;
+		--logscope-skeleton-shimmer: #2e3038;
 	}
 }
 
@@ -64,71 +90,96 @@
 // `admin-color-modern` when the user picks the modern theme, but core's only
 // truly dark scheme is `admin-color-midnight`. Map both.
 body.admin-color-midnight {
-	--logscope-bg: #1d2327;
-	--logscope-bg-muted: #26292c;
-	--logscope-bg-sunken: #14171a;
-	--logscope-fg: #f0f0f1;
-	--logscope-fg-muted: #a7aaad;
-	--logscope-border: #3c434a;
-	--logscope-border-strong: #50575e;
+	--logscope-bg: #15161b;
+	--logscope-bg-muted: #1d1f25;
+	--logscope-bg-sunken: #0f1014;
+	--logscope-bg-track: #23252c;
+	--logscope-fg: #e8e6ea;
+	--logscope-fg-muted: #9a98a3;
+	--logscope-fg-mute: #6b6970;
+	--logscope-border: #2a2c33;
+	--logscope-border-soft: #23252c;
+	--logscope-border-strong: #3a3c44;
 	--logscope-accent: #e14d43;
 	--logscope-accent-fg: #fff;
 	--logscope-focus-ring: #e14d43;
-	--logscope-pill-fatal-bg: #4a1d1f;
+	--logscope-pill-fatal-bg: #3d1418;
 	--logscope-pill-fatal-fg: #ffabaf;
-	--logscope-pill-warning-bg: #463508;
+	--logscope-pill-warning-bg: #3d2c08;
 	--logscope-pill-warning-fg: #f6c777;
-	--logscope-pill-notice-bg: #1b3550;
+	--logscope-pill-notice-bg: #142a45;
 	--logscope-pill-notice-fg: #a7c8ed;
-	--logscope-pill-deprecated-bg: #312044;
+	--logscope-pill-deprecated-bg: #271938;
 	--logscope-pill-deprecated-fg: #c4a5e8;
-	--logscope-pill-unknown-bg: #23282d;
-	--logscope-pill-unknown-fg: #a7aaad;
-	--logscope-skeleton-base: #2c3338;
-	--logscope-skeleton-shimmer: #3c434a;
+	--logscope-pill-unknown-bg: #23252c;
+	--logscope-pill-unknown-fg: #9a98a3;
+	--logscope-skeleton-base: #23252c;
+	--logscope-skeleton-shimmer: #2e3038;
 }
 
 .logscope-app {
 	color: var( --logscope-fg );
 	font-size: 13px;
+	background: var( --logscope-bg );
+	margin: -10px -20px 0 -22px; // bleed into the WP admin .wrap padding so
+	padding: 24px 32px 60px; // the warm surface fills the page edge-to-edge.
 
 	*:focus-visible {
 		outline: 2px solid var( --logscope-focus-ring );
 		outline-offset: 2px;
-		border-radius: 2px;
+		border-radius: 4px;
 	}
 }
 
 .logscope-tabs {
-	display: flex;
-	gap: 4px;
-	border-bottom: 1px solid var( --logscope-border );
-	margin-bottom: 16px;
+	display: inline-flex;
+	gap: 2px;
+	padding: 4px;
+	background: var( --logscope-bg-track );
+	border-radius: var( --logscope-radius-lg );
+	margin-bottom: 22px;
+	align-items: center;
 
 	&__tab {
 		appearance: none;
 		background: transparent;
 		border: 0;
-		border-bottom: 2px solid transparent;
+		border-radius: var( --logscope-radius-md );
 		color: var( --logscope-fg-muted );
 		cursor: pointer;
 		font-size: 14px;
 		font-weight: 500;
-		padding: 8px 12px;
-		margin-bottom: -1px;
+		padding: 9px 18px;
 
 		&:hover {
 			color: var( --logscope-fg );
 		}
 
 		&--active {
-			color: var( --logscope-accent );
-			border-bottom-color: var( --logscope-accent );
+			background: var( --logscope-bg-muted );
+			color: var( --logscope-fg );
+			font-weight: 600;
+			box-shadow: 0 1px 2px rgba( 0, 0, 0, 0.05 );
 		}
 	}
 
 	&__panel {
 		min-height: 200px;
+	}
+
+	&__shortcut-anchor {
+		margin-left: 8px;
+		padding: 0 14px;
+		color: var( --logscope-fg-muted );
+		font-size: 12.5px;
+		text-decoration: none;
+		cursor: pointer;
+		background: transparent;
+		border: 0;
+
+		&:hover {
+			color: var( --logscope-fg );
+		}
 	}
 }
 
