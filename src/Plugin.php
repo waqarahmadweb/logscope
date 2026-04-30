@@ -21,6 +21,7 @@ use Logscope\Cron\CronScheduler;
 use Logscope\Cron\LogScanner;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
+use Logscope\Log\LogRotator;
 use Logscope\REST\AlertsController;
 use Logscope\REST\LogsController;
 use Logscope\REST\SettingsController;
@@ -322,6 +323,30 @@ final class Plugin {
 		);
 
 		$this->register(
+			'cron.rotator',
+			static function ( Plugin $plugin ): LogRotator {
+				$source = $plugin->get( 'log_source' );
+				assert( $source instanceof FileLogSource );
+
+				$guard = $plugin->get( 'path_guard' );
+				assert( $guard instanceof PathGuard );
+
+				$settings = $plugin->get( 'settings' );
+				assert( $settings instanceof Settings );
+
+				$max_size_mb  = (int) $settings->get( 'retention_max_size_mb' );
+				$max_archives = (int) $settings->get( 'retention_max_archives' );
+
+				return new LogRotator(
+					$source,
+					$guard,
+					$max_size_mb * 1024 * 1024,
+					$max_archives
+				);
+			}
+		);
+
+		$this->register(
 			'rest.alerts_controller',
 			static function ( Plugin $plugin ): AlertsController {
 				$coordinator = $plugin->get( 'alerts.coordinator' );
@@ -364,6 +389,7 @@ final class Plugin {
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'logscope_scan_fatals', array( $this, 'run_cron_scan' ) );
+		add_action( CronScheduler::HOOK_ROTATE, array( $this, 'run_cron_rotate' ) );
 		add_filter( 'cron_schedules', array( __CLASS__, 'register_cron_schedule' ) );
 
 		// Re-align the WP schedule with the persisted toggle + interval
@@ -375,6 +401,11 @@ final class Plugin {
 		add_action( 'update_option_' . CronScheduler::OPT_INTERVAL, array( __CLASS__, 'on_cron_setting_changed' ) );
 		add_action( 'add_option_' . CronScheduler::OPT_ENABLED, array( __CLASS__, 'on_cron_setting_changed' ) );
 		add_action( 'add_option_' . CronScheduler::OPT_INTERVAL, array( __CLASS__, 'on_cron_setting_changed' ) );
+
+		// Same idempotent realignment for the retention toggle. Daily
+		// recurrence is fixed, so only the enabled flag needs a listener.
+		add_action( 'update_option_' . CronScheduler::OPT_RETENTION_ENABLED, array( __CLASS__, 'on_retention_setting_changed' ) );
+		add_action( 'add_option_' . CronScheduler::OPT_RETENTION_ENABLED, array( __CLASS__, 'on_retention_setting_changed' ) );
 	}
 
 	/**
@@ -387,6 +418,18 @@ final class Plugin {
 	 */
 	public static function on_cron_setting_changed(): void {
 		CronScheduler::apply();
+	}
+
+	/**
+	 * Listener for `update_option_<key>` / `add_option_<key>` on the
+	 * retention enabled flag. Same shape as
+	 * {@see Plugin::on_cron_setting_changed()} but routes to the
+	 * rotation lifecycle.
+	 *
+	 * @return void
+	 */
+	public static function on_retention_setting_changed(): void {
+		CronScheduler::apply_rotation();
 	}
 
 	/**
@@ -445,6 +488,27 @@ final class Plugin {
 			$scanner->scan();
 		} catch ( Throwable $e ) {
 			self::log_route_registration_failure( 'cron.scan', $e );
+		}
+	}
+
+	/**
+	 * Cron callback for the `logscope_rotate_logs` event. Mirrors
+	 * {@see Plugin::run_cron_scan()} — a misconfigured log path raises
+	 * `InvalidPathException` from the `log_source` factory and is
+	 * trapped here so the bad option does not abort other plugins'
+	 * scheduled events on the same tick. The rotator itself returns a
+	 * structured noop on filesystem errors rather than throwing, so
+	 * this `try` only catches DI-graph construction failures.
+	 *
+	 * @return void
+	 */
+	public function run_cron_rotate(): void {
+		try {
+			$rotator = $this->get( 'cron.rotator' );
+			assert( $rotator instanceof LogRotator );
+			$rotator->rotate();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'cron.rotate', $e );
 		}
 	}
 

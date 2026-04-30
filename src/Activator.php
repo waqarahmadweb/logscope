@@ -63,5 +63,10 @@ final class Activator {
 		// after a user has enabled the scan will recreate the event if
 		// it was lost (e.g. WP-Cron table truncation during a migration).
 		CronScheduler::apply();
+
+		// Same shape for the rotation event: opt-in by default, but
+		// re-activation after the user enabled retention recreates the
+		// daily rotate hook.
+		CronScheduler::apply_rotation();
 	}
 }

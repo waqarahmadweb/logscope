@@ -522,7 +522,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
     -   `retention_enabled` (bool, default false), `retention_max_size_mb` (int, default 50, min 1, max 1024), `retention_max_archives` (int, default 5, min 1, max 50).
     -   **Commit**: `feat(settings): add retention fields`
 
--   [ ] **14.3** Cron event `logscope_rotate_logs` (daily) invoking `LogRotator`
+-   [x] **14.3** Cron event `logscope_rotate_logs` (daily) invoking `LogRotator`
 
     -   `Activator` schedules it on activation if `retention_enabled` is true; toggling the option re-schedules.
     -   **AC**: Unit test — enabling retention calls `wp_schedule_event` with `daily`.

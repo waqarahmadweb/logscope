@@ -63,4 +63,40 @@ final class CronSchedulerTest extends TestCase {
 
 		CronScheduler::clear();
 	}
+
+	public function test_apply_rotation_clears_when_toggle_is_disabled(): void {
+		Functions\when( 'get_option' )->alias(
+			static function ( string $key, $fallback = false ) {
+				return CronScheduler::OPT_RETENTION_ENABLED === $key ? 0 : $fallback;
+			}
+		);
+
+		Functions\expect( 'wp_clear_scheduled_hook' )->once()->with( CronScheduler::HOOK_ROTATE );
+		Functions\expect( 'wp_schedule_event' )->never();
+
+		CronScheduler::apply_rotation();
+	}
+
+	public function test_apply_rotation_reschedules_daily_when_enabled(): void {
+		Functions\when( 'get_option' )->alias(
+			static function ( string $key, $fallback = false ) {
+				return CronScheduler::OPT_RETENTION_ENABLED === $key ? 1 : $fallback;
+			}
+		);
+
+		Functions\expect( 'wp_clear_scheduled_hook' )->once()->with( CronScheduler::HOOK_ROTATE );
+		Functions\expect( 'wp_schedule_event' )
+			->once()
+			->with( \Mockery::type( 'int' ), 'daily', CronScheduler::HOOK_ROTATE );
+
+		CronScheduler::apply_rotation();
+	}
+
+	public function test_clear_rotation_unschedules_unconditionally(): void {
+		Functions\expect( 'wp_clear_scheduled_hook' )->once()->with( CronScheduler::HOOK_ROTATE );
+		Functions\expect( 'get_option' )->never();
+		Functions\expect( 'wp_schedule_event' )->never();
+
+		CronScheduler::clear_rotation();
+	}
 }
