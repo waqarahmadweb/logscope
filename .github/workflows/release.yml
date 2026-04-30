@@ -1,0 +1,160 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - 'v*.*.*'
+
+permissions:
+    contents: write
+
+jobs:
+    build:
+        name: Build distribution zip
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Check out tag
+              uses: actions/checkout@v4
+
+            - name: Resolve version from tag
+              id: version
+              run: |
+                  TAG="${GITHUB_REF#refs/tags/}"
+                  echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+                  echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.0'
+                  coverage: none
+                  tools: composer:v2
+
+            - name: Install Composer dependencies (prod only)
+              run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  run_install: false
+
+            - name: Set up Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: pnpm
+
+            - name: Install JS dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build assets
+              run: pnpm build
+
+            - name: Assemble plugin zip
+              id: zip
+              env:
+                  VERSION: ${{ steps.version.outputs.version }}
+              run: |
+                  set -euo pipefail
+
+                  STAGING="$(mktemp -d)"
+                  PLUGIN_DIR="${STAGING}/logscope"
+                  mkdir -p "${PLUGIN_DIR}"
+
+                  # Tracked files minus anything marked export-ignore in .gitattributes.
+                  git archive --format=tar HEAD | tar -x -C "${PLUGIN_DIR}"
+
+                  # Build artifacts and prod vendor (both are gitignored, so git archive
+                  # cannot produce them -- copy from the working tree built above).
+                  mkdir -p "${PLUGIN_DIR}/vendor"
+                  cp -R vendor/. "${PLUGIN_DIR}/vendor/"
+
+                  if [ -d assets/build ]; then
+                      mkdir -p "${PLUGIN_DIR}/assets/build"
+                      cp -R assets/build/. "${PLUGIN_DIR}/assets/build/"
+                  fi
+
+                  ZIP_NAME="logscope-${VERSION}.zip"
+                  (cd "${STAGING}" && zip -r "${ZIP_NAME}" logscope >/dev/null)
+                  mv "${STAGING}/${ZIP_NAME}" "${ZIP_NAME}"
+
+                  echo "zip_name=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
+                  echo "zip_path=${GITHUB_WORKSPACE}/${ZIP_NAME}" >> "$GITHUB_OUTPUT"
+
+            - name: Verify zip hygiene
+              env:
+                  ZIP_NAME: ${{ steps.zip.outputs.zip_name }}
+              run: |
+                  set -euo pipefail
+
+                  echo "::group::Zip contents (top-level)"
+                  unzip -l "${ZIP_NAME}" | head -40
+                  echo "::endgroup::"
+
+                  # Anything that should NEVER ship -- fail the build if it appears.
+                  FORBIDDEN=(
+                      'logscope/tests/'
+                      'logscope/docs/'
+                      'logscope/.github/'
+                      'logscope/.husky/'
+                      'logscope/.wordpress-org/'
+                      'logscope/assets/src/'
+                      'logscope/node_modules/'
+                      'logscope/bin/'
+                      'logscope/tools/'
+                      'logscope/phpunit.xml.dist'
+                      'logscope/phpcs.xml.dist'
+                      'logscope/phpcs.xml'
+                      'logscope/composer.json'
+                      'logscope/composer.lock'
+                      'logscope/package.json'
+                      'logscope/pnpm-lock.yaml'
+                      'logscope/eslint.config.js'
+                      'logscope/eslint.config.mjs'
+                      'logscope/.editorconfig'
+                      'logscope/.gitattributes'
+                      'logscope/.gitignore'
+                      'logscope/.npmrc'
+                      'logscope/.prettierrc'
+                      'logscope/.prettierignore'
+                      'logscope/AGENTS.md'
+                      'logscope/CLAUDE.md'
+                      'logscope/CHANGELOG.md'
+                      'logscope/ROADMAP.md'
+                  )
+
+                  FAIL=0
+                  for entry in "${FORBIDDEN[@]}"; do
+                      if unzip -l "${ZIP_NAME}" | awk '{print $NF}' | grep -qE "^${entry}"; then
+                          echo "ERROR: forbidden entry in zip: ${entry}"
+                          FAIL=1
+                      fi
+                  done
+
+                  # Required entries that MUST ship.
+                  REQUIRED=(
+                      'logscope/logscope.php'
+                      'logscope/readme.txt'
+                      'logscope/uninstall.php'
+                      'logscope/vendor/autoload.php'
+                      'logscope/assets/build/index.js'
+                      'logscope/assets/build/index.asset.php'
+                      'logscope/src/Plugin.php'
+                  )
+                  for entry in "${REQUIRED[@]}"; do
+                      if ! unzip -l "${ZIP_NAME}" | awk '{print $NF}' | grep -qE "^${entry}$"; then
+                          echo "ERROR: missing required entry: ${entry}"
+                          FAIL=1
+                      fi
+                  done
+
+                  exit "${FAIL}"
+
+            - name: Create GitHub release with zip asset
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: ${{ steps.version.outputs.tag }}
+                  name: ${{ steps.version.outputs.tag }}
+                  generate_release_notes: true
+                  files: ${{ steps.zip.outputs.zip_path }}

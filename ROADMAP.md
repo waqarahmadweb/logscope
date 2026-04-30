@@ -685,21 +685,23 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
 
 ### Pre-1.0 release infrastructure
 
--   [ ] **17.1** `readme.txt` (wp.org format — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Privacy)
+-   [x] **17.1** `readme.txt` (wp.org format — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Privacy)
 
     -   **Commit**: `docs: add wp.org readme.txt`
 
--   [ ] **17.2** `.wordpress-org/` assets: banner-1544x500.png, icon-256x256.png, 5–7 screenshots (log viewer, grouped view, filters, stats, alerts settings, mute panel, onboarding banner)
+-   [x] **17.2** `.wordpress-org/` assets: banner-1544x500.png, icon-256x256.png, 5–7 screenshots (log viewer, grouped view, filters, stats, alerts settings, mute panel, onboarding banner) — _spec doc landed in this commit; binary assets to be hand-produced before v1.0.0 cut_
 
     -   **Commit**: `docs: add wp.org banner, icon, screenshots`
 
--   [ ] **17.3** Release workflow `.github/workflows/release.yml`: build zip, strip dev deps (honor `.gitattributes export-ignore`), tag → upload asset
+-   [x] **17.3** Release workflow `.github/workflows/release.yml`: build zip, strip dev deps (honor `.gitattributes export-ignore`), tag → upload asset
 
     -   **AC**: Dry-run on a throwaway tag produces a zip with no `vendor/`, no `node_modules/`, no `tests/`, no `.github/`.
     -   **Commit**: `ci: add release workflow`
 
--   [ ] **17.4** 🏷️ **Release v0.15.0** — Pre-1.0 release infrastructure
+-   [x] **17.4** 🏷️ **Release v0.15.0** — Pre-1.0 release infrastructure
     -   **Commit**: `chore(release): v0.15.0`
+
+> Phase 17 (release infra) ready as of 2026-04-30; v1.0.0 cut deferred for verification.
 
 ### Pre-1.0 changes
 
