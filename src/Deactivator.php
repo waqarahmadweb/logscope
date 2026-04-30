@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope;
 
+use Logscope\Cron\CronScheduler;
+
 /**
  * Runs when the plugin is deactivated. Clears scheduled cron events so
  * orphaned hooks do not fire after the plugin code is gone.
@@ -25,7 +27,7 @@ final class Deactivator {
 	 * @var list<string>
 	 */
 	private const CRON_HOOKS = array(
-		'logscope_scan_fatals',
+		CronScheduler::HOOK,
 	);
 
 	/**

@@ -469,7 +469,7 @@ Goal: Background cron scans the log for new fatals and feeds the AlertCoordinato
     -   **AC**: Unit test — given a fixture log with two fatals, scanner calls coordinator once with two groups; second invocation with no new bytes is a no-op.
     -   **Commit**: `feat(cron): scheduled fatal-error scanner`
 
--   [ ] **13.2** `Activator` / `Deactivator` cron lifecycle
+-   [x] **13.2** `Activator` / `Deactivator` cron lifecycle
 
     -   `Activator::activate()` schedules `logscope_scan_fatals` if cron is enabled (default off — opt-in to avoid cron noise on fresh install).
     -   `Deactivator::deactivate()` calls `wp_clear_scheduled_hook('logscope_scan_fatals')`.

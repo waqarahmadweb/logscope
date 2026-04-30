@@ -17,6 +17,7 @@ use Logscope\Alerts\AlertCoordinator;
 use Logscope\Alerts\AlertDeduplicator;
 use Logscope\Alerts\EmailAlerter;
 use Logscope\Alerts\WebhookAlerter;
+use Logscope\Cron\CronScheduler;
 use Logscope\Cron\LogScanner;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
@@ -363,6 +364,28 @@ final class Plugin {
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'logscope_scan_fatals', array( $this, 'run_cron_scan' ) );
+
+		// Re-align the WP schedule with the persisted toggle + interval
+		// any time either option changes, so a save through `Settings::set`
+		// or a direct `update_option` call from WP-CLI converges. The
+		// scheduler reads the current option values internally — handler
+		// args are unused.
+		add_action( 'update_option_' . CronScheduler::OPT_ENABLED, array( __CLASS__, 'on_cron_setting_changed' ) );
+		add_action( 'update_option_' . CronScheduler::OPT_INTERVAL, array( __CLASS__, 'on_cron_setting_changed' ) );
+		add_action( 'add_option_' . CronScheduler::OPT_ENABLED, array( __CLASS__, 'on_cron_setting_changed' ) );
+		add_action( 'add_option_' . CronScheduler::OPT_INTERVAL, array( __CLASS__, 'on_cron_setting_changed' ) );
+	}
+
+	/**
+	 * Listener for `update_option_<key>` / `add_option_<key>` on the cron
+	 * settings. Static + arg-free so WP can pass the standard option-hook
+	 * args without a closure binding the Plugin instance — the scheduler
+	 * pulls fresh values from `get_option` itself.
+	 *
+	 * @return void
+	 */
+	public static function on_cron_setting_changed(): void {
+		CronScheduler::apply();
 	}
 
 	/**
