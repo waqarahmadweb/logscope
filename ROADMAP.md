@@ -537,7 +537,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
     -   **AC**: Unit test — adding the same signature twice updates rather than duplicates.
     -   **Commit**: `feat(log): add mute store for signatures`
 
--   [ ] **14.5** REST `POST /logs/mute` + `DELETE /logs/mute/<signature>` + `GET /logs/mute`
+-   [x] **14.5** REST `POST /logs/mute` + `DELETE /logs/mute/<signature>` + `GET /logs/mute`
 
     -   POST body: `{signature, reason}`. DELETE by URL path. GET returns the full list.
     -   **AC**: Integration tests on all three verbs.
