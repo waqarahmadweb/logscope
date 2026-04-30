@@ -595,6 +595,55 @@ body.admin-color-midnight {
 	}
 }
 
+.logscope-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+
+	&__bulk {
+		margin-left: auto;
+		display: inline-flex;
+		gap: 8px;
+	}
+
+	&__bulk-btn {
+		appearance: none;
+		font: inherit;
+		font-size: 13px;
+		font-weight: 500;
+		padding: 8px 16px;
+		border-radius: var( --logscope-radius-md );
+		border: 1px solid var( --logscope-border );
+		background: var( --logscope-bg-muted );
+		color: var( --logscope-fg );
+		cursor: pointer;
+		transition: background 0.1s, border-color 0.1s;
+
+		&:hover:not( :disabled ) {
+			background: var( --logscope-row-hover );
+			border-color: var( --logscope-border-strong );
+		}
+
+		&--primary {
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
+			border-color: var( --logscope-fg );
+			font-weight: 600;
+
+			&:hover:not( :disabled ) {
+				background: var( --logscope-fg );
+				color: var( --logscope-bg-muted );
+				filter: brightness( 1.1 );
+			}
+		}
+
+		&:disabled {
+			opacity: 0.45;
+			cursor: not-allowed;
+		}
+	}
+}
+
 .logscope-mode-toggle {
 	display: inline-flex;
 	gap: 0;

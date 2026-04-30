@@ -140,36 +140,66 @@ export default function LogViewer() {
 			<OnboardingBanner />
 			<FilterBar />
 
-			<div
-				className="logscope-mode-toggle"
-				role="tablist"
-				aria-label={ __( 'View mode', 'logscope' ) }
-			>
-				<Button
-					variant={ viewMode === 'list' ? 'primary' : 'secondary' }
-					role="tab"
-					aria-selected={ viewMode === 'list' }
-					onClick={ () => handleSetMode( 'list' ) }
+			<div className="logscope-toolbar">
+				<div
+					className="logscope-mode-toggle"
+					role="tablist"
+					aria-label={ __( 'View mode', 'logscope' ) }
 				>
-					{ __( 'List', 'logscope' ) }
-				</Button>
-				<Button
-					variant={ viewMode === 'grouped' ? 'primary' : 'secondary' }
-					role="tab"
-					aria-selected={ viewMode === 'grouped' }
-					onClick={ () => handleSetMode( 'grouped' ) }
-				>
-					{ __( 'Grouped', 'logscope' ) }
-				</Button>
-				<Button
-					variant={ isTailing ? 'primary' : 'tertiary' }
-					onClick={ handleToggleTail }
-					aria-pressed={ isTailing }
-				>
-					{ isTailing
-						? __( 'Stop tail', 'logscope' )
-						: __( 'Tail', 'logscope' ) }
-				</Button>
+					<Button
+						variant={
+							viewMode === 'list' ? 'primary' : 'secondary'
+						}
+						role="tab"
+						aria-selected={ viewMode === 'list' }
+						onClick={ () => handleSetMode( 'list' ) }
+					>
+						{ __( 'List', 'logscope' ) }
+					</Button>
+					<Button
+						variant={
+							viewMode === 'grouped' ? 'primary' : 'secondary'
+						}
+						role="tab"
+						aria-selected={ viewMode === 'grouped' }
+						onClick={ () => handleSetMode( 'grouped' ) }
+					>
+						{ __( 'Grouped', 'logscope' ) }
+					</Button>
+					<Button
+						variant={ isTailing ? 'primary' : 'tertiary' }
+						onClick={ handleToggleTail }
+						aria-pressed={ isTailing }
+					>
+						{ isTailing
+							? __( 'Stop tail', 'logscope' )
+							: __( 'Tail', 'logscope' ) }
+					</Button>
+				</div>
+				<div className="logscope-toolbar__bulk">
+					<button
+						type="button"
+						className="logscope-toolbar__bulk-btn"
+						disabled
+						title={ __(
+							'Select rows to enable bulk mute',
+							'logscope'
+						) }
+					>
+						{ __( 'Mute selected', 'logscope' ) }
+					</button>
+					<button
+						type="button"
+						className="logscope-toolbar__bulk-btn logscope-toolbar__bulk-btn--primary"
+						disabled
+						title={ __(
+							'Select rows to enable bulk export',
+							'logscope'
+						) }
+					>
+						{ __( 'Export selected', 'logscope' ) }
+					</button>
+				</div>
 			</div>
 
 			<ViewerBody
