@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-04-30
+
+Closes Phase 16 of the [roadmap](ROADMAP.md): three features bundled into one release that close the gap between "Logscope is installed" and "Logscope is useful." A first-time admin opening the plugin on a host with `WP_DEBUG_LOG` off now sees an actionable onboarding banner with the exact lines to drop into `wp-config.php` and a link to the WordPress handbook, instead of staring at a silently empty page; the empty-log message itself was rewritten to surface the underlying reason (file missing, file empty, all entries muted, filters too narrow) rather than the same generic line in every case; and admins triaging a flood can now select multiple groups in the grouped view and act on the selection at once — mute the lot in a single batch or export them to CSV for handoff to another tool. The mute path piggybacks on Phase 14's idempotent `/logs/mute` route and refetches the page after the batch so muted groups disappear immediately; the CSV path builds the file client-side from the already-fetched rows so no new server route is needed.
+
+A new `Logscope\Support\DiagnosticsService` underpins both the banner and the empty-state copy: a typed-fields snapshot exposed through `GET /diagnostics` that captures `WP_DEBUG`, `WP_DEBUG_LOG`, the candidate log path, and whether the file exists with size and mtime. `LogViewer` fetches it once on mount; the same payload feeds the banner, the empty state, and (in a future revision) any other surface that needs to ask "is the host actually configured to log?" without firing its own request. Auto-edit of `wp-config.php` is intentionally out of scope here — the ROADMAP defers that to post-1.0.
+
 ### Added
 
 -   Bulk actions in grouped view (Phase 16.5) — per-group checkbox at the start of every row plus a "Select all" checkbox in a new header bar above the list. The header carries a tri-state checkbox (unchecked / indeterminate when partial / checked) and a live "%d selected" counter, plus two bulk-action buttons that enable when at least one group is selected. **Mute selected** dispatches a new `bulkMuteSignatures` thunk on the `logscope/core` store which POSTs each signature in sequence to `/logs/mute` (cooperating with Phase 14's idempotent route — re-muting an already-muted signature is a no-op and a partial failure surfaces as a "Muted N of M; some failed" warning toast rather than aborting the batch); after the batch completes, `GroupedView` calls `fetchLogs` with the current filters + `grouped: true` so the muted groups drop out of view immediately rather than lingering until the next filter change. **Export selected** builds a CSV blob client-side from the rows already in the store (`severity, count, signature, sample_message, file, line, first_seen, last_seen` — RFC 4180 quoting via a small `csvCell` helper) and triggers a download through a temporary anchor element; the blob carries a UTF-8 BOM so Excel auto-detects encoding and a `logscope-groups-YYYYMMDD-HHMMSS.csv` filename so a habit of bulk-exporting does not silently overwrite the previous export. Selection state lives in `GroupedView` local component state — it is purely UI state, does not need to survive page navigation, and a `useEffect` prunes the set whenever the visible groups change so a muted-and-disappeared signature does not stay in the selection. Bundle weight: 75.5 KiB (was 70.5 KiB; +5 KiB for the bulk action bar, the CSV builder, and the new thunk).
@@ -257,7 +263,8 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/waqarahmadweb/logscope/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/waqarahmadweb/logscope/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/waqarahmadweb/logscope/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/waqarahmadweb/logscope/compare/v0.10.0...v0.11.0

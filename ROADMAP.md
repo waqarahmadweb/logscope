@@ -672,8 +672,10 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
     -   **AC**: Hand-test — select 3 groups, click "Mute selected", all 3 disappear from view.
     -   **Commit**: `feat(ui): bulk actions in grouped view`
 
--   [ ] **16.6** 🏷️ **Release v0.14.0** — Onboarding, diagnostics, bulk actions
+-   [x] **16.6** 🏷️ **Release v0.14.0** — Onboarding, diagnostics, bulk actions
     -   **Commit**: `chore(release): v0.14.0`
+
+> Phase 16 complete on 2026-04-30.
 
 ---
 
