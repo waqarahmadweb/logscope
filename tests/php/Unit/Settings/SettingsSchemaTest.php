@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Logscope\Tests\Unit\Settings;
 
+use Brain\Monkey\Functions;
 use InvalidArgumentException;
 use Logscope\Settings\SettingsSchema;
 use Logscope\Tests\TestCase;
@@ -18,7 +19,18 @@ final class SettingsSchemaTest extends TestCase {
 	public function test_keys_returns_declared_field_names(): void {
 		$schema = new SettingsSchema();
 
-		$this->assertSame( array( 'log_path', 'tail_interval' ), $schema->keys() );
+		$this->assertSame(
+			array(
+				'log_path',
+				'tail_interval',
+				'alert_email_enabled',
+				'alert_email_to',
+				'alert_webhook_enabled',
+				'alert_webhook_url',
+				'alert_dedup_window',
+			),
+			$schema->keys()
+		);
 	}
 
 	public function test_has_returns_true_for_known_and_false_for_unknown(): void {
@@ -131,5 +143,66 @@ final class SettingsSchemaTest extends TestCase {
 		$this->assertTrue( $schema->matches_type( 'tail_interval', 5 ) );
 		$this->assertFalse( $schema->matches_type( 'tail_interval', '5' ) );
 		$this->assertFalse( $schema->matches_type( 'tail_interval', null ) );
+	}
+
+	public function test_alert_email_enabled_coerces_truthy_inputs(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 1, $schema->sanitize( 'alert_email_enabled', true ) );
+		$this->assertSame( 1, $schema->sanitize( 'alert_email_enabled', '1' ) );
+		$this->assertSame( 1, $schema->sanitize( 'alert_email_enabled', 'true' ) );
+		$this->assertSame( 1, $schema->sanitize( 'alert_email_enabled', 'on' ) );
+		$this->assertSame( 0, $schema->sanitize( 'alert_email_enabled', false ) );
+		$this->assertSame( 0, $schema->sanitize( 'alert_email_enabled', '' ) );
+		$this->assertSame( 0, $schema->sanitize( 'alert_email_enabled', null ) );
+	}
+
+	public function test_alert_email_to_runs_through_sanitize_email(): void {
+		Functions\when( 'sanitize_email' )->alias(
+			static function ( $value ) {
+				return false === strpos( $value, '@' ) ? '' : $value;
+			}
+		);
+
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 'ops@example.com', $schema->sanitize( 'alert_email_to', '  ops@example.com  ' ) );
+		$this->assertSame( '', $schema->sanitize( 'alert_email_to', 'not-an-email' ) );
+		$this->assertSame( '', $schema->sanitize( 'alert_email_to', '' ) );
+	}
+
+	public function test_alert_webhook_url_enforces_http_https_scheme(): void {
+		Functions\when( 'esc_url_raw' )->returnArg();
+		Functions\when( 'wp_parse_url' )->alias(
+			static function ( $url ) {
+				if ( 0 === strpos( $url, 'http://' ) ) {
+					return 'http';
+				}
+				if ( 0 === strpos( $url, 'https://' ) ) {
+					return 'https';
+				}
+				if ( 0 === strpos( $url, 'file://' ) ) {
+					return 'file';
+				}
+
+				return null;
+			}
+		);
+
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 'https://example.com/hook', $schema->sanitize( 'alert_webhook_url', 'https://example.com/hook' ) );
+		$this->assertSame( 'http://example.com/hook', $schema->sanitize( 'alert_webhook_url', 'http://example.com/hook' ) );
+		$this->assertSame( '', $schema->sanitize( 'alert_webhook_url', 'file:///etc/passwd' ) );
+		$this->assertSame( '', $schema->sanitize( 'alert_webhook_url', '' ) );
+	}
+
+	public function test_alert_dedup_window_floors_at_60_seconds(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 60, $schema->sanitize( 'alert_dedup_window', 5 ) );
+		$this->assertSame( 60, $schema->sanitize( 'alert_dedup_window', '0' ) );
+		$this->assertSame( 600, $schema->sanitize( 'alert_dedup_window', 600 ) );
+		$this->assertSame( 300, $schema->sanitize( 'alert_dedup_window', 'oops' ) );
 	}
 }

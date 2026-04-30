@@ -13,6 +13,10 @@ use Closure;
 use Logscope\Admin\AssetLoader;
 use Logscope\Admin\Menu;
 use Logscope\Admin\PageRenderer;
+use Logscope\Alerts\AlertCoordinator;
+use Logscope\Alerts\AlertDeduplicator;
+use Logscope\Alerts\EmailAlerter;
+use Logscope\Alerts\WebhookAlerter;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
 use Logscope\REST\LogsController;
@@ -246,6 +250,58 @@ final class Plugin {
 				assert( $settings instanceof Settings );
 
 				return new AssetLoader( $menu, $settings );
+			}
+		);
+
+		$this->register(
+			'alerts.deduplicator',
+			static function ( Plugin $plugin ): AlertDeduplicator {
+				$settings = $plugin->get( 'settings' );
+				assert( $settings instanceof Settings );
+
+				return new AlertDeduplicator( (int) $settings->get( 'alert_dedup_window' ) );
+			}
+		);
+
+		$this->register(
+			'alerts.email',
+			static function ( Plugin $plugin ): EmailAlerter {
+				$settings = $plugin->get( 'settings' );
+				assert( $settings instanceof Settings );
+
+				return new EmailAlerter(
+					1 === (int) $settings->get( 'alert_email_enabled' ),
+					(string) $settings->get( 'alert_email_to' )
+				);
+			}
+		);
+
+		$this->register(
+			'alerts.webhook',
+			static function ( Plugin $plugin ): WebhookAlerter {
+				$settings = $plugin->get( 'settings' );
+				assert( $settings instanceof Settings );
+
+				return new WebhookAlerter(
+					1 === (int) $settings->get( 'alert_webhook_enabled' ),
+					(string) $settings->get( 'alert_webhook_url' )
+				);
+			}
+		);
+
+		$this->register(
+			'alerts.coordinator',
+			static function ( Plugin $plugin ): AlertCoordinator {
+				$email = $plugin->get( 'alerts.email' );
+				assert( $email instanceof EmailAlerter );
+
+				$webhook = $plugin->get( 'alerts.webhook' );
+				assert( $webhook instanceof WebhookAlerter );
+
+				$dedup = $plugin->get( 'alerts.deduplicator' );
+				assert( $dedup instanceof AlertDeduplicator );
+
+				return new AlertCoordinator( array( $email, $webhook ), $dedup );
 			}
 		);
 	}

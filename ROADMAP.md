@@ -417,7 +417,7 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Unit test — disabled dispatchers skipped; `before_alert` returning `false` short-circuits cleanly; `alert_sent` fires with `(group, dispatcher_name)`.
     -   **Commit**: `feat(alerts): coordinator with fanout + per-dispatcher dedup`
 
--   [ ] **12.5** SettingsSchema extensions
+-   [x] **12.5** SettingsSchema extensions
 
     -   New fields: `alert_email_enabled` (bool, default false), `alert_email_to` (sanitise via `sanitize_email`), `alert_webhook_enabled` (bool), `alert_webhook_url` (sanitise via `esc_url_raw` + protocol allowlist), `alert_dedup_window` (int seconds, default 300, min 60).
     -   `Activator::DEFAULT_OPTIONS` updated to seed the new keys (cross-link comment kept in sync).
