@@ -638,42 +638,44 @@ Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time 
 
 Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see a silently empty page; admins triaging a flood can act on multiple groups at once.
 
--   [ ] **16.1** `src/Support/DiagnosticsService.php`
+-   [x] **16.1** `src/Support/DiagnosticsService.php`
 
     -   Detects: `WP_DEBUG`, `WP_DEBUG_LOG`, resolved log path (via PathGuard), parent writability, file existence, file size, last-modified time.
     -   Returns a structured snapshot — every field is a typed boolean / int / string, no nulls.
     -   **AC**: Unit test — both flags off → all-false snapshot; flag on but file missing → `exists:false, parent_writable: <bool>`.
     -   **Commit**: `feat(support): add diagnostics service`
 
--   [ ] **16.2** REST `GET /diagnostics`
+-   [x] **16.2** REST `GET /diagnostics`
 
     -   Capability-gated; returns the snapshot.
     -   **AC**: Integration test — endpoint returns the snapshot shape.
     -   **Commit**: `feat(rest): add GET /diagnostics endpoint`
 
--   [ ] **16.3** Onboarding banner on Logs tab when `WP_DEBUG_LOG` is off
+-   [x] **16.3** Onboarding banner on Logs tab when `WP_DEBUG_LOG` is off
 
     -   Dismissible-per-session banner above the FilterBar with manual `wp-config.php` instructions (no auto-edit — that's deferred to post-1.0).
     -   Banner copy includes the exact lines to add and links to the WP handbook.
     -   **AC**: Banner shows when REST `/diagnostics` reports `wp_debug_log: false`; hidden otherwise.
     -   **Commit**: `feat(ui): onboarding banner for missing WP_DEBUG_LOG`
 
--   [ ] **16.4** Empty-log diagnostics
+-   [x] **16.4** Empty-log diagnostics
 
     -   Replace the generic "No log entries" empty state with a reason-aware message: file doesn't exist, file empty, file rotated since last check, all entries muted, etc.
     -   Reuses the diagnostics snapshot rather than firing a separate request.
     -   **AC**: Manually delete `debug.log` → empty state explains "log file does not yet exist at <path>".
     -   **Commit**: `feat(ui): reason-aware empty log state`
 
--   [ ] **16.5** Bulk actions in grouped view
+-   [x] **16.5** Bulk actions in grouped view
 
     -   Per-group checkbox + "Select all" header checkbox.
     -   Bulk action bar appears when ≥1 group is selected: "Mute selected" (uses Phase 14 mute), "Export selected" (CSV download via existing infrastructure).
     -   **AC**: Hand-test — select 3 groups, click "Mute selected", all 3 disappear from view.
     -   **Commit**: `feat(ui): bulk actions in grouped view`
 
--   [ ] **16.6** 🏷️ **Release v0.14.0** — Onboarding, diagnostics, bulk actions
+-   [x] **16.6** 🏷️ **Release v0.14.0** — Onboarding, diagnostics, bulk actions
     -   **Commit**: `chore(release): v0.14.0`
+
+> Phase 16 complete on 2026-04-30.
 
 ---
 

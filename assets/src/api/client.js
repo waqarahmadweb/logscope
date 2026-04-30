@@ -120,6 +120,9 @@ export const client = {
 			path: logscopePath( '/stats' ) + '?' + query.toString(),
 		} );
 	},
+	getDiagnostics() {
+		return apiFetch( { path: logscopePath( '/diagnostics' ) } );
+	},
 };
 
 export { bootstrap };

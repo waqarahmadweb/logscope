@@ -30,7 +30,7 @@
  *     coexist with auto-prune timers in the host component.
  */
 import { createReduxStore, register, select } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { client } from '../api/client';
 import entryKey from '../utils/entryKey';
@@ -103,6 +103,11 @@ const DEFAULT_STATE = {
 	stats: {
 		range: '24h',
 		bucket: 'hour',
+		data: null,
+		isLoading: false,
+		loadError: null,
+	},
+	diagnostics: {
 		data: null,
 		isLoading: false,
 		loadError: null,
@@ -364,6 +369,68 @@ const actions = {
 			} );
 		}
 	},
+	*bulkMuteSignatures( signatures, reason = '' ) {
+		// Drop empties + dedupe so a sloppy caller can pass the raw
+		// selection set without having to pre-clean it. An empty list
+		// short-circuits without the placeholder toast.
+		const list = Array.from(
+			new Set(
+				( signatures || [] ).filter(
+					( s ) => typeof s === 'string' && s.trim() !== ''
+				)
+			)
+		);
+		if ( list.length === 0 ) {
+			return;
+		}
+
+		yield actions.startSavingMutes();
+		let lastPayload = null;
+		let failures = 0;
+		for ( const signature of list ) {
+			try {
+				lastPayload = yield {
+					type: 'API_MUTE_SIGNATURE',
+					signature,
+					reason,
+				};
+			} catch ( e ) {
+				failures += 1;
+			}
+		}
+		if ( lastPayload && lastPayload.items ) {
+			yield actions.receiveMutes( lastPayload.items );
+		}
+
+		if ( failures === 0 ) {
+			yield actions.pushToast( {
+				message: sprintf(
+					/* translators: %d is the number of signatures muted. */
+					_n(
+						'Muted %d signature.',
+						'Muted %d signatures.',
+						list.length,
+						'logscope'
+					),
+					list.length
+				),
+				status: 'success',
+			} );
+		} else {
+			yield actions.pushToast( {
+				message: sprintf(
+					/* translators: 1: number muted, 2: number that failed. */
+					__(
+						'Muted %1$d of %2$d selected signatures; some failed.',
+						'logscope'
+					),
+					list.length - failures,
+					list.length
+				),
+				status: 'warning',
+			} );
+		}
+	},
 	*unmuteSignature( signature ) {
 		yield actions.startSavingMutes();
 		try {
@@ -477,6 +544,26 @@ const actions = {
 			yield actions.receiveStats( payload );
 		} catch ( error ) {
 			yield actions.failLoadStats( error?.message || 'Unknown error' );
+		}
+	},
+	startLoadingDiagnostics() {
+		return { type: 'DIAGNOSTICS_LOADING' };
+	},
+	receiveDiagnostics( payload ) {
+		return { type: 'DIAGNOSTICS_RECEIVED', payload };
+	},
+	failLoadDiagnostics( error ) {
+		return { type: 'DIAGNOSTICS_LOAD_FAILED', error };
+	},
+	*fetchDiagnostics() {
+		yield actions.startLoadingDiagnostics();
+		try {
+			const payload = yield { type: 'API_FETCH_DIAGNOSTICS' };
+			yield actions.receiveDiagnostics( payload );
+		} catch ( error ) {
+			yield actions.failLoadDiagnostics(
+				error?.message || 'Unknown error'
+			);
 		}
 	},
 	pushToast( { message, status = 'info', ttlMs = TOAST_DEFAULT_TTL_MS } ) {
@@ -962,6 +1049,33 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					loadError: action.error,
 				},
 			};
+		case 'DIAGNOSTICS_LOADING':
+			return {
+				...state,
+				diagnostics: {
+					...state.diagnostics,
+					isLoading: true,
+					loadError: null,
+				},
+			};
+		case 'DIAGNOSTICS_RECEIVED':
+			return {
+				...state,
+				diagnostics: {
+					data: action.payload,
+					isLoading: false,
+					loadError: null,
+				},
+			};
+		case 'DIAGNOSTICS_LOAD_FAILED':
+			return {
+				...state,
+				diagnostics: {
+					...state.diagnostics,
+					isLoading: false,
+					loadError: action.error,
+				},
+			};
 		case 'TOAST_PUSHED':
 			return { ...state, toasts: [ ...state.toasts, action.toast ] };
 		case 'TOAST_DISMISSED':
@@ -1023,6 +1137,9 @@ const selectors = {
 	getStatsData: ( state ) => state.stats.data,
 	isLoadingStats: ( state ) => state.stats.isLoading,
 	getStatsLoadError: ( state ) => state.stats.loadError,
+	getDiagnostics: ( state ) => state.diagnostics.data,
+	isLoadingDiagnostics: ( state ) => state.diagnostics.isLoading,
+	getDiagnosticsLoadError: ( state ) => state.diagnostics.loadError,
 	getToasts: ( state ) => state.toasts,
 };
 
@@ -1068,6 +1185,9 @@ const controls = {
 		const range = select( STORE_KEY ).getStatsRange();
 		const bucket = select( STORE_KEY ).getStatsBucket();
 		return client.getStats( { range, bucket } );
+	},
+	API_FETCH_DIAGNOSTICS() {
+		return client.getDiagnostics();
 	},
 };
 

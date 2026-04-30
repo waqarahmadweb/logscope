@@ -4,6 +4,11 @@
  * first-seen / last-seen window. Each row is expandable to show the full
  * sample message and a copy-to-clipboard for `file:line`.
  *
+ * Phase 16.5 added a per-row checkbox + a header "Select all" + a bulk
+ * action bar with "Mute selected" and "Export selected" (the latter
+ * builds a CSV blob client-side from the already-fetched group rows
+ * rather than firing a separate request — the data is right here).
+ *
  * Groups are rendered as a plain list rather than a virtualized one: the
  * server caps a page at 500 rows (and ships 50 by default), so DOM size
  * is bounded. Variable row heights from the expanded panel would also
@@ -11,14 +16,98 @@
  * carry. If the per-page ceiling ever climbs, swap in `react-window`'s
  * variable-size variant — the row component is already isolated.
  */
+import { useEffect, useMemo, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf, _n } from '@wordpress/i18n';
+import { Button } from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
 import { severityLabel, severityTone } from '../../utils/severity';
+import buildFilterParams from '../../utils/filterParams';
 
 export default function GroupedView() {
-	const groups = useSelect( ( select ) => select( STORE_KEY ).getLogs(), [] );
+	const { groups, filters, isSavingMutes } = useSelect( ( select ) => {
+		const store = select( STORE_KEY );
+		return {
+			groups: store.getLogs(),
+			filters: store.getFilters(),
+			isSavingMutes: store.isSavingMutes(),
+		};
+	}, [] );
+	const { bulkMuteSignatures, fetchLogs } = useDispatch( STORE_KEY );
+
+	const [ selected, setSelected ] = useState( () => new Set() );
+
+	// Prune the selection whenever the visible groups change so a
+	// signature that disappeared (mute applied, filter changed, page
+	// flipped) does not stay in the set and resurface stale state if
+	// the same signature reappears later.
+	useEffect( () => {
+		setSelected( ( prev ) => {
+			const visible = new Set( groups.map( ( g ) => g.signature ) );
+			const next = new Set();
+			prev.forEach( ( sig ) => {
+				if ( visible.has( sig ) ) {
+					next.add( sig );
+				}
+			} );
+			return next.size === prev.size ? prev : next;
+		} );
+	}, [ groups ] );
+
+	const allSelected = useMemo( () => {
+		if ( groups.length === 0 ) {
+			return false;
+		}
+		return groups.every( ( g ) => selected.has( g.signature ) );
+	}, [ groups, selected ] );
+
+	const someSelected = selected.size > 0;
+
+	const toggleOne = ( signature, on ) => {
+		setSelected( ( prev ) => {
+			const next = new Set( prev );
+			if ( on ) {
+				next.add( signature );
+			} else {
+				next.delete( signature );
+			}
+			return next;
+		} );
+	};
+
+	const toggleAll = ( on ) => {
+		if ( on ) {
+			setSelected( new Set( groups.map( ( g ) => g.signature ) ) );
+		} else {
+			setSelected( new Set() );
+		}
+	};
+
+	const onMuteSelected = async () => {
+		if ( selected.size === 0 || isSavingMutes ) {
+			return;
+		}
+		await bulkMuteSignatures( Array.from( selected ), '' );
+		// Refetch the grouped page so the muted groups drop out of
+		// view immediately, satisfying the AC's "all 3 disappear from
+		// view" expectation. We are inside GroupedView so the page is
+		// always in grouped mode here.
+		fetchLogs( {
+			page: 1,
+			grouped: true,
+			...buildFilterParams( filters ),
+		} );
+		setSelected( new Set() );
+	};
+
+	const onExportSelected = () => {
+		if ( selected.size === 0 ) {
+			return;
+		}
+		const rows = groups.filter( ( g ) => selected.has( g.signature ) );
+		downloadGroupsCsv( rows );
+	};
 
 	if ( groups.length === 0 ) {
 		return (
@@ -34,15 +123,80 @@ export default function GroupedView() {
 	}
 
 	return (
-		<ul className="logscope-grouped" role="list">
-			{ groups.map( ( group ) => (
-				<GroupRow key={ group.signature } group={ group } />
-			) ) }
-		</ul>
+		<div className="logscope-grouped-wrapper">
+			<div
+				className="logscope-grouped__header"
+				role="region"
+				aria-label={ __( 'Bulk actions', 'logscope' ) }
+			>
+				<label className="logscope-grouped__select-all">
+					<input
+						type="checkbox"
+						checked={ allSelected }
+						// Indeterminate marker for partial selection; React
+						// does not have a JSX prop for it so we set it via
+						// the DOM ref callback.
+						ref={ ( node ) => {
+							if ( node ) {
+								node.indeterminate =
+									someSelected && ! allSelected;
+							}
+						} }
+						onChange={ ( e ) => toggleAll( e.target.checked ) }
+						aria-label={ __(
+							'Select all visible groups',
+							'logscope'
+						) }
+					/>
+					<span>
+						{ someSelected
+							? sprintf(
+									/* translators: %d is the number of selected groups. */
+									_n(
+										'%d selected',
+										'%d selected',
+										selected.size,
+										'logscope'
+									),
+									selected.size
+							  )
+							: __( 'Select all', 'logscope' ) }
+					</span>
+				</label>
+				<div className="logscope-grouped__bulk-actions">
+					<Button
+						variant="secondary"
+						disabled={ ! someSelected || isSavingMutes }
+						onClick={ onMuteSelected }
+					>
+						{ __( 'Mute selected', 'logscope' ) }
+					</Button>
+					<Button
+						variant="secondary"
+						disabled={ ! someSelected }
+						onClick={ onExportSelected }
+					>
+						{ __( 'Export selected', 'logscope' ) }
+					</Button>
+				</div>
+			</div>
+			<ul className="logscope-grouped" role="list">
+				{ groups.map( ( group ) => (
+					<GroupRow
+						key={ group.signature }
+						group={ group }
+						isSelected={ selected.has( group.signature ) }
+						onToggleSelected={ ( on ) =>
+							toggleOne( group.signature, on )
+						}
+					/>
+				) ) }
+			</ul>
+		</div>
 	);
 }
 
-function GroupRow( { group } ) {
+function GroupRow( { group, isSelected, onToggleSelected } ) {
 	const isExpanded = useSelect(
 		( select ) => select( STORE_KEY ).isGroupExpanded( group.signature ),
 		[ group.signature ]
@@ -82,6 +236,18 @@ function GroupRow( { group } ) {
 		<li
 			className={ `logscope-grouped__row logscope-grouped__row--${ tone }` }
 		>
+			<input
+				type="checkbox"
+				className="logscope-grouped__checkbox"
+				checked={ isSelected }
+				onChange={ ( e ) => onToggleSelected( e.target.checked ) }
+				onClick={ ( e ) => e.stopPropagation() }
+				aria-label={ sprintf(
+					/* translators: %s is the sample error message for the group. */
+					__( 'Select group: %s', 'logscope' ),
+					group.sample_message
+				) }
+			/>
 			<button
 				type="button"
 				className="logscope-grouped__summary"
@@ -154,5 +320,85 @@ function GroupRow( { group } ) {
 				</div>
 			) }
 		</li>
+	);
+}
+
+/**
+ * Builds a CSV blob from the selected group rows and triggers a
+ * browser download. Client-side because the data is already on the
+ * page; round-tripping through the server would not improve fidelity
+ * and would add a route surface.
+ *
+ * @param {Array<object>} rows Selected group payloads from the store.
+ */
+function downloadGroupsCsv( rows ) {
+	const header = [
+		'severity',
+		'count',
+		'signature',
+		'sample_message',
+		'file',
+		'line',
+		'first_seen',
+		'last_seen',
+	];
+	const lines = [ header.join( ',' ) ];
+	rows.forEach( ( row ) => {
+		lines.push(
+			[
+				csvCell( row.severity ),
+				csvCell( row.count ),
+				csvCell( row.signature ),
+				csvCell( row.sample_message ),
+				csvCell( row.file ),
+				csvCell( row.line ),
+				csvCell( row.first_seen ),
+				csvCell( row.last_seen ),
+			].join( ',' )
+		);
+	} );
+	const csv = lines.join( '\r\n' ) + '\r\n';
+
+	// Prepend a UTF-8 BOM so Excel auto-detects the encoding instead of
+	// rendering UTF-8 byte sequences as Latin-1 mojibake — common pain
+	// point with logs that contain non-ASCII characters in messages.
+	const blob = new Blob( [ '﻿', csv ], {
+		type: 'text/csv;charset=utf-8',
+	} );
+	const url = URL.createObjectURL( blob );
+
+	const anchor = document.createElement( 'a' );
+	anchor.href = url;
+	anchor.download = `logscope-groups-${ timestampForFilename() }.csv`;
+	document.body.appendChild( anchor );
+	anchor.click();
+	document.body.removeChild( anchor );
+	// Defer the revoke so Safari has time to start the download — same
+	// pattern used by file-saver and other CSV exporters.
+	setTimeout( () => URL.revokeObjectURL( url ), 1000 );
+}
+
+function csvCell( value ) {
+	if ( value === undefined || value === null ) {
+		return '';
+	}
+	const str = String( value );
+	if ( /[",\r\n]/.test( str ) ) {
+		return '"' + str.replace( /"/g, '""' ) + '"';
+	}
+	return str;
+}
+
+function timestampForFilename() {
+	const now = new Date();
+	const pad = ( n ) => String( n ).padStart( 2, '0' );
+	return (
+		now.getFullYear() +
+		pad( now.getMonth() + 1 ) +
+		pad( now.getDate() ) +
+		'-' +
+		pad( now.getHours() ) +
+		pad( now.getMinutes() ) +
+		pad( now.getSeconds() )
 	);
 }
