@@ -16,9 +16,9 @@
  * the global key listener (which has to live above the tab switch) free
  * of knowledge about specific refs.
  */
-import { useCallback, useEffect, useState } from '@wordpress/element';
+import { useCallback, useEffect, useMemo, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf, _n } from '@wordpress/i18n';
 
 import { STORE_KEY } from '../store';
 import { SHORTCUT, SHORTCUT_EVENT } from '../shortcuts';
@@ -53,12 +53,26 @@ function emitShortcut( name ) {
 }
 
 export default function App() {
-	const activeTab = useSelect(
-		( select ) => select( STORE_KEY ).getActiveTab(),
-		[]
-	);
+	const { activeTab, logsTotal, items } = useSelect( ( select ) => {
+		const store = select( STORE_KEY );
+		return {
+			activeTab: store.getActiveTab(),
+			logsTotal: store.getLogsTotal(),
+			items: store.getLogs(),
+		};
+	}, [] );
 	const { setActiveTab } = useDispatch( STORE_KEY );
 	const [ helpOpen, setHelpOpen ] = useState( false );
+
+	// Live indicator counts: total comes from the API response (matches
+	// active filters across pagination); fatalInView is computed from the
+	// loaded page so it shifts as the user toggles severity filters but
+	// can under-count when later pages contain more fatals. Honest enough
+	// for an at-a-glance pulse — Stats tab is the source of truth.
+	const fatalInView = useMemo(
+		() => items.filter( ( i ) => i?.severity === 'fatal' ).length,
+		[ items ]
+	);
 
 	useEffect( () => {
 		const sync = () => setActiveTab( readTabFromHash() );
@@ -147,6 +161,57 @@ export default function App() {
 
 	return (
 		<div className="logscope-app">
+			<header className="logscope-page-head">
+				<div className="logscope-page-head__title-block">
+					<h1 className="logscope-page-head__title">
+						{ __( 'Logscope', 'logscope' ) }
+					</h1>
+					<p className="logscope-page-head__sub">
+						{ __(
+							'PHP error log viewer for WordPress.',
+							'logscope'
+						) }
+					</p>
+				</div>
+				<div
+					className="logscope-page-head__live"
+					role="status"
+					aria-live="polite"
+					title={ __(
+						'Entries matching the current filters · fatal count is for the loaded page.',
+						'logscope'
+					) }
+				>
+					<span
+						className="logscope-page-head__live-dot"
+						aria-hidden="true"
+					/>
+					<strong>{ logsTotal }</strong>
+					<span>
+						{ ' ' }
+						{ _n( 'entry', 'entries', logsTotal, 'logscope' ) }
+					</span>
+					{ fatalInView > 0 && (
+						<>
+							<span className="logscope-page-head__live-sep">
+								·
+							</span>
+							<span className="logscope-page-head__live-fatal">
+								{ sprintf(
+									/* translators: %d is the number of fatal errors visible on the current page. */
+									_n(
+										'%d fatal',
+										'%d fatal',
+										fatalInView,
+										'logscope'
+									),
+									fatalInView
+								) }
+							</span>
+						</>
+					) }
+				</div>
+			</header>
 			<div
 				className="logscope-tabs"
 				role="tablist"
