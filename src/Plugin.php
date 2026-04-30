@@ -26,6 +26,7 @@ use Logscope\Log\MuteStore;
 use Logscope\REST\AlertsController;
 use Logscope\REST\LogsController;
 use Logscope\REST\MuteController;
+use Logscope\REST\PresetsController;
 use Logscope\REST\SettingsController;
 use Logscope\Settings\PresetStore;
 use Logscope\Settings\Settings;
@@ -385,6 +386,16 @@ final class Plugin {
 				return new MuteController( $store );
 			}
 		);
+
+		$this->register(
+			'rest.presets_controller',
+			static function ( Plugin $plugin ): PresetsController {
+				$store = $plugin->get( 'settings.preset_store' );
+				assert( $store instanceof PresetStore );
+
+				return new PresetsController( $store );
+			}
+		);
 	}
 
 	/**
@@ -625,6 +636,14 @@ final class Plugin {
 			$mute->register_routes();
 		} catch ( Throwable $e ) {
 			self::log_route_registration_failure( 'mute', $e );
+		}
+
+		try {
+			$presets = $this->get( 'rest.presets_controller' );
+			assert( $presets instanceof PresetsController );
+			$presets->register_routes();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'presets', $e );
 		}
 	}
 

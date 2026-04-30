@@ -565,7 +565,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
     -   Shape: `[{name, filters: {severity, from, to, q, source, viewMode}}, …]`.
     -   **Commit**: `feat(settings): add per-user filter preset store`
 
--   [ ] **14.9** REST `GET /presets` + `POST /presets` + `DELETE /presets/<name>`
+-   [x] **14.9** REST `GET /presets` + `POST /presets` + `DELETE /presets/<name>`
 
     -   GET returns current user's presets. POST creates / overwrites by name. DELETE removes by name.
     -   **AC**: Integration tests on all three.
