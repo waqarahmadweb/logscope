@@ -658,7 +658,7 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
     -   **AC**: Banner shows when REST `/diagnostics` reports `wp_debug_log: false`; hidden otherwise.
     -   **Commit**: `feat(ui): onboarding banner for missing WP_DEBUG_LOG`
 
--   [ ] **16.4** Empty-log diagnostics
+-   [x] **16.4** Empty-log diagnostics
 
     -   Replace the generic "No log entries" empty state with a reason-aware message: file doesn't exist, file empty, file rotated since last check, all entries muted, etc.
     -   Reuses the diagnostics snapshot rather than firing a separate request.

@@ -40,22 +40,35 @@ function buildQueryParams( filters, viewMode ) {
 }
 
 export default function LogViewer() {
-	const { items, isLoading, error, viewMode, filters, isTailing } = useSelect(
-		( select ) => {
-			const store = select( STORE_KEY );
-			return {
-				items: store.getLogs(),
-				isLoading: store.isLoadingLogs(),
-				error: store.getLogsError(),
-				viewMode: store.getViewMode(),
-				filters: store.getFilters(),
-				isTailing: store.isTailActive(),
-			};
-		},
-		[]
-	);
-	const { fetchLogs, fetchDiagnostics, setViewMode, setTailActive } =
-		useDispatch( STORE_KEY );
+	const {
+		items,
+		isLoading,
+		error,
+		viewMode,
+		filters,
+		isTailing,
+		diagnostics,
+		muteCount,
+	} = useSelect( ( select ) => {
+		const store = select( STORE_KEY );
+		return {
+			items: store.getLogs(),
+			isLoading: store.isLoadingLogs(),
+			error: store.getLogsError(),
+			viewMode: store.getViewMode(),
+			filters: store.getFilters(),
+			isTailing: store.isTailActive(),
+			diagnostics: store.getDiagnostics(),
+			muteCount: store.getMutes().length,
+		};
+	}, [] );
+	const {
+		fetchLogs,
+		fetchDiagnostics,
+		fetchMutes,
+		setViewMode,
+		setTailActive,
+	} = useDispatch( STORE_KEY );
 
 	useUrlQuerySync( viewMode, filters );
 
@@ -63,13 +76,22 @@ export default function LogViewer() {
 		fetchLogs( buildQueryParams( filters, viewMode ) );
 	}, [ fetchLogs, viewMode, filters ] );
 
-	// Diagnostics powers the onboarding banner and the upcoming
-	// reason-aware empty state. Fetched once on mount — the snapshot
-	// is cheap server-side and the host's debug-flag state does not
-	// change without a wp-config edit + a tab reload.
+	// Diagnostics powers the onboarding banner and the reason-aware
+	// empty state. Fetched once on mount — the snapshot is cheap
+	// server-side and the host's debug-flag state does not change
+	// without a wp-config edit + a tab reload.
 	useEffect( () => {
 		fetchDiagnostics();
 	}, [ fetchDiagnostics ] );
+
+	// Mute list feeds the "all recent entries are muted" branch of
+	// EmptyState. Settings-tab `MutedSignaturesPanel` also fetches it,
+	// but a fresh tab load on Logs needs the count too — and the
+	// thunk is idempotent enough that calling it from both places is
+	// fine (the panel will just see the already-populated list).
+	useEffect( () => {
+		fetchMutes();
+	}, [ fetchMutes ] );
 
 	// Subscribe to global keyboard shortcut events from App. Toggle handlers
 	// live in this component because they own the state setters; the focus-
@@ -156,12 +178,22 @@ export default function LogViewer() {
 				error={ error }
 				viewMode={ viewMode }
 				filters={ filters }
+				diagnostics={ diagnostics }
+				muteCount={ muteCount }
 			/>
 		</div>
 	);
 }
 
-function ViewerBody( { items, isLoading, error, viewMode, filters } ) {
+function ViewerBody( {
+	items,
+	isLoading,
+	error,
+	viewMode,
+	filters,
+	diagnostics,
+	muteCount,
+} ) {
 	if ( isLoading && items.length === 0 ) {
 		return <ListSkeleton />;
 	}
@@ -173,7 +205,9 @@ function ViewerBody( { items, isLoading, error, viewMode, filters } ) {
 	if ( items.length === 0 ) {
 		// `filtersActive` flips the copy from "log is empty" to "your
 		// filters excluded everything" so a user staring at an empty list
-		// after a typo in the regex sees an actionable hint.
+		// after a typo in the regex sees an actionable hint. The
+		// diagnostics snapshot + mute count refine the no-filters branch
+		// further (file missing, file empty, all-muted) — see EmptyState.
 		const filtersActive = !! (
 			filters?.q ||
 			filters?.from ||
@@ -181,7 +215,13 @@ function ViewerBody( { items, isLoading, error, viewMode, filters } ) {
 			filters?.source ||
 			( filters?.severity && filters.severity.length > 0 )
 		);
-		return <EmptyState filtersActive={ filtersActive } />;
+		return (
+			<EmptyState
+				filtersActive={ filtersActive }
+				diagnostics={ diagnostics }
+				muteCount={ muteCount }
+			/>
+		);
 	}
 
 	if ( viewMode === 'grouped' ) {
