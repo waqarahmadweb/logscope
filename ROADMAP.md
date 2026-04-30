@@ -432,7 +432,7 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Integration test — POST with email enabled returns `ok:true` for email; POST with both disabled returns 400 `logscope_rest_no_alerters_enabled`.
     -   **Commit**: `feat(rest): add POST /alerts/test endpoint`
 
--   [ ] **12.7** React `AlertsPanel` in Settings tab
+-   [x] **12.7** React `AlertsPanel` in Settings tab
 
     -   New section under existing settings form: email toggle + recipient `TextControl`, webhook toggle + URL `TextControl`, dedup window slider/number input, "Send test alert" button.
     -   Test result toast shows per-dispatcher outcome.
