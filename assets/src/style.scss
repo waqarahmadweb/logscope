@@ -120,12 +120,35 @@ body.admin-color-midnight {
 	--logscope-skeleton-shimmer: #2e3038;
 }
 
+// The plugin's host page (.logscope-wrap) bleeds the warm pastel surface
+// across the entire wp-admin content column. The WP-default screen-
+// reader h1 stays in the DOM so a11y / SEO still find a heading;
+// .logscope-app then becomes the visual surface (with its own h1
+// inside the page header). The negative margins zero out wp-admin's
+// .wrap padding without fighting the rule shipped by core.
+.logscope-wrap {
+	margin: 0;
+	padding: 0;
+	background: var( --logscope-bg );
+	min-height: calc( 100vh - 32px ); // 32px = wp-admin top bar
+	margin-left: -20px;
+	margin-right: -20px;
+	margin-top: 0;
+}
+
+#wpcontent {
+	// wp-admin pads its content column 20px; the wrap above neutralises
+	// the horizontal padding via negative margins. Vertical padding is
+	// handled inside .logscope-app so the pastel surface starts exactly
+	// at the top of the content column.
+	padding-left: 20px;
+}
+
 .logscope-app {
 	color: var( --logscope-fg );
 	font-size: 13px;
 	background: var( --logscope-bg );
-	margin: -10px -20px 0 -22px; // bleed into the WP admin .wrap padding so
-	padding: 24px 32px 60px; // the warm surface fills the page edge-to-edge.
+	padding: 24px 32px 60px;
 
 	*:focus-visible {
 		outline: 2px solid var( --logscope-focus-ring );
