@@ -153,44 +153,48 @@ final class LogsController extends RestController {
 	 */
 	public function index_args(): array {
 		return array(
-			'page'     => array(
+			'page'          => array(
 				'type'    => 'integer',
 				'default' => 1,
 				'minimum' => 1,
 			),
-			'per_page' => array(
+			'per_page'      => array(
 				'type'    => 'integer',
 				'default' => self::DEFAULT_PER_PAGE,
 				'minimum' => LogQuery::MIN_PER_PAGE,
 				'maximum' => LogQuery::MAX_PER_PAGE,
 			),
-			'severity' => array(
+			'severity'      => array(
 				'type'  => 'array',
 				'items' => array(
 					'type' => 'string',
 					'enum' => Severity::all(),
 				),
 			),
-			'from'     => array(
+			'from'          => array(
 				'type' => 'string',
 			),
-			'to'       => array(
+			'to'            => array(
 				'type' => 'string',
 			),
-			'q'        => array(
+			'q'             => array(
 				'type'      => 'string',
 				'maxLength' => LogQuery::MAX_REGEX_LENGTH,
 			),
-			'grouped'  => array(
+			'grouped'       => array(
 				'type'    => 'boolean',
 				'default' => false,
 			),
-			'source'   => array(
+			'source'        => array(
 				'type' => 'string',
 			),
-			'since'    => array(
+			'since'         => array(
 				'type'    => 'integer',
 				'minimum' => 0,
+			),
+			'include_muted' => array(
+				'type'    => 'boolean',
+				'default' => false,
 			),
 		);
 	}
@@ -377,19 +381,20 @@ final class LogsController extends RestController {
 	 * @throws LogQueryException When validation in LogQuery rejects the input.
 	 */
 	public function build_query( array $params ): LogQuery {
-		$severities = $this->normalise_severity_param( $params['severity'] ?? null );
-		$from       = $this->nullable_string( $params['from'] ?? null );
-		$to         = $this->nullable_string( $params['to'] ?? null );
-		$regex      = $this->nullable_string( $params['q'] ?? null );
-		$source     = $this->nullable_string( $params['source'] ?? null );
-		$grouped    = (bool) ( $params['grouped'] ?? false );
-		$page       = (int) ( $params['page'] ?? 1 );
-		$per_page   = (int) ( $params['per_page'] ?? self::DEFAULT_PER_PAGE );
-		$since      = isset( $params['since'] ) && '' !== $params['since']
+		$severities    = $this->normalise_severity_param( $params['severity'] ?? null );
+		$from          = $this->nullable_string( $params['from'] ?? null );
+		$to            = $this->nullable_string( $params['to'] ?? null );
+		$regex         = $this->nullable_string( $params['q'] ?? null );
+		$source        = $this->nullable_string( $params['source'] ?? null );
+		$grouped       = (bool) ( $params['grouped'] ?? false );
+		$page          = (int) ( $params['page'] ?? 1 );
+		$per_page      = (int) ( $params['per_page'] ?? self::DEFAULT_PER_PAGE );
+		$since         = isset( $params['since'] ) && '' !== $params['since']
 			? (int) $params['since']
 			: null;
+		$include_muted = (bool) ( $params['include_muted'] ?? false );
 
-		return new LogQuery( $severities, $from, $to, $regex, $source, $grouped, $page, $per_page, $since );
+		return new LogQuery( $severities, $from, $to, $regex, $source, $grouped, $page, $per_page, $since, $include_muted );
 	}
 
 	/**

@@ -94,18 +94,30 @@ final class LogQuery {
 	public ?int $since_byte;
 
 	/**
+	 * When `true`, muted-signature filtering is bypassed and results
+	 * include entries (or groups) whose signature is in the
+	 * `MuteStore`. The default `false` is the production posture: the
+	 * Logs view hides muted noise by default, and the management UI
+	 * opts in via `?include_muted=true`.
+	 *
+	 * @var bool
+	 */
+	public bool $include_muted;
+
+	/**
 	 * Builds and validates a query. Throws on out-of-range pagination,
 	 * malformed/oversize regex, or unparseable date strings.
 	 *
-	 * @param string[]|null $severities Severity constants, or null.
-	 * @param string|null   $from       Lower bound, `Y-m-d` or `Y-m-d H:i:s`.
-	 * @param string|null   $to         Upper bound, same format.
-	 * @param string|null   $regex      Pattern body without delimiters.
-	 * @param string|null   $source     Source slug.
-	 * @param bool          $grouped    Group results by signature.
-	 * @param int           $page       1-based page index.
-	 * @param int           $per_page   Items per page.
-	 * @param int|null      $since_byte Tail-mode byte offset, or null.
+	 * @param string[]|null $severities    Severity constants, or null.
+	 * @param string|null   $from          Lower bound, `Y-m-d` or `Y-m-d H:i:s`.
+	 * @param string|null   $to            Upper bound, same format.
+	 * @param string|null   $regex         Pattern body without delimiters.
+	 * @param string|null   $source        Source slug.
+	 * @param bool          $grouped       Group results by signature.
+	 * @param int           $page          1-based page index.
+	 * @param int           $per_page      Items per page.
+	 * @param int|null      $since_byte    Tail-mode byte offset, or null.
+	 * @param bool          $include_muted Bypass mute filter when true.
 	 *
 	 * @throws LogQueryException When validation fails.
 	 */
@@ -118,7 +130,8 @@ final class LogQuery {
 		bool $grouped,
 		int $page,
 		int $per_page,
-		?int $since_byte = null
+		?int $since_byte = null,
+		bool $include_muted = false
 	) {
 		$this->severities = self::sanitise_severities( $severities );
 		$this->from       = self::parse_bound( $from, 'from' );
@@ -149,9 +162,10 @@ final class LogQuery {
 			throw new LogQueryException( 'since_byte must be 0 or greater.' );
 		}
 
-		$this->page       = $page;
-		$this->per_page   = $per_page;
-		$this->since_byte = $since_byte;
+		$this->page          = $page;
+		$this->per_page      = $per_page;
+		$this->since_byte    = $since_byte;
+		$this->include_muted = $include_muted;
 	}
 
 	/**

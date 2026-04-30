@@ -1,6 +1,6 @@
 {
 	"name": "logscope",
-	"version": "0.11.0",
+	"version": "0.12.0",
 	"description": "Stream, filter, and group your WordPress debug log without leaving wp-admin.",
 	"license": "GPL-2.0-or-later",
 	"private": true,

@@ -47,13 +47,36 @@ function GroupRow( { group } ) {
 		( select ) => select( STORE_KEY ).isGroupExpanded( group.signature ),
 		[ group.signature ]
 	);
-	const { toggleGroupExpanded } = useDispatch( STORE_KEY );
+	const isSavingMutes = useSelect(
+		( select ) => select( STORE_KEY ).isSavingMutes(),
+		[]
+	);
+	const { toggleGroupExpanded, muteSignature } = useDispatch( STORE_KEY );
 
 	const tone = severityTone( group.severity );
 	const fileLine =
 		group.file && group.line
 			? `${ group.file }:${ group.line }`
 			: group.file || '';
+
+	const onMute = ( event ) => {
+		event.stopPropagation();
+		// `window.prompt` is the smallest modal that satisfies the AC's
+		// "ask for an optional reason." A bespoke <Modal> would require
+		// portal wiring + focus traps without changing user value here;
+		// the management panel is where reasons get edited at length.
+		const reason = window.prompt(
+			__(
+				'Optional reason for muting this signature (visible in Settings → Muted signatures):',
+				'logscope'
+			),
+			''
+		);
+		if ( reason === null ) {
+			return;
+		}
+		muteSignature( group.signature, reason );
+	};
 
 	return (
 		<li
@@ -95,6 +118,15 @@ function GroupRow( { group } ) {
 				<span className="logscope-grouped__chevron" aria-hidden="true">
 					{ isExpanded ? '▾' : '▸' }
 				</span>
+			</button>
+			<button
+				type="button"
+				className="logscope-grouped__mute"
+				onClick={ onMute }
+				disabled={ isSavingMutes }
+				aria-label={ __( 'Mute this signature', 'logscope' ) }
+			>
+				{ __( 'Mute', 'logscope' ) }
 			</button>
 			{ isExpanded && (
 				<div

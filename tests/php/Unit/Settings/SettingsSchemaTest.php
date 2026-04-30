@@ -30,6 +30,9 @@ final class SettingsSchemaTest extends TestCase {
 				'alert_dedup_window',
 				'cron_scan_enabled',
 				'cron_scan_interval_minutes',
+				'retention_enabled',
+				'retention_max_size_mb',
+				'retention_max_archives',
 			),
 			$schema->keys()
 		);
@@ -226,5 +229,35 @@ final class SettingsSchemaTest extends TestCase {
 		$this->assertSame( 5, $schema->sanitize( 'cron_scan_interval_minutes', 5 ) );
 		$this->assertSame( 1440, $schema->sanitize( 'cron_scan_interval_minutes', 9999 ) );
 		$this->assertSame( 5, $schema->sanitize( 'cron_scan_interval_minutes', 'oops' ) );
+	}
+
+	public function test_retention_enabled_coerces_truthy_inputs(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 1, $schema->sanitize( 'retention_enabled', true ) );
+		$this->assertSame( 1, $schema->sanitize( 'retention_enabled', '1' ) );
+		$this->assertSame( 1, $schema->sanitize( 'retention_enabled', 'on' ) );
+		$this->assertSame( 0, $schema->sanitize( 'retention_enabled', false ) );
+		$this->assertSame( 0, $schema->sanitize( 'retention_enabled', null ) );
+	}
+
+	public function test_retention_max_size_mb_clamps_to_supported_range(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 1, $schema->sanitize( 'retention_max_size_mb', 0 ) );
+		$this->assertSame( 1, $schema->sanitize( 'retention_max_size_mb', -10 ) );
+		$this->assertSame( 50, $schema->sanitize( 'retention_max_size_mb', 50 ) );
+		$this->assertSame( 1024, $schema->sanitize( 'retention_max_size_mb', 99999 ) );
+		$this->assertSame( 50, $schema->sanitize( 'retention_max_size_mb', 'oops' ) );
+	}
+
+	public function test_retention_max_archives_clamps_to_supported_range(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 1, $schema->sanitize( 'retention_max_archives', 0 ) );
+		$this->assertSame( 1, $schema->sanitize( 'retention_max_archives', -3 ) );
+		$this->assertSame( 5, $schema->sanitize( 'retention_max_archives', 5 ) );
+		$this->assertSame( 50, $schema->sanitize( 'retention_max_archives', 9999 ) );
+		$this->assertSame( 5, $schema->sanitize( 'retention_max_archives', 'oops' ) );
 	}
 }

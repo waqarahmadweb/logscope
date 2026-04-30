@@ -28,6 +28,7 @@ final class Deactivator {
 	 */
 	private const CRON_HOOKS = array(
 		CronScheduler::HOOK,
+		CronScheduler::HOOK_ROTATE,
 	);
 
 	/**
