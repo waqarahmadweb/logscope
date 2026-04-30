@@ -22,6 +22,7 @@ use Logscope\Cron\LogScanner;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
 use Logscope\Log\LogRotator;
+use Logscope\Log\MuteStore;
 use Logscope\REST\AlertsController;
 use Logscope\REST\LogsController;
 use Logscope\REST\SettingsController;
@@ -319,6 +320,13 @@ final class Plugin {
 				assert( $coordinator instanceof AlertCoordinator );
 
 				return new LogScanner( $source, $coordinator );
+			}
+		);
+
+		$this->register(
+			'log.mute_store',
+			static function (): MuteStore {
+				return new MuteStore();
 			}
 		);
 

@@ -530,7 +530,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
 
 ### Mute signatures
 
--   [ ] **14.4** Mute store
+-   [x] **14.4** Mute store
 
     -   New option `logscope_muted_signatures` — array of `{signature, reason, muted_at, muted_by}`.
     -   `Logscope\Log\MuteStore` service: `add($sig, $reason, $user_id)`, `remove($sig)`, `list()`, `is_muted($sig)`.
