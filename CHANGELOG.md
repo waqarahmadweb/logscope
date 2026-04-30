@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on 
 
 ### Added
 
+-   `.wordpress-org/README.md` spec doc (Phase 17.2) — scaffolds the directory wp.org's SVN `assets/` will mirror at submission time. Documents the eight binary assets the v1.0.0 cut needs (banner 1544×500 PNG, icon 256×256 PNG, six 1280-px-wide screenshots) with captions sourced verbatim from `readme.txt`'s `== Screenshots ==` block so the two cannot drift, plus banner safe-area / icon padding / screenshot framing guidance for the maintainer producing them by hand. The directory is `export-ignore`d from the distribution zip; wp.org pulls these from SVN, not from the plugin zip itself.
+
 -   `readme.txt` in wp.org plugin-directory format (Phase 17.1) — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Upgrade Notice, Privacy. Description mirrors the README.md feature list; the Changelog section condenses CHANGELOG.md 0.1.0 → 0.14.0 into wp.org-flavored bullets (one paragraph + 2–4 highlights per shipped version) so the `wordpress.org/plugins/logscope/` listing is self-contained without back-references to the GitHub CHANGELOG. `Tested up to: 6.9` resolves the latest stable WP at session time (6.9.4) to the major.minor wp.org accepts. Privacy section names the only outbound paths (email via `wp_mail()` and webhook POST, both off by default) and the diagnostics REST endpoint, so the wp.org reviewer's "what does this plugin send off-site" check has a one-paragraph answer.
 
 ## [0.14.0] - 2026-04-30

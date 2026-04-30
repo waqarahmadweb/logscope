@@ -689,7 +689,7 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
 
     -   **Commit**: `docs: add wp.org readme.txt`
 
--   [ ] **17.2** `.wordpress-org/` assets: banner-1544x500.png, icon-256x256.png, 5–7 screenshots (log viewer, grouped view, filters, stats, alerts settings, mute panel, onboarding banner)
+-   [x] **17.2** `.wordpress-org/` assets: banner-1544x500.png, icon-256x256.png, 5–7 screenshots (log viewer, grouped view, filters, stats, alerts settings, mute panel, onboarding banner) — _spec doc landed in this commit; binary assets to be hand-produced before v1.0.0 cut_
 
     -   **Commit**: `docs: add wp.org banner, icon, screenshots`
 
