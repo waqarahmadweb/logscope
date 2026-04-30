@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Changed
+
+-   **Roadmap restructure (2026-04-30).** Five feature phases were inserted before the wp.org cut so the plugin ships with more than a viewer-only MVP. New Phases 12 (Alerts), 13 (Scheduled fatal scanner), 14 (Retention + mute + filter presets), 15 (Stats dashboard), and 16 (Onboarding + diagnostics + bulk actions) replace what was previously a thin "release infrastructure → cut v1.0.0" phase. Alerts and the cron scanner were pulled forward from post-1.0 (originally v1.1.0 / v1.2.0). The original Phase 12 content (readme.txt, wp.org assets, release workflow, security gate, v1.0.0 cut, wp.org submission) moved verbatim to Phase 17 with no scope change. Version line: 0.10.0 → 0.14.0 close Phases 12–16, 0.15.0 closes Phase 17.1–17.4 release infra, optional 0.x.0 bumps cover Phase 17.5–17.6 pre-1.0 changes, and 1.0.0 closes Phase 17.7–17.11. See [ROADMAP.md](ROADMAP.md) for the full breakdown and [AGENTS.md §12](AGENTS.md#12-build-order) for the mirrored summary.
+
 ## [0.9.0] - 2026-04-28
 
 Closes Phase 11 of the [roadmap](ROADMAP.md): polish, accessibility, dark mode, and i18n. The Logscope admin page picks up its first dedicated stylesheet (variable-driven for light / OS-dark / `admin-color-midnight`), loading skeletons replace the bare spinner on initial fetch, REST failures and save successes surface as `@wordpress/components` Snackbars from a new `toasts` slice, four global keyboard shortcuts (`/`, `g`, `t`, `?`) land alongside WAI-ARIA-compliant tablist arrow-key navigation, and `languages/logscope.pot` now covers all 87 PHP and JS strings. With Phase 11 done the next milestone is the v1.0.0-rc.1 cut: `readme.txt`, the wp.org banner / icon / screenshot set, and the release workflow that strips dev assets from the published zip.
