@@ -665,7 +665,7 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
     -   **AC**: Manually delete `debug.log` → empty state explains "log file does not yet exist at <path>".
     -   **Commit**: `feat(ui): reason-aware empty log state`
 
--   [ ] **16.5** Bulk actions in grouped view
+-   [x] **16.5** Bulk actions in grouped view
 
     -   Per-group checkbox + "Select all" header checkbox.
     -   Bulk action bar appears when ≥1 group is selected: "Mute selected" (uses Phase 14 mute), "Export selected" (CSV download via existing infrastructure).

@@ -30,7 +30,7 @@
  *     coexist with auto-prune timers in the host component.
  */
 import { createReduxStore, register, select } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { client } from '../api/client';
 import entryKey from '../utils/entryKey';
@@ -366,6 +366,68 @@ const actions = {
 					error?.message ||
 					__( 'Could not mute the signature.', 'logscope' ),
 				status: 'error',
+			} );
+		}
+	},
+	*bulkMuteSignatures( signatures, reason = '' ) {
+		// Drop empties + dedupe so a sloppy caller can pass the raw
+		// selection set without having to pre-clean it. An empty list
+		// short-circuits without the placeholder toast.
+		const list = Array.from(
+			new Set(
+				( signatures || [] ).filter(
+					( s ) => typeof s === 'string' && s.trim() !== ''
+				)
+			)
+		);
+		if ( list.length === 0 ) {
+			return;
+		}
+
+		yield actions.startSavingMutes();
+		let lastPayload = null;
+		let failures = 0;
+		for ( const signature of list ) {
+			try {
+				lastPayload = yield {
+					type: 'API_MUTE_SIGNATURE',
+					signature,
+					reason,
+				};
+			} catch ( e ) {
+				failures += 1;
+			}
+		}
+		if ( lastPayload && lastPayload.items ) {
+			yield actions.receiveMutes( lastPayload.items );
+		}
+
+		if ( failures === 0 ) {
+			yield actions.pushToast( {
+				message: sprintf(
+					/* translators: %d is the number of signatures muted. */
+					_n(
+						'Muted %d signature.',
+						'Muted %d signatures.',
+						list.length,
+						'logscope'
+					),
+					list.length
+				),
+				status: 'success',
+			} );
+		} else {
+			yield actions.pushToast( {
+				message: sprintf(
+					/* translators: 1: number muted, 2: number that failed. */
+					__(
+						'Muted %1$d of %2$d selected signatures; some failed.',
+						'logscope'
+					),
+					list.length - failures,
+					list.length
+				),
+				status: 'warning',
 			} );
 		}
 	},

@@ -914,3 +914,53 @@ body.admin-color-midnight {
 		word-break: break-word;
 	}
 }
+
+.logscope-grouped-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.logscope-grouped__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 12px;
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: 4px;
+}
+
+.logscope-grouped__select-all {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 500;
+}
+
+.logscope-grouped__bulk-actions {
+	display: inline-flex;
+	gap: 8px;
+}
+
+.logscope-grouped__row {
+	display: flex;
+	align-items: stretch;
+	flex-wrap: wrap;
+}
+
+.logscope-grouped__checkbox {
+	align-self: center;
+	margin: 0 8px 0 12px;
+	flex: 0 0 auto;
+}
+
+.logscope-grouped__row .logscope-grouped__summary {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.logscope-grouped__row .logscope-grouped__detail {
+	flex: 1 0 100%;
+}
