@@ -22,12 +22,14 @@ use Logscope\Cron\LogScanner;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
 use Logscope\Log\LogRotator;
+use Logscope\Log\LogStats;
 use Logscope\Log\MuteStore;
 use Logscope\REST\AlertsController;
 use Logscope\REST\LogsController;
 use Logscope\REST\MuteController;
 use Logscope\REST\PresetsController;
 use Logscope\REST\SettingsController;
+use Logscope\REST\StatsController;
 use Logscope\Settings\PresetStore;
 use Logscope\Settings\Settings;
 use Logscope\Settings\SettingsSchema;
@@ -396,6 +398,26 @@ final class Plugin {
 				return new PresetsController( $store );
 			}
 		);
+
+		$this->register(
+			'log.stats',
+			static function ( Plugin $plugin ): LogStats {
+				$source = $plugin->get( 'log_source' );
+				assert( $source instanceof FileLogSource );
+
+				return new LogStats( $source );
+			}
+		);
+
+		$this->register(
+			'rest.stats_controller',
+			static function ( Plugin $plugin ): StatsController {
+				$stats = $plugin->get( 'log.stats' );
+				assert( $stats instanceof LogStats );
+
+				return new StatsController( $stats );
+			}
+		);
 	}
 
 	/**
@@ -644,6 +666,14 @@ final class Plugin {
 			$presets->register_routes();
 		} catch ( Throwable $e ) {
 			self::log_route_registration_failure( 'presets', $e );
+		}
+
+		try {
+			$stats = $this->get( 'rest.stats_controller' );
+			assert( $stats instanceof StatsController );
+			$stats->register_routes();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'stats', $e );
 		}
 	}
 

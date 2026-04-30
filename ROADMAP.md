@@ -597,7 +597,7 @@ Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time 
     -   **AC**: Unit test — fixture with known severity distribution returns expected bucketed counts; mtime-changed invalidates cache.
     -   **Commit**: `feat(log): add stats aggregation service`
 
--   [ ] **15.2** REST `GET /stats?range=24h|7d|30d&bucket=hour|day`
+-   [x] **15.2** REST `GET /stats?range=24h|7d|30d&bucket=hour|day`
 
     -   Returns `{range, bucket, buckets: [{ts, fatal, warning, notice, …}], totals: {…}, top: [{signature, count, sample}]}`.
     -   **AC**: Integration test — fixture log returns expected bucket count + top-N.
