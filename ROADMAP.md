@@ -401,7 +401,7 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Unit test (Brain Monkey) — `wp_mail` called with expected to/subject/body shape; html + plaintext both built; filters honoured.
     -   **Commit**: `feat(alerts): email dispatcher`
 
--   [ ] **12.3** 🔒 `src/Alerts/WebhookAlerter.php`
+-   [x] **12.3** 🔒 `src/Alerts/WebhookAlerter.php`
 
     -   Uses `wp_remote_post()` with `timeout: 5`, `blocking: true`, `redirection: 0` (don't follow redirects to internal hosts).
     -   Neutral JSON payload: `{site, severity, message, file, line, signature, first_seen, last_seen, count, url}`.
