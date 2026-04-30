@@ -276,5 +276,45 @@ final class AssetLoaderTest extends TestCase {
 
 		$this->assertFalse( $payload['canManage'] );
 		$this->assertSame( 7, $payload['tailInterval'] );
+		$this->assertSame(
+			array(
+				'lastScannedAt'         => null,
+				'lastScannedDispatched' => 0,
+			),
+			$payload['cronStatus']
+		);
+	}
+
+	public function test_localized_payload_surfaces_cron_status_when_present(): void {
+		$menu = $this->make_menu_with_hook( 'tools_page_logscope' );
+
+		Filters\expectApplied( 'logscope/required_capability' )->andReturn( 'logscope_manage' );
+		Functions\expect( 'current_user_can' )->andReturn( true );
+		Functions\expect( 'rest_url' )->andReturn( 'http://x/' );
+		Functions\expect( 'wp_create_nonce' )->andReturn( 'N' );
+
+		// Settings is `final`-ish; use a real Settings + a richer
+		// get_option alias rather than a Mockery double. Two scanner
+		// option keys must come back with concrete values.
+		Functions\when( 'get_option' )->alias(
+			static function ( string $key, $fallback = false ) {
+				if ( 'logscope_last_scanned_at' === $key ) {
+					return 1700000000;
+				}
+				if ( 'logscope_last_scanned_dispatched' === $key ) {
+					return 3;
+				}
+				if ( 'logscope_tail_interval' === $key ) {
+					return 5;
+				}
+				return $fallback;
+			}
+		);
+
+		$settings = new Settings( new SettingsSchema() );
+		$payload  = ( new AssetLoader( $menu, $settings ) )->localized_payload();
+
+		$this->assertSame( 1700000000, $payload['cronStatus']['lastScannedAt'] );
+		$this->assertSame( 3, $payload['cronStatus']['lastScannedDispatched'] );
 	}
 }

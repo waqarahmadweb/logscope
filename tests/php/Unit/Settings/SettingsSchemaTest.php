@@ -28,6 +28,8 @@ final class SettingsSchemaTest extends TestCase {
 				'alert_webhook_enabled',
 				'alert_webhook_url',
 				'alert_dedup_window',
+				'cron_scan_enabled',
+				'cron_scan_interval_minutes',
 			),
 			$schema->keys()
 		);
@@ -204,5 +206,25 @@ final class SettingsSchemaTest extends TestCase {
 		$this->assertSame( 60, $schema->sanitize( 'alert_dedup_window', '0' ) );
 		$this->assertSame( 600, $schema->sanitize( 'alert_dedup_window', 600 ) );
 		$this->assertSame( 300, $schema->sanitize( 'alert_dedup_window', 'oops' ) );
+	}
+
+	public function test_cron_scan_enabled_coerces_truthy_inputs(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 1, $schema->sanitize( 'cron_scan_enabled', true ) );
+		$this->assertSame( 1, $schema->sanitize( 'cron_scan_enabled', '1' ) );
+		$this->assertSame( 1, $schema->sanitize( 'cron_scan_enabled', 'on' ) );
+		$this->assertSame( 0, $schema->sanitize( 'cron_scan_enabled', false ) );
+		$this->assertSame( 0, $schema->sanitize( 'cron_scan_enabled', null ) );
+	}
+
+	public function test_cron_scan_interval_minutes_clamps_to_supported_range(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 1, $schema->sanitize( 'cron_scan_interval_minutes', 0 ) );
+		$this->assertSame( 1, $schema->sanitize( 'cron_scan_interval_minutes', -42 ) );
+		$this->assertSame( 5, $schema->sanitize( 'cron_scan_interval_minutes', 5 ) );
+		$this->assertSame( 1440, $schema->sanitize( 'cron_scan_interval_minutes', 9999 ) );
+		$this->assertSame( 5, $schema->sanitize( 'cron_scan_interval_minutes', 'oops' ) );
 	}
 }

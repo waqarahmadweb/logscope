@@ -17,6 +17,8 @@ use Logscope\Alerts\AlertCoordinator;
 use Logscope\Alerts\AlertDeduplicator;
 use Logscope\Alerts\EmailAlerter;
 use Logscope\Alerts\WebhookAlerter;
+use Logscope\Cron\CronScheduler;
+use Logscope\Cron\LogScanner;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRepository;
 use Logscope\REST\AlertsController;
@@ -307,6 +309,19 @@ final class Plugin {
 		);
 
 		$this->register(
+			'cron.scanner',
+			static function ( Plugin $plugin ): LogScanner {
+				$source = $plugin->get( 'log_source' );
+				assert( $source instanceof FileLogSource );
+
+				$coordinator = $plugin->get( 'alerts.coordinator' );
+				assert( $coordinator instanceof AlertCoordinator );
+
+				return new LogScanner( $source, $coordinator );
+			}
+		);
+
+		$this->register(
 			'rest.alerts_controller',
 			static function ( Plugin $plugin ): AlertsController {
 				$coordinator = $plugin->get( 'alerts.coordinator' );
@@ -348,6 +363,89 @@ final class Plugin {
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'logscope_scan_fatals', array( $this, 'run_cron_scan' ) );
+		add_filter( 'cron_schedules', array( __CLASS__, 'register_cron_schedule' ) );
+
+		// Re-align the WP schedule with the persisted toggle + interval
+		// any time either option changes, so a save through `Settings::set`
+		// or a direct `update_option` call from WP-CLI converges. The
+		// scheduler reads the current option values internally — handler
+		// args are unused.
+		add_action( 'update_option_' . CronScheduler::OPT_ENABLED, array( __CLASS__, 'on_cron_setting_changed' ) );
+		add_action( 'update_option_' . CronScheduler::OPT_INTERVAL, array( __CLASS__, 'on_cron_setting_changed' ) );
+		add_action( 'add_option_' . CronScheduler::OPT_ENABLED, array( __CLASS__, 'on_cron_setting_changed' ) );
+		add_action( 'add_option_' . CronScheduler::OPT_INTERVAL, array( __CLASS__, 'on_cron_setting_changed' ) );
+	}
+
+	/**
+	 * Listener for `update_option_<key>` / `add_option_<key>` on the cron
+	 * settings. Static + arg-free so WP can pass the standard option-hook
+	 * args without a closure binding the Plugin instance — the scheduler
+	 * pulls fresh values from `get_option` itself.
+	 *
+	 * @return void
+	 */
+	public static function on_cron_setting_changed(): void {
+		CronScheduler::apply();
+	}
+
+	/**
+	 * `cron_schedules` filter callback. Registers the
+	 * `logscope_scan_interval` recurrence at the configured number of
+	 * minutes so {@see CronScheduler::apply()} can pass it to
+	 * `wp_schedule_event()`. Reads the setting through `get_option`
+	 * directly (rather than the `Settings` facade) because the filter
+	 * fires from `wp_get_schedules()` which can be called before the
+	 * plugin's DI graph is ready — same constraint that drives
+	 * `CronScheduler` to read options directly. The minutes value is
+	 * clamped to the same [1, 1440] range the schema enforces so a
+	 * pre-13.3 corrupted row cannot register a 0-second recurrence.
+	 *
+	 * @param array<string, array{interval:int, display:string}>|mixed $schedules Existing schedules.
+	 * @return array<string, array{interval:int, display:string}>
+	 */
+	public static function register_cron_schedule( $schedules ): array {
+		if ( ! is_array( $schedules ) ) {
+			$schedules = array();
+		}
+
+		$minutes = (int) get_option( CronScheduler::OPT_INTERVAL, CronScheduler::DEFAULT_INTERVAL_MINUTES );
+		if ( $minutes < 1 ) {
+			$minutes = 1;
+		}
+		if ( $minutes > 1440 ) {
+			$minutes = 1440;
+		}
+
+		$schedules[ CronScheduler::RECURRENCE ] = array(
+			'interval' => $minutes * 60,
+			'display'  => sprintf(
+				/* translators: %d: scan interval in minutes. */
+				_n( 'Every %d minute (Logscope)', 'Every %d minutes (Logscope)', $minutes, 'logscope' ),
+				$minutes
+			),
+		);
+
+		return $schedules;
+	}
+
+	/**
+	 * Cron callback for the `logscope_scan_fatals` event. The scanner
+	 * resolves through the same DI graph as the REST controllers, so a
+	 * misconfigured log path raises an `InvalidPathException` from the
+	 * `log_source` factory — trapped here so a bad option does not abort
+	 * other plugins' scheduled events on the same tick.
+	 *
+	 * @return void
+	 */
+	public function run_cron_scan(): void {
+		try {
+			$scanner = $this->get( 'cron.scanner' );
+			assert( $scanner instanceof LogScanner );
+			$scanner->scan();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'cron.scan', $e );
+		}
 	}
 
 	/**

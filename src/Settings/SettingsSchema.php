@@ -52,7 +52,7 @@ class SettingsSchema {
 	 */
 	public function __construct() {
 		$this->fields = array(
-			'log_path'              => array(
+			'log_path'                   => array(
 				'option_key' => 'logscope_log_path',
 				'type'       => 'string',
 				'default'    => '',
@@ -68,7 +68,7 @@ class SettingsSchema {
 					return trim( $value );
 				},
 			),
-			'tail_interval'         => array(
+			'tail_interval'              => array(
 				'option_key' => 'logscope_tail_interval',
 				'type'       => 'integer',
 				'default'    => 3,
@@ -82,7 +82,7 @@ class SettingsSchema {
 					return $coerced < 1 ? 1 : $coerced;
 				},
 			),
-			'alert_email_enabled'   => array(
+			'alert_email_enabled'        => array(
 				'option_key' => 'logscope_alert_email_enabled',
 				'type'       => 'integer',
 				'default'    => 0,
@@ -90,7 +90,7 @@ class SettingsSchema {
 					return self::coerce_bool_to_int( $value );
 				},
 			),
-			'alert_email_to'        => array(
+			'alert_email_to'             => array(
 				'option_key' => 'logscope_alert_email_to',
 				'type'       => 'string',
 				'default'    => '',
@@ -108,7 +108,7 @@ class SettingsSchema {
 					return is_string( $email ) ? $email : '';
 				},
 			),
-			'alert_webhook_enabled' => array(
+			'alert_webhook_enabled'      => array(
 				'option_key' => 'logscope_alert_webhook_enabled',
 				'type'       => 'integer',
 				'default'    => 0,
@@ -116,7 +116,7 @@ class SettingsSchema {
 					return self::coerce_bool_to_int( $value );
 				},
 			),
-			'alert_webhook_url'     => array(
+			'alert_webhook_url'          => array(
 				'option_key' => 'logscope_alert_webhook_url',
 				'type'       => 'string',
 				'default'    => '',
@@ -151,7 +151,7 @@ class SettingsSchema {
 					return $url;
 				},
 			),
-			'alert_dedup_window'    => array(
+			'alert_dedup_window'         => array(
 				'option_key' => 'logscope_alert_dedup_window',
 				'type'       => 'integer',
 				'default'    => 300,
@@ -164,6 +164,38 @@ class SettingsSchema {
 					// Mirrors the floor in AlertDeduplicator; anything
 					// shorter than 60s defeats dedup on a noisy site.
 					return $coerced < 60 ? 60 : $coerced;
+				},
+			),
+			'cron_scan_enabled'          => array(
+				'option_key' => 'logscope_cron_scan_enabled',
+				'type'       => 'integer',
+				'default'    => 0,
+				'sanitizer'  => static function ( $value ): int {
+					return self::coerce_bool_to_int( $value );
+				},
+			),
+			'cron_scan_interval_minutes' => array(
+				'option_key' => 'logscope_cron_scan_interval_minutes',
+				'type'       => 'integer',
+				'default'    => 5,
+				'sanitizer'  => static function ( $value ): int {
+					if ( ! is_numeric( $value ) ) {
+						return 5;
+					}
+					$coerced = (int) $value;
+
+					// 1 minute floor: the WP-Cron resolution is itself
+					// "every page load that lands on a hook flush", so
+					// anything sub-minute is fictional. 1440 ceiling
+					// (one day) so a typo cannot suspend scanning for
+					// arbitrary stretches without re-saving.
+					if ( $coerced < 1 ) {
+						return 1;
+					}
+					if ( $coerced > 1440 ) {
+						return 1440;
+					}
+					return $coerced;
 				},
 			),
 		);

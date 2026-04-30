@@ -23,6 +23,7 @@ import { Button, Notice, TextControl } from '@wordpress/components';
 import { STORE_KEY } from '../../store';
 import { FormSkeleton } from '../Skeleton';
 import AlertsPanel from '../AlertsPanel';
+import CronPanel from '../CronPanel';
 
 const TAIL_INTERVAL_MIN = 1;
 const DEDUP_WINDOW_MIN = 60;
@@ -239,6 +240,8 @@ export default function SettingsPanel() {
 				) }
 
 				<AlertsPanel />
+
+				<CronPanel />
 
 				{ saveError && Object.keys( fieldErrors ).length === 0 && (
 					<Notice status="error" isDismissible={ false }>
