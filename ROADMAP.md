@@ -484,7 +484,7 @@ Goal: Background cron scans the log for new fatals and feeds the AlertCoordinato
     -   **AC**: Unit test — schedule appears in `wp_get_schedules()` after plugin boot.
     -   **Commit**: `feat(settings): add cron scanner fields`
 
--   [ ] **13.4** React Settings UI for cron
+-   [x] **13.4** React Settings UI for cron
 
     -   Toggle + interval input + read-only "Last scan: <relative time> · <N> fatals dispatched" status row (read from `logscope_last_scanned_at` + a per-run summary option).
     -   **AC**: Hand-test — enabling the toggle, waiting for one tick, sees the status update.
