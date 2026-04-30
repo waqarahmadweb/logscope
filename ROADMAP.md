@@ -17,24 +17,25 @@
 
 ## Version line at a glance
 
-| Version    | Closes              | Theme                                   | Public? |
-| ---------- | ------------------- | --------------------------------------- | ------- |
-| 0.1.0      | Phase 0 ✅          | Scaffold                                | no      |
-| 0.2.0      | Phase 1             | Tooling & developer loop                | no      |
-| 0.3.0      | Phase 2             | Plugin bootstrap + lifecycle            | no      |
-| 0.4.0      | Phase 3             | Log reading & parsing foundation        | no      |
-| 0.5.0      | Phases 4 + 5        | REST API + settings backend             | no      |
-| 0.6.0      | Phase 6             | Admin page + React viewer shell         | no      |
-| 0.7.0      | Phase 7             | Filters, grouping, trace, tail          | no      |
-| 0.8.0      | Phase 8             | Settings UI + custom log path           | no      |
-| 0.9.0      | Phase 11            | Polish, a11y, i18n (.pot)               | no      |
-| 1.0.0-rc.1 | Phase 12.1–12.3     | Release candidate build                 | no      |
-| **1.0.0**  | **Phase 12.4–12.8** | **🚀 wp.org submission**                | **YES** |
-| 1.1.0      | Post-1.0            | Alerts (email + webhook + dedup)        | YES     |
-| 1.2.0      | Post-1.0            | Scheduled fatal scanner (cron)          | YES     |
-| 1.3.0+     | Post-1.0            | Live streaming, multisite, retention, … | YES     |
+| Version   | Closes               | Theme                                   | Public? |
+| --------- | -------------------- | --------------------------------------- | ------- |
+| 0.1.0     | Phase 0 ✅           | Scaffold                                | no      |
+| 0.2.0     | Phase 1              | Tooling & developer loop                | no      |
+| 0.3.0     | Phase 2              | Plugin bootstrap + lifecycle            | no      |
+| 0.4.0     | Phase 3              | Log reading & parsing foundation        | no      |
+| 0.5.0     | Phases 4 + 5         | REST API + settings backend             | no      |
+| 0.6.0     | Phase 6              | Admin page + React viewer shell         | no      |
+| 0.7.0     | Phase 7              | Filters, grouping, trace, tail          | no      |
+| 0.8.0     | Phase 8              | Settings UI + custom log path           | no      |
+| 0.9.0     | Phase 11             | Polish, a11y, i18n (.pot)               | no      |
+| 0.10.0    | Phase 12.1–12.4      | Pre-1.0 release infrastructure          | no      |
+| 0.x.0     | Phase 12.5–12.6      | Pre-1.0 changes (TBD scope)             | no      |
+| **1.0.0** | **Phase 12.7–12.11** | **🚀 wp.org submission**                | **YES** |
+| 1.1.0     | Post-1.0             | Alerts (email + webhook + dedup)        | YES     |
+| 1.2.0     | Post-1.0             | Scheduled fatal scanner (cron)          | YES     |
+| 1.3.0+    | Post-1.0             | Live streaming, multisite, retention, … | YES     |
 
-Pre-1.0 bumps are git tags only — nothing leaves the repo. **The wp.org release line is v1.0.0 and only v1.0.0.**
+Pre-1.0 bumps are git tags only — nothing leaves the repo. **The wp.org release line is v1.0.0 and only v1.0.0.** Phase 12 deliberately stretches across `0.10.0`, one or more pre-1.0 change releases, and the `1.0.0` cut so the wp.org submission is gated on a concrete "we're done" decision rather than a date.
 
 ---
 
@@ -378,9 +379,9 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
 
 ## Phase 12 — 🚀 wp.org release line (v1.0.0)
 
-**This is the only phase where code leaves the repo for public distribution.** Everything before this is local-only git tags. Do not skip or reorder steps.
+**This is the only phase where code leaves the repo for public distribution.** Phase 12 deliberately stretches: prep infrastructure ships first under `v0.10.0`, then any pre-1.0 changes ship under their own `v0.x.0` bumps, and the `v1.0.0` cut is gated on a concrete "we're done" decision rather than a date. There is no `v1.0.0-rc.x` line — release candidates were dropped because the `0.x` line itself serves the same purpose (every bump is a tag-only local release until 12.10). Do not skip or reorder steps within each subsection.
 
-### Release candidate
+### Pre-1.0 release infrastructure
 
 -   [ ] **12.1** `readme.txt` (wp.org format — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Privacy)
 
@@ -395,12 +396,22 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
     -   **AC**: Dry-run on a throwaway tag produces a zip with no `vendor/`, no `node_modules/`, no `tests/`, no `.github/`.
     -   **Commit**: `ci: add release workflow`
 
--   [ ] **12.3a** 🏷️ **Tag v1.0.0-rc.1** — Release candidate build
-    -   **Commit**: `chore(release): v1.0.0-rc.1`
+-   [ ] **12.4** 🏷️ **Release v0.10.0** — Pre-1.0 release infrastructure
+    -   **Commit**: `chore(release): v0.10.0`
+
+### Pre-1.0 changes
+
+Open-ended placeholder for the work that has to land before the wp.org cut. Fill in concrete sub-steps as decisions are made (one box per behavioural commit, one bump step at the end of each shippable bundle). Each pre-1.0 change release is a regular `0.x.0` bump — local git tag only, nothing leaves the repo.
+
+-   [ ] **12.5** Pre-1.0 changes — _(open: list features / fixes / refactors here as they're decided. Each subbullet should follow the same shape as the steps above: short subject + AC + Commit line. Examples might include: a tweak to the alert dispatcher, a new settings field, a tail-loop optimisation, a backend refactor, a UX polish pass that didn't fit Phase 11 — whatever the project decides it wants in before going public.)_
+
+-   [ ] **12.6** 🏷️ **Release v0.x.0** — Pre-1.0 changes
+    -   Final `0.x.0` bump that closes step 12.5. Increment from the last shipped version (so `v0.11.0` if 12.5 ships once, `v0.12.0` if there's a second pre-1.0 release, etc.). If 12.5 grows multiple bump points, split it and number `12.6a`, `12.6b`, … as needed.
+    -   **Commit**: `chore(release): v0.x.0`
 
 ### 🔒 Security gate
 
--   [ ] **12.4** 🔒 Full `security-review` skill pass across:
+-   [ ] **12.7** 🔒 Full `security-review` skill pass across:
     -   `PathGuard` (traversal, symlink escape, allowlist)
     -   REST auth (every route has cap + nonce; abstract base enforces it)
     -   Uninstall cleanup (`uninstall.php` deletes every `logscope_*` option + transient)
@@ -411,24 +422,24 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
 
 ### Cut v1.0.0
 
--   [ ] **12.5** Bump version to **1.0.0**
+-   [ ] **12.8** Bump version to **1.0.0**
 
     -   [logscope.php](logscope.php) header `Version: 1.0.0`
     -   [readme.txt](readme.txt) `Stable tag: 1.0.0`, `Tested up to:` = current stable WP
     -   [CHANGELOG.md](CHANGELOG.md) — move `[Unreleased]` under `[1.0.0] - YYYY-MM-DD`
     -   **Commit**: `chore(release): v1.0.0`
 
--   [ ] **12.6** Tag `v1.0.0`, push tag, let the release workflow build the zip
+-   [ ] **12.9** Tag `v1.0.0`, push tag, let the release workflow build the zip
 
     -   **AC**: GitHub release page shows the zip asset.
 
--   [ ] **12.7** **Submit plugin to wp.org plugin directory**
+-   [ ] **12.10** **Submit plugin to wp.org plugin directory**
 
     -   Upload the zip via <https://wordpress.org/plugins/developers/add/>.
     -   After reviewer approval, push to the wp.org SVN `trunk/` + tag `tags/1.0.0/`.
     -   **AC**: Plugin page live at `https://wordpress.org/plugins/logscope/`; "Install Now" works on a clean WP site.
 
--   [ ] **12.8** Post-release note at top of this file: `> v1.0.0 shipped to wp.org on YYYY-MM-DD.` Close out v1.0 open issues on GitHub.
+-   [ ] **12.11** Post-release note at top of this file: `> v1.0.0 shipped to wp.org on YYYY-MM-DD.` Close out v1.0 open issues on GitHub.
 
 ---
 
