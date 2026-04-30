@@ -25,6 +25,7 @@ use Logscope\Log\LogRotator;
 use Logscope\Log\LogStats;
 use Logscope\Log\MuteStore;
 use Logscope\REST\AlertsController;
+use Logscope\REST\DiagnosticsController;
 use Logscope\REST\LogsController;
 use Logscope\REST\MuteController;
 use Logscope\REST\PresetsController;
@@ -33,6 +34,7 @@ use Logscope\REST\StatsController;
 use Logscope\Settings\PresetStore;
 use Logscope\Settings\Settings;
 use Logscope\Settings\SettingsSchema;
+use Logscope\Support\DiagnosticsService;
 use Logscope\Support\PathGuard;
 use RuntimeException;
 use Throwable;
@@ -418,6 +420,26 @@ final class Plugin {
 				return new StatsController( $stats );
 			}
 		);
+
+		$this->register(
+			'support.diagnostics',
+			static function ( Plugin $plugin ): DiagnosticsService {
+				$guard = $plugin->get( 'path_guard' );
+				assert( $guard instanceof PathGuard );
+
+				return DiagnosticsService::from_environment( $guard, self::resolve_log_path() );
+			}
+		);
+
+		$this->register(
+			'rest.diagnostics_controller',
+			static function ( Plugin $plugin ): DiagnosticsController {
+				$diagnostics = $plugin->get( 'support.diagnostics' );
+				assert( $diagnostics instanceof DiagnosticsService );
+
+				return new DiagnosticsController( $diagnostics );
+			}
+		);
 	}
 
 	/**
@@ -674,6 +696,14 @@ final class Plugin {
 			$stats->register_routes();
 		} catch ( Throwable $e ) {
 			self::log_route_registration_failure( 'stats', $e );
+		}
+
+		try {
+			$diagnostics = $this->get( 'rest.diagnostics_controller' );
+			assert( $diagnostics instanceof DiagnosticsController );
+			$diagnostics->register_routes();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'diagnostics', $e );
 		}
 	}
 

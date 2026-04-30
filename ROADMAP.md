@@ -645,7 +645,7 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
     -   **AC**: Unit test — both flags off → all-false snapshot; flag on but file missing → `exists:false, parent_writable: <bool>`.
     -   **Commit**: `feat(support): add diagnostics service`
 
--   [ ] **16.2** REST `GET /diagnostics`
+-   [x] **16.2** REST `GET /diagnostics`
 
     -   Capability-gated; returns the snapshot.
     -   **AC**: Integration test — endpoint returns the snapshot shape.
