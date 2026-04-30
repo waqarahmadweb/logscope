@@ -590,7 +590,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
 
 Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time without leaving wp-admin.
 
--   [ ] **15.1** `src/Log/LogStats.php`
+-   [x] **15.1** `src/Log/LogStats.php`
 
     -   Time-bucketed aggregations over the current log: counts per severity per `hour` or `day`, configurable range (`24h`, `7d`, `30d`).
     -   Caches per (log size, mtime, range, bucket) in a transient with 60s TTL — re-parsing 50MB on every tab open is wasteful.
