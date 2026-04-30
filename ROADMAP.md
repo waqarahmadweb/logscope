@@ -509,7 +509,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
 
 ### Log retention
 
--   [ ] **14.1** `src/Log/LogRotator.php`
+-   [x] **14.1** `src/Log/LogRotator.php`
 
     -   Archive when `FileLogSource::size() > retention_max_size_mb * 1024 * 1024` by renaming `debug.log` → `debug.log.archived-YYYYMMDD-HHMMSS` (UTC).
     -   Prune oldest archives beyond `retention_max_archives` (default 5) — `unlink()` after sorting matching siblings by mtime.

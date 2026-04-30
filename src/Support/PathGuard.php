@@ -88,7 +88,8 @@ final class PathGuard {
 	 *
 	 * @param string $raw_path Untrusted path, typically from settings or REST.
 	 * @return string Canonical absolute path on disk.
-	 * @throws InvalidPathException When validation fails.
+	 * @throws InvalidPathException When the input is malformed or escapes the allowlist.
+	 * @throws MissingPathException When the path cannot be resolved (does not exist / not accessible).
 	 */
 	public function resolve( string $raw_path ): string {
 		if ( '' === $raw_path ) {

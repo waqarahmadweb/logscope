@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+-   `Logscope\Log\LogRotator` (Phase 14.1) — size-based archival of the live log. Renames `debug.log` to `debug.log.archived-YYYYMMDD-HHMMSS` (UTC) once the file size meets a configured threshold, then prunes oldest archives by `mtime` beyond a configurable retention cap. Stateless — every tick re-derives the archive list, so concurrent writes between ticks cannot leave the rotator with a stale view. Both the pre-rename writability check and the prune loop are gated by `PathGuard::is_writable_parent_of()`. Filesystem failures (missing file, non-writable parent, failed `rename`, same-second collision with an existing archive) all return a structured noop (`array{archived_to: ?string, pruned: string[], skipped: bool}`) rather than throwing, so a future cron callback can finish cleanly. Threshold takes bytes rather than MB so unit tests can exercise small fixtures without integer-MB rounding; the SettingsSchema MB→bytes conversion will live at the wiring site (Phase 14.3). 6 unit tests cover the size-below-threshold no-op, the missing-file no-op, the over-threshold archive path, the prune-oldest path with 5 pre-existing archives, the within-cap no-prune path, and zero-threshold/zero-cap defensive no-ops.
+
+### Fixed
+
+-   `PathGuard::resolve()` docblock now declares both `@throws` tags (`InvalidPathException` for malformed/escaping input, `MissingPathException` for unresolvable paths) — the second was missing since Phase 11 and surfaced once `composer lint` started enforcing `Squiz.Commenting.FunctionCommentThrowTag.WrongNumber`.
+
 ## [0.11.0] - 2026-04-30
 
 Closes Phase 13 of the [roadmap](ROADMAP.md): the producer that drives Phase 12's alert pipeline. A new `LogScanner` runs on a configurable WP-Cron schedule (off by default; opt-in via the Settings tab), reads the slice of the log appended since the last tick, filters parsed entries down to `fatal` and `parse` severities, groups them, and dispatches the resulting groups through the existing `AlertCoordinator`. Rotation handling, an in-memory cursor, a per-tick timestamp, and a per-tick dispatched count round out the scanner; the React Settings UI grows a "Scheduled scan" section with the toggle, interval input (1–1440 minute clamp), and a "Last scan: …" status line. The lifecycle is fully owned by a new `CronScheduler` so toggling the option in the UI, the activation hook, and a future WP-CLI path all converge on the same schedule.
