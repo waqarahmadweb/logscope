@@ -17,24 +17,30 @@
 
 ## Version line at a glance
 
-| Version    | Closes              | Theme                                   | Public? |
-| ---------- | ------------------- | --------------------------------------- | ------- |
-| 0.1.0      | Phase 0 ✅          | Scaffold                                | no      |
-| 0.2.0      | Phase 1             | Tooling & developer loop                | no      |
-| 0.3.0      | Phase 2             | Plugin bootstrap + lifecycle            | no      |
-| 0.4.0      | Phase 3             | Log reading & parsing foundation        | no      |
-| 0.5.0      | Phases 4 + 5        | REST API + settings backend             | no      |
-| 0.6.0      | Phase 6             | Admin page + React viewer shell         | no      |
-| 0.7.0      | Phase 7             | Filters, grouping, trace, tail          | no      |
-| 0.8.0      | Phase 8             | Settings UI + custom log path           | no      |
-| 0.9.0      | Phase 11            | Polish, a11y, i18n (.pot)               | no      |
-| 1.0.0-rc.1 | Phase 12.1–12.3     | Release candidate build                 | no      |
-| **1.0.0**  | **Phase 12.4–12.8** | **🚀 wp.org submission**                | **YES** |
-| 1.1.0      | Post-1.0            | Alerts (email + webhook + dedup)        | YES     |
-| 1.2.0      | Post-1.0            | Scheduled fatal scanner (cron)          | YES     |
-| 1.3.0+     | Post-1.0            | Live streaming, multisite, retention, … | YES     |
+| Version   | Closes               | Theme                                                         | Public? |
+| --------- | -------------------- | ------------------------------------------------------------- | ------- |
+| 0.1.0     | Phase 0 ✅           | Scaffold                                                      | no      |
+| 0.2.0     | Phase 1              | Tooling & developer loop                                      | no      |
+| 0.3.0     | Phase 2              | Plugin bootstrap + lifecycle                                  | no      |
+| 0.4.0     | Phase 3              | Log reading & parsing foundation                              | no      |
+| 0.5.0     | Phases 4 + 5         | REST API + settings backend                                   | no      |
+| 0.6.0     | Phase 6              | Admin page + React viewer shell                               | no      |
+| 0.7.0     | Phase 7              | Filters, grouping, trace, tail                                | no      |
+| 0.8.0     | Phase 8              | Settings UI + custom log path                                 | no      |
+| 0.9.0     | Phase 11             | Polish, a11y, i18n (.pot)                                     | no      |
+| 0.10.0    | Phase 12             | Alerts (email + webhook + dedup)                              | no      |
+| 0.11.0    | Phase 13             | Scheduled fatal scanner (cron)                                | no      |
+| 0.12.0    | Phase 14             | Retention, mute, filter presets                               | no      |
+| 0.13.0    | Phase 15             | Stats dashboard                                               | no      |
+| 0.14.0    | Phase 16             | Onboarding, diagnostics, bulk actions                         | no      |
+| 0.15.0    | Phase 17.1–17.4      | wp.org release infrastructure                                 | no      |
+| 0.x.0     | Phase 17.5–17.6      | Pre-1.0 changes (TBD scope)                                   | no      |
+| **1.0.0** | **Phase 17.7–17.11** | **🚀 wp.org submission**                                      | **YES** |
+| 1.1.0+    | Post-1.0             | Live streaming, multisite, source preview, request context, … | YES     |
 
 Pre-1.0 bumps are git tags only — nothing leaves the repo. **The wp.org release line is v1.0.0 and only v1.0.0.**
+
+> **2026-04-30 restructure:** Phases 12–16 were added to flesh out the plugin before the wp.org cut. The original "Phase 12 = release infrastructure → cut v1.0.0" became Phase 17. Alerts and cron were pulled forward from post-1.0 (v1.1.0 / v1.2.0) into Phases 12 / 13 so the submission lands with a usable feature set rather than a viewer-only MVP.
 
 ---
 
@@ -376,59 +382,353 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
 
 ---
 
-## Phase 12 — 🚀 wp.org release line (v1.0.0)
+## Phase 12 — Alerts (v0.10.0)
 
-**This is the only phase where code leaves the repo for public distribution.** Everything before this is local-only git tags. Do not skip or reorder steps.
+Goal: Admins get notified about new fatals without watching the log. Email + webhook dispatchers, signature-keyed dedup so a single error doesn't fire 500 emails.
 
-### Release candidate
+-   [x] **12.1** `src/Alerts/AlertDispatcherInterface.php` + `Alerts/AlertDeduplicator.php`
 
--   [ ] **12.1** `readme.txt` (wp.org format — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Privacy)
+    -   Interface: `dispatch(Group $group): void`, `name(): string`.
+    -   Dedup: transient keyed by `signature_hash | dispatcher_name`; TTL = configured window (default 300s); `should_send()` / `record_sent()` round-trip.
+    -   **AC**: Unit tests cover dedup window expiry, distinct dispatchers don't share window, and signature collisions across dispatchers are independent.
+    -   **Commit**: `feat(alerts): dispatcher interface and signature-keyed dedup`
+
+-   [x] **12.2** `src/Alerts/EmailAlerter.php`
+
+    -   Uses `wp_mail()` with `text/html` content-type filter and a plaintext fallback body assembled by stripping tags.
+    -   Subject template: `[Logscope] <Severity> on <site_name>: <short_msg>` (60-char truncation on `short_msg`).
+    -   `logscope/email_subject` and `logscope/email_body` filters for site-owner customisation.
+    -   **AC**: Unit test (Brain Monkey) — `wp_mail` called with expected to/subject/body shape; html + plaintext both built; filters honoured.
+    -   **Commit**: `feat(alerts): email dispatcher`
+
+-   [x] **12.3** 🔒 `src/Alerts/WebhookAlerter.php`
+
+    -   Uses `wp_remote_post()` with `timeout: 5`, `blocking: true`, `redirection: 0` (don't follow redirects to internal hosts).
+    -   Neutral JSON payload: `{site, severity, message, file, line, signature, first_seen, last_seen, count, url}`.
+    -   `logscope/webhook_payload` filter lets users reshape for Slack/Discord/Teams.
+    -   URL allowlist enforcement: must be `http://` or `https://`, no `file://` / `gopher://` / etc; `wp_http_validate_url()` is the gatekeeper.
+    -   **AC**: Unit test — `wp_remote_post` called with the right shape; non-2xx responses are recorded but don't throw; non-http(s) URLs rejected before send.
+    -   **Commit**: `feat(alerts): webhook dispatcher with neutral payload`
+
+-   [x] **12.4** `src/Alerts/AlertCoordinator.php`
+
+    -   Iterates registered dispatchers, applies dedup per-dispatcher (so a webhook can fire while email is rate-limited and vice versa), fires `logscope/before_alert` (filterable; return `false` to skip) and `logscope/alert_sent` (action) around each dispatch.
+    -   `dispatch_for_groups(Group[] $groups)` takes the LogRepository's grouped output directly.
+    -   **AC**: Unit test — disabled dispatchers skipped; `before_alert` returning `false` short-circuits cleanly; `alert_sent` fires with `(group, dispatcher_name)`.
+    -   **Commit**: `feat(alerts): coordinator with fanout + per-dispatcher dedup`
+
+-   [x] **12.5** SettingsSchema extensions
+
+    -   New fields: `alert_email_enabled` (bool, default false), `alert_email_to` (sanitise via `sanitize_email`), `alert_webhook_enabled` (bool), `alert_webhook_url` (sanitise via `esc_url_raw` + protocol allowlist), `alert_dedup_window` (int seconds, default 300, min 60).
+    -   `Activator::DEFAULT_OPTIONS` updated to seed the new keys (cross-link comment kept in sync).
+    -   **AC**: Unit test — invalid email coerces to empty string; non-http URL coerces to empty; dedup window < 60 coerces to 60.
+    -   **Commit**: `feat(settings): add alert fields to schema`
+
+-   [x] **12.6** 🔒 `src/REST/AlertsController.php` — `POST /alerts/test`
+
+    -   Bypasses dedup; sends one synthetic alert to every enabled dispatcher.
+    -   Returns per-dispatcher result: `{dispatcher, ok, error?}`.
+    -   Capability check via the abstract base; nonce enforced as on every other Logscope route.
+    -   **AC**: Integration test — POST with email enabled returns `ok:true` for email; POST with both disabled returns 400 `logscope_rest_no_alerters_enabled`.
+    -   **Commit**: `feat(rest): add POST /alerts/test endpoint`
+
+-   [x] **12.7** React `AlertsPanel` in Settings tab
+
+    -   New section under existing settings form: email toggle + recipient `TextControl`, webhook toggle + URL `TextControl`, dedup window slider/number input, "Send test alert" button.
+    -   Test result toast shows per-dispatcher outcome.
+    -   Inline validation: invalid email shows under the field; invalid URL shows under the field. Validation messages from REST `fieldErrors` shape established in Phase 8.
+    -   **AC**: Hand-test on a WP install — change email, save, hit "Send test alert", receive the email.
+    -   **Commit**: `feat(ui): alerts settings panel with test-send`
+
+-   [x] **12.8** 🔒 `security-review` skill pass
+
+    -   Scope: `WebhookAlerter` (URL validation, redirect handling, payload escaping), `/alerts/test` route (rate limiting? cap check), email subject/body building (no header injection).
+    -   **AC**: All HIGH / MEDIUM findings resolved (fix or documented non-issue).
+    -   **Commit(s)**: one per fix as needed.
+
+-   [x] **12.9** 🏷️ **Release v0.10.0** — Alerts
+    -   Bump `Version:` in [logscope.php](logscope.php) to `0.10.0`.
+    -   Roll `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) under `[0.10.0] - YYYY-MM-DD`; refresh link references.
+    -   Update [README.md](README.md) status line.
+    -   **Commit**: `chore(release): v0.10.0`
+
+> Phase 12 complete on 2026-04-30.
+
+---
+
+## Phase 13 — Scheduled fatal scanner (v0.11.0)
+
+Goal: Background cron scans the log for new fatals and feeds the AlertCoordinator without the admin needing to open the page.
+
+-   [ ] **13.1** `src/Cron/LogScanner.php`
+
+    -   Registered event `logscope_scan_fatals` (filter `logscope/scan_interval` for cadence; default 5 min).
+    -   Reads log since `logscope_last_scanned_byte` option, parses, filters to fatals + parse errors, groups, feeds to `AlertCoordinator::dispatch_for_groups()`.
+    -   Updates `logscope_last_scanned_byte` and `logscope_last_scanned_at` after a successful run.
+    -   Handles rotation: if current `last_byte < last_scanned_byte`, treat as rotation and reset to 0.
+    -   **AC**: Unit test — given a fixture log with two fatals, scanner calls coordinator once with two groups; second invocation with no new bytes is a no-op.
+    -   **Commit**: `feat(cron): scheduled fatal-error scanner`
+
+-   [ ] **13.2** `Activator` / `Deactivator` cron lifecycle
+
+    -   `Activator::activate()` schedules `logscope_scan_fatals` if cron is enabled (default off — opt-in to avoid cron noise on fresh install).
+    -   `Deactivator::deactivate()` calls `wp_clear_scheduled_hook('logscope_scan_fatals')`.
+    -   `Settings::set('cron_scan_enabled', …)` re-schedules / unschedules on toggle.
+    -   **AC**: Unit test — enabling the option calls `wp_schedule_event`; disabling calls `wp_clear_scheduled_hook`.
+    -   **Commit**: `feat(cron): wire scanner into activation lifecycle`
+
+-   [ ] **13.3** SettingsSchema extensions
+
+    -   `cron_scan_enabled` (bool, default false), `cron_scan_interval_minutes` (int, default 5, min 1, max 1440).
+    -   Custom interval registered via `cron_schedules` filter so admin choices map to a real schedule.
+    -   **AC**: Unit test — schedule appears in `wp_get_schedules()` after plugin boot.
+    -   **Commit**: `feat(settings): add cron scanner fields`
+
+-   [ ] **13.4** React Settings UI for cron
+
+    -   Toggle + interval input + read-only "Last scan: <relative time> · <N> fatals dispatched" status row (read from `logscope_last_scanned_at` + a per-run summary option).
+    -   **AC**: Hand-test — enabling the toggle, waiting for one tick, sees the status update.
+    -   **Commit**: `feat(ui): cron scanner settings`
+
+-   [ ] **13.5** 🏷️ **Release v0.11.0** — Scheduled fatal scanner
+    -   **Commit**: `chore(release): v0.11.0`
+
+---
+
+## Phase 14 — Retention, mute, filter presets (v0.12.0)
+
+Goal: Long-running sites don't accumulate 200MB log files; admins can hide known noise; power users save filter combinations.
+
+### Log retention
+
+-   [ ] **14.1** `src/Log/LogRotator.php`
+
+    -   Archive when `FileLogSource::size() > retention_max_size_mb * 1024 * 1024` by renaming `debug.log` → `debug.log.archived-YYYYMMDD-HHMMSS` (UTC).
+    -   Prune oldest archives beyond `retention_max_archives` (default 5) — `unlink()` after sorting matching siblings by mtime.
+    -   Uses `PathGuard::is_writable_parent_of()` before the rename + before each `unlink`.
+    -   **AC**: Unit test — fixture with 6 archives prunes oldest 1; size below threshold is a no-op.
+    -   **Commit**: `feat(log): add size-based log rotator`
+
+-   [ ] **14.2** SettingsSchema additions
+
+    -   `retention_enabled` (bool, default false), `retention_max_size_mb` (int, default 50, min 1, max 1024), `retention_max_archives` (int, default 5, min 1, max 50).
+    -   **Commit**: `feat(settings): add retention fields`
+
+-   [ ] **14.3** Cron event `logscope_rotate_logs` (daily) invoking `LogRotator`
+
+    -   `Activator` schedules it on activation if `retention_enabled` is true; toggling the option re-schedules.
+    -   **AC**: Unit test — enabling retention calls `wp_schedule_event` with `daily`.
+    -   **Commit**: `feat(cron): schedule daily log rotation`
+
+### Mute signatures
+
+-   [ ] **14.4** Mute store
+
+    -   New option `logscope_muted_signatures` — array of `{signature, reason, muted_at, muted_by}`.
+    -   `Logscope\Log\MuteStore` service: `add($sig, $reason, $user_id)`, `remove($sig)`, `list()`, `is_muted($sig)`.
+    -   **AC**: Unit test — adding the same signature twice updates rather than duplicates.
+    -   **Commit**: `feat(log): add mute store for signatures`
+
+-   [ ] **14.5** REST `POST /logs/mute` + `DELETE /logs/mute/<signature>` + `GET /logs/mute`
+
+    -   POST body: `{signature, reason}`. DELETE by URL path. GET returns the full list.
+    -   **AC**: Integration tests on all three verbs.
+    -   **Commit**: `feat(rest): add mute endpoints`
+
+-   [ ] **14.6** `LogRepository` filters out muted signatures by default
+
+    -   New `LogQuery::$include_muted` flag (default false). When false, ungrouped queries skip entries whose computed signature is in the mute list, and grouped queries omit muted groups entirely.
+    -   `LogsController` accepts `?include_muted=true` to expose muted entries (used by the management UI).
+    -   **AC**: Integration test — mute a signature; default `/logs` doesn't return it; `/logs?include_muted=true` does.
+    -   **Commit**: `feat(log): filter muted signatures from default queries`
+
+-   [ ] **14.7** UI: "Mute" button + management panel
+
+    -   Grouped row `EntryRow`: "Mute" button → modal asking for optional reason → POST `/logs/mute`.
+    -   Settings tab: new "Muted signatures" panel listing all muted entries with "Unmute" buttons.
+    -   **AC**: Hand-test mute/unmute round trip; muted group disappears from grouped view immediately.
+    -   **Commit**: `feat(ui): mute/unmute UI`
+
+### Filter presets
+
+-   [ ] **14.8** Saved filter presets
+
+    -   Stored in user-meta `logscope_filter_presets` (per-user; collaboration on a multi-admin site shouldn't surface a colleague's presets).
+    -   Shape: `[{name, filters: {severity, from, to, q, source, viewMode}}, …]`.
+    -   **Commit**: `feat(settings): add per-user filter preset store`
+
+-   [ ] **14.9** REST `GET /presets` + `POST /presets` + `DELETE /presets/<name>`
+
+    -   GET returns current user's presets. POST creates / overwrites by name. DELETE removes by name.
+    -   **AC**: Integration tests on all three.
+    -   **Commit**: `feat(rest): add filter preset endpoints`
+
+-   [ ] **14.10** UI: preset dropdown in FilterBar
+
+    -   "Save current filters as preset" → name prompt → POST.
+    -   "Load preset" dropdown lists user's presets; selecting one populates the FilterBar slice + URL.
+    -   "Delete preset" inline x-button.
+    -   **AC**: Hand-test save → reload page → preset still loadable.
+    -   **Commit**: `feat(ui): filter preset save/load UI`
+
+-   [ ] **14.11** 🏷️ **Release v0.12.0** — Retention, mute, presets
+    -   **Commit**: `chore(release): v0.12.0`
+
+---
+
+## Phase 15 — Stats dashboard (v0.13.0)
+
+Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time without leaving wp-admin.
+
+-   [ ] **15.1** `src/Log/LogStats.php`
+
+    -   Time-bucketed aggregations over the current log: counts per severity per `hour` or `day`, configurable range (`24h`, `7d`, `30d`).
+    -   Caches per (log size, mtime, range, bucket) in a transient with 60s TTL — re-parsing 50MB on every tab open is wasteful.
+    -   **AC**: Unit test — fixture with known severity distribution returns expected bucketed counts; mtime-changed invalidates cache.
+    -   **Commit**: `feat(log): add stats aggregation service`
+
+-   [ ] **15.2** REST `GET /stats?range=24h|7d|30d&bucket=hour|day`
+
+    -   Returns `{range, bucket, buckets: [{ts, fatal, warning, notice, …}], totals: {…}, top: [{signature, count, sample}]}`.
+    -   **AC**: Integration test — fixture log returns expected bucket count + top-N.
+    -   **Commit**: `feat(rest): add GET /stats endpoint`
+
+-   [ ] **15.3** New "Stats" React tab
+
+    -   Third tab next to Logs / Settings. Tab order: Logs · Stats · Settings (Stats slots between because it shares filter context).
+    -   `@wordpress/data` `stats` slice with the same draft/values shape as settings.
+    -   **Commit**: `feat(ui): add Stats tab scaffold`
+
+-   [ ] **15.4** Sparkline charts per severity
+
+    -   Hand-rolled SVG (no chart library — bundle weight stays under 20KB gz). One sparkline per severity in a small-multiple grid.
+    -   `aria-label` per chart describing peak / mean / total for the range; the SVG itself is `aria-hidden`.
+    -   **AC**: Smooth render on a 30-day fixture; passes axe-core.
+    -   **Commit**: `feat(ui): severity sparklines`
+
+-   [ ] **15.5** Top-10 signatures table
+
+    -   Click-through dispatches to the Logs tab with the FilterBar pre-populated to the clicked signature's severity + a regex matching its message.
+    -   **AC**: Click → tab switch → Logs view filtered.
+    -   **Commit**: `feat(ui): top signatures table with click-through`
+
+-   [ ] **15.6** Severity breakdown bar (range totals)
+
+    -   Single horizontal stacked bar showing the proportion of each severity over the selected range.
+    -   **Commit**: `feat(ui): severity breakdown bar`
+
+-   [ ] **15.7** 🏷️ **Release v0.13.0** — Stats dashboard
+    -   **Commit**: `chore(release): v0.13.0`
+
+---
+
+## Phase 16 — Onboarding, diagnostics, bulk actions (v0.14.0)
+
+Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see a silently empty page; admins triaging a flood can act on multiple groups at once.
+
+-   [ ] **16.1** `src/Support/DiagnosticsService.php`
+
+    -   Detects: `WP_DEBUG`, `WP_DEBUG_LOG`, resolved log path (via PathGuard), parent writability, file existence, file size, last-modified time.
+    -   Returns a structured snapshot — every field is a typed boolean / int / string, no nulls.
+    -   **AC**: Unit test — both flags off → all-false snapshot; flag on but file missing → `exists:false, parent_writable: <bool>`.
+    -   **Commit**: `feat(support): add diagnostics service`
+
+-   [ ] **16.2** REST `GET /diagnostics`
+
+    -   Capability-gated; returns the snapshot.
+    -   **AC**: Integration test — endpoint returns the snapshot shape.
+    -   **Commit**: `feat(rest): add GET /diagnostics endpoint`
+
+-   [ ] **16.3** Onboarding banner on Logs tab when `WP_DEBUG_LOG` is off
+
+    -   Dismissible-per-session banner above the FilterBar with manual `wp-config.php` instructions (no auto-edit — that's deferred to post-1.0).
+    -   Banner copy includes the exact lines to add and links to the WP handbook.
+    -   **AC**: Banner shows when REST `/diagnostics` reports `wp_debug_log: false`; hidden otherwise.
+    -   **Commit**: `feat(ui): onboarding banner for missing WP_DEBUG_LOG`
+
+-   [ ] **16.4** Empty-log diagnostics
+
+    -   Replace the generic "No log entries" empty state with a reason-aware message: file doesn't exist, file empty, file rotated since last check, all entries muted, etc.
+    -   Reuses the diagnostics snapshot rather than firing a separate request.
+    -   **AC**: Manually delete `debug.log` → empty state explains "log file does not yet exist at <path>".
+    -   **Commit**: `feat(ui): reason-aware empty log state`
+
+-   [ ] **16.5** Bulk actions in grouped view
+
+    -   Per-group checkbox + "Select all" header checkbox.
+    -   Bulk action bar appears when ≥1 group is selected: "Mute selected" (uses Phase 14 mute), "Export selected" (CSV download via existing infrastructure).
+    -   **AC**: Hand-test — select 3 groups, click "Mute selected", all 3 disappear from view.
+    -   **Commit**: `feat(ui): bulk actions in grouped view`
+
+-   [ ] **16.6** 🏷️ **Release v0.14.0** — Onboarding, diagnostics, bulk actions
+    -   **Commit**: `chore(release): v0.14.0`
+
+---
+
+## Phase 17 — 🚀 wp.org release line (v1.0.0)
+
+**This is the only phase where code leaves the repo for public distribution.** Phase 17 deliberately stretches: prep infrastructure ships first under `v0.15.0`, then any pre-1.0 changes ship under their own `v0.x.0` bumps, and the `v1.0.0` cut is gated on a concrete "we're done" decision rather than a date. Do not skip or reorder steps within each subsection.
+
+### Pre-1.0 release infrastructure
+
+-   [ ] **17.1** `readme.txt` (wp.org format — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Privacy)
 
     -   **Commit**: `docs: add wp.org readme.txt`
 
--   [ ] **12.2** `.wordpress-org/` assets: banner-1544x500.png, icon-256x256.png, 3–5 screenshots (log viewer, grouped view, filters, settings, custom log path)
+-   [ ] **17.2** `.wordpress-org/` assets: banner-1544x500.png, icon-256x256.png, 5–7 screenshots (log viewer, grouped view, filters, stats, alerts settings, mute panel, onboarding banner)
 
     -   **Commit**: `docs: add wp.org banner, icon, screenshots`
 
--   [ ] **12.3** Release workflow `.github/workflows/release.yml`: build zip, strip dev deps (honor `.gitattributes export-ignore`), tag → upload asset
+-   [ ] **17.3** Release workflow `.github/workflows/release.yml`: build zip, strip dev deps (honor `.gitattributes export-ignore`), tag → upload asset
 
     -   **AC**: Dry-run on a throwaway tag produces a zip with no `vendor/`, no `node_modules/`, no `tests/`, no `.github/`.
     -   **Commit**: `ci: add release workflow`
 
--   [ ] **12.3a** 🏷️ **Tag v1.0.0-rc.1** — Release candidate build
-    -   **Commit**: `chore(release): v1.0.0-rc.1`
+-   [ ] **17.4** 🏷️ **Release v0.15.0** — Pre-1.0 release infrastructure
+    -   **Commit**: `chore(release): v0.15.0`
+
+### Pre-1.0 changes
+
+Open-ended placeholder for the work that has to land before the wp.org cut. Fill in concrete sub-steps as decisions are made (one box per behavioural commit, one bump step at the end of each shippable bundle). Each pre-1.0 change release is a regular `0.x.0` bump — local git tag only, nothing leaves the repo.
+
+-   [ ] **17.5** Pre-1.0 changes — _(open: list features / fixes / refactors here as they're decided)_
+
+-   [ ] **17.6** 🏷️ **Release v0.x.0** — Pre-1.0 changes
+    -   Final `0.x.0` bump that closes step 17.5. Increment from the last shipped version. If 17.5 grows multiple bump points, split it and number `17.6a`, `17.6b`, … as needed.
+    -   **Commit**: `chore(release): v0.x.0`
 
 ### 🔒 Security gate
 
--   [ ] **12.4** 🔒 Full `security-review` skill pass across:
+-   [ ] **17.7** 🔒 Full `security-review` skill pass across:
     -   `PathGuard` (traversal, symlink escape, allowlist)
     -   REST auth (every route has cap + nonce; abstract base enforces it)
-    -   Uninstall cleanup (`uninstall.php` deletes every `logscope_*` option + transient)
-    -   Log clear soft-delete (no arbitrary rename target)
+    -   Uninstall cleanup (`uninstall.php` deletes every `logscope_*` option + transient + user-meta + scheduled cron)
+    -   Log clear soft-delete + log rotation (no arbitrary rename targets)
+    -   Webhook handling (URL allowlist, no SSRF, payload escaping)
     -   Output escaping on anything read from disk and returned via REST
     -   **AC**: Every finding from the skill is resolved (fixed or documented as non-issue). No outstanding `HIGH` or `MEDIUM` items.
     -   **Commit(s)**: one per fix, as needed
 
 ### Cut v1.0.0
 
--   [ ] **12.5** Bump version to **1.0.0**
+-   [ ] **17.8** Bump version to **1.0.0**
 
     -   [logscope.php](logscope.php) header `Version: 1.0.0`
     -   [readme.txt](readme.txt) `Stable tag: 1.0.0`, `Tested up to:` = current stable WP
     -   [CHANGELOG.md](CHANGELOG.md) — move `[Unreleased]` under `[1.0.0] - YYYY-MM-DD`
     -   **Commit**: `chore(release): v1.0.0`
 
--   [ ] **12.6** Tag `v1.0.0`, push tag, let the release workflow build the zip
+-   [ ] **17.9** Tag `v1.0.0`, push tag, let the release workflow build the zip
 
     -   **AC**: GitHub release page shows the zip asset.
 
--   [ ] **12.7** **Submit plugin to wp.org plugin directory**
+-   [ ] **17.10** **Submit plugin to wp.org plugin directory**
 
     -   Upload the zip via <https://wordpress.org/plugins/developers/add/>.
     -   After reviewer approval, push to the wp.org SVN `trunk/` + tag `tags/1.0.0/`.
     -   **AC**: Plugin page live at `https://wordpress.org/plugins/logscope/`; "Install Now" works on a clean WP site.
 
--   [ ] **12.8** Post-release note at top of this file: `> v1.0.0 shipped to wp.org on YYYY-MM-DD.` Close out v1.0 open issues on GitHub.
+-   [ ] **17.11** Post-release note at top of this file: `> v1.0.0 shipped to wp.org on YYYY-MM-DD.` Close out v1.0 open issues on GitHub.
 
 ---
 
@@ -441,80 +741,26 @@ Each version below is a single coherent release. Flow for every one:
 3. Bump version, update `CHANGELOG.md`, tag, push.
 4. Push to wp.org SVN (`trunk/` + `tags/X.Y.Z/`), update `Stable tag:` in `trunk/readme.txt`.
 
-### v1.1.0 — Alerts (old Phase 9)
-
--   [ ] **1.1-a** `src/Alerts/AlertDispatcherInterface.php` + `AlertDeduplicator.php`
-
-    -   Dedup: transient keyed by signature hash + dispatcher name; TTL = configured window.
-    -   **Commit**: `feat(alerts): dispatcher interface and dedup`
-
--   [ ] **1.1-b** `src/Alerts/EmailAlerter.php`
-
-    -   Uses `wp_mail()`. HTML + plaintext fallback.
-    -   Subject: `[Logscope] <severity> on <site_name>: <short_msg>`.
-    -   **Commit**: `feat(alerts): email dispatcher`
-
--   [ ] **1.1-c** `src/Alerts/WebhookAlerter.php`
-
-    -   Uses `wp_remote_post()` with a 5s timeout.
-    -   Neutral JSON payload: `{site, severity, message, file, line, signature, first_seen, last_seen, count}`.
-    -   Filter `logscope/webhook_payload` lets users reshape for Slack/Discord.
-    -   **Commit**: `feat(alerts): webhook dispatcher with neutral payload`
-
--   [ ] **1.1-d** `src/Alerts/AlertCoordinator.php`
-
-    -   Iterates enabled dispatchers, applies dedup per-dispatcher, fires `logscope/before_alert` + `logscope/alert_sent`.
-    -   **Commit**: `feat(alerts): coordinator with fanout + dedup`
-
--   [ ] **1.1-e** `src/REST/AlertsController.php` — `POST /alerts/test`
-
-    -   Sends a test alert to all enabled dispatchers (bypasses dedup).
-    -   **Commit**: `feat(alerts): test-alert endpoint`
-
--   [ ] **1.1-f** Settings UI: alert recipients, webhook URL, dedup window, "Send test alert" button
-
-    -   Extends `SettingsSchema` with alert fields.
-    -   **Commit**: `feat(ui): alert settings surface`
-
--   [ ] **1.1-g** 🔒 `security-review` skill pass on webhook handling + new REST route.
-
--   [ ] **1.1-h** 🏷️ **Release v1.1.0** — Alerts
-    -   Update readme: bump `Stable tag:`, `Tested up to:`, add Alerts screenshot, update Changelog + FAQ.
-    -   **Commit**: `chore(release): v1.1.0`
-    -   Push to wp.org SVN.
-
-### v1.2.0 — Scheduled fatal scanner (old Phase 10)
-
--   [ ] **1.2-a** `src/Cron/LogScanner.php`
-
-    -   Registered event `logscope_scan_fatals`, default interval 5 min (filterable).
-    -   Reads log since `last_scanned_byte` option, extracts fatals, feeds to `AlertCoordinator`.
-    -   **Commit**: `feat(cron): scheduled fatal-error scanner`
-
--   [ ] **1.2-b** Settings UI: enable/disable + interval override
-
-    -   **Commit**: `feat(ui): cron scanner settings`
-
--   [ ] **1.2-c** Readme: FAQ entry on WP-cron reliability (spawn via real cron for busy sites).
-
--   [ ] **1.2-d** 🏷️ **Release v1.2.0** — Scheduled fatal scanner
-    -   **Commit**: `chore(release): v1.2.0`
-    -   Push to wp.org SVN.
-
-### v1.3.0 — Live streaming
+### v1.1.0 — Live streaming
 
 -   SSE or WebSocket replacement for tail-mode polling. Feature-flag in settings, polling stays as fallback. Ship only after measuring on a real WP host — some shared hosts kill long-running PHP.
 
-### v1.4.0 — Multisite aggregation
+### v1.2.0 — Multisite aggregation
 
 -   Network admin screen, per-site switch, network-wide capability mapping. Revisit `PathGuard` allowlist semantics for network content dirs.
 
-### v1.5.0+ — Candidates (un-ordered, pick by demand)
+### v1.3.0 — Auto-edit `wp-config.php` for `WP_DEBUG_LOG`
 
--   Log retention / rotation management
--   Export / import of filter presets
--   First-class Slack & Discord formatters (bundled, not filter-based)
+-   Onboarding flow that offers to flip the constant for the admin (deferred from Phase 16). Gated behind a confirmation step + a backup of `wp-config.php` to `wp-config.php.logscope-backup-<ts>` before any edit.
+
+### v1.4.0+ — Candidates (un-ordered, pick by demand)
+
+-   Source code preview inline (click stack frame, see file at line N — security-sensitive, reuses PathGuard)
+-   Request context capture (URL/method/user at error time, requires MU-style hook)
+-   First-class Slack & Discord webhook formatters (bundled, not just filter-based)
 -   Opt-in integrations with Loki / Elastic (external HTTP, gated behind explicit user config)
+-   Filter preset import / export across users
+-   Per-site export / import of all settings as a JSON profile
 
 ---
 

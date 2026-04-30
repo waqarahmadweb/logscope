@@ -101,12 +101,42 @@ final class SettingsTest extends TestCase {
 			->with( 'logscope_tail_interval', 3 )
 			->andReturn( 7 );
 
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_alert_email_enabled', 0 )
+			->andReturn( 0 );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_alert_email_to', '' )
+			->andReturn( '' );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_alert_webhook_enabled', 0 )
+			->andReturn( 0 );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_alert_webhook_url', '' )
+			->andReturn( '' );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_alert_dedup_window', 300 )
+			->andReturn( 300 );
+
 		$settings = new Settings( new SettingsSchema() );
 
 		$this->assertSame(
 			array(
-				'log_path'      => '/var/log/debug.log',
-				'tail_interval' => 7,
+				'log_path'              => '/var/log/debug.log',
+				'tail_interval'         => 7,
+				'alert_email_enabled'   => 0,
+				'alert_email_to'        => '',
+				'alert_webhook_enabled' => 0,
+				'alert_webhook_url'     => '',
+				'alert_dedup_window'    => 300,
 			),
 			$settings->all()
 		);

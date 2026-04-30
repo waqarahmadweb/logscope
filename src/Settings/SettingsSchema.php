@@ -52,7 +52,7 @@ class SettingsSchema {
 	 */
 	public function __construct() {
 		$this->fields = array(
-			'log_path'      => array(
+			'log_path'              => array(
 				'option_key' => 'logscope_log_path',
 				'type'       => 'string',
 				'default'    => '',
@@ -68,7 +68,7 @@ class SettingsSchema {
 					return trim( $value );
 				},
 			),
-			'tail_interval' => array(
+			'tail_interval'         => array(
 				'option_key' => 'logscope_tail_interval',
 				'type'       => 'integer',
 				'default'    => 3,
@@ -82,7 +82,117 @@ class SettingsSchema {
 					return $coerced < 1 ? 1 : $coerced;
 				},
 			),
+			'alert_email_enabled'   => array(
+				'option_key' => 'logscope_alert_email_enabled',
+				'type'       => 'integer',
+				'default'    => 0,
+				'sanitizer'  => static function ( $value ): int {
+					return self::coerce_bool_to_int( $value );
+				},
+			),
+			'alert_email_to'        => array(
+				'option_key' => 'logscope_alert_email_to',
+				'type'       => 'string',
+				'default'    => '',
+				'sanitizer'  => static function ( $value ): string {
+					if ( ! is_string( $value ) ) {
+						return '';
+					}
+					$trimmed = trim( str_replace( "\0", '', $value ) );
+					if ( '' === $trimmed ) {
+						return '';
+					}
+
+					$email = sanitize_email( $trimmed );
+
+					return is_string( $email ) ? $email : '';
+				},
+			),
+			'alert_webhook_enabled' => array(
+				'option_key' => 'logscope_alert_webhook_enabled',
+				'type'       => 'integer',
+				'default'    => 0,
+				'sanitizer'  => static function ( $value ): int {
+					return self::coerce_bool_to_int( $value );
+				},
+			),
+			'alert_webhook_url'     => array(
+				'option_key' => 'logscope_alert_webhook_url',
+				'type'       => 'string',
+				'default'    => '',
+				'sanitizer'  => static function ( $value ): string {
+					if ( ! is_string( $value ) ) {
+						return '';
+					}
+					$trimmed = trim( str_replace( "\0", '', $value ) );
+					if ( '' === $trimmed ) {
+						return '';
+					}
+
+					$url = esc_url_raw( $trimmed );
+					if ( ! is_string( $url ) || '' === $url ) {
+						return '';
+					}
+
+					// Scheme allowlist: webhook URLs must be http(s) so the
+					// dispatcher cannot be tricked into reading local files
+					// or hitting non-network protocols. Mirrors the runtime
+					// check in WebhookAlerter as defense-in-depth at the
+					// settings boundary.
+					$scheme = wp_parse_url( $url, PHP_URL_SCHEME );
+					if ( ! is_string( $scheme ) ) {
+						return '';
+					}
+					$scheme = strtolower( $scheme );
+					if ( 'http' !== $scheme && 'https' !== $scheme ) {
+						return '';
+					}
+
+					return $url;
+				},
+			),
+			'alert_dedup_window'    => array(
+				'option_key' => 'logscope_alert_dedup_window',
+				'type'       => 'integer',
+				'default'    => 300,
+				'sanitizer'  => static function ( $value ): int {
+					if ( ! is_numeric( $value ) ) {
+						return 300;
+					}
+					$coerced = (int) $value;
+
+					// Mirrors the floor in AlertDeduplicator; anything
+					// shorter than 60s defeats dedup on a noisy site.
+					return $coerced < 60 ? 60 : $coerced;
+				},
+			),
 		);
+	}
+
+	/**
+	 * Coerces a possibly-stringly-typed boolean to `0` or `1`. Used by the
+	 * alert toggle sanitisers so the schema field type stays `integer`
+	 * (the wp_options layer round-trips integers cleanly across MySQL
+	 * encodings; booleans serialise as `''` / `'1'` which is fragile).
+	 *
+	 * @param mixed $value Raw input.
+	 * @return int 0 or 1.
+	 */
+	private static function coerce_bool_to_int( $value ): int {
+		if ( is_bool( $value ) ) {
+			return $value ? 1 : 0;
+		}
+		if ( is_numeric( $value ) ) {
+			return (int) $value > 0 ? 1 : 0;
+		}
+		if ( is_string( $value ) ) {
+			$lower = strtolower( trim( $value ) );
+			if ( 'true' === $lower || '1' === $lower || 'yes' === $lower || 'on' === $lower ) {
+				return 1;
+			}
+		}
+
+		return 0;
 	}
 
 	/**

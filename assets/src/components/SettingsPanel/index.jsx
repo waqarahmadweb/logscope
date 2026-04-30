@@ -22,8 +22,17 @@ import { Button, Notice, TextControl } from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
 import { FormSkeleton } from '../Skeleton';
+import AlertsPanel from '../AlertsPanel';
 
 const TAIL_INTERVAL_MIN = 1;
+const DEDUP_WINDOW_MIN = 60;
+const ALERT_FIELD_KEYS = [
+	'alert_email_enabled',
+	'alert_email_to',
+	'alert_webhook_enabled',
+	'alert_webhook_url',
+	'alert_dedup_window',
+];
 
 /**
  * Map server-side field-error codes to their translated, user-facing
@@ -105,16 +114,41 @@ export default function SettingsPanel() {
 	// Trim before compare so a trailing space on log_path doesn't toggle
 	// the Save button into a dirty state for a no-op edit; the sanitiser
 	// trims server-side anyway, so the trimmed value is what would land.
-	const isDirty =
+	const baseDirty =
 		values &&
 		( ( draft.log_path || '' ).trim() !==
 			( values.log_path || '' ).trim() ||
 			Number( draft.tail_interval ) !== Number( values.tail_interval ) );
 
+	const alertDirty =
+		values &&
+		ALERT_FIELD_KEYS.some( ( key ) => {
+			const a = draft[ key ];
+			const b = values[ key ];
+			if (
+				key === 'alert_email_enabled' ||
+				key === 'alert_webhook_enabled' ||
+				key === 'alert_dedup_window'
+			) {
+				return Number( a ) !== Number( b );
+			}
+			return ( a || '' ).trim() !== ( b || '' ).trim();
+		} );
+
+	const isDirty = baseDirty || alertDirty;
+
 	const handleSave = () => {
 		saveSettings( {
 			log_path: draft.log_path,
 			tail_interval: Number( draft.tail_interval ) || TAIL_INTERVAL_MIN,
+			alert_email_enabled:
+				Number( draft.alert_email_enabled ) === 1 ? 1 : 0,
+			alert_email_to: draft.alert_email_to || '',
+			alert_webhook_enabled:
+				Number( draft.alert_webhook_enabled ) === 1 ? 1 : 0,
+			alert_webhook_url: draft.alert_webhook_url || '',
+			alert_dedup_window:
+				Number( draft.alert_dedup_window ) || DEDUP_WINDOW_MIN,
 		} );
 	};
 
@@ -203,6 +237,8 @@ export default function SettingsPanel() {
 						{ translateFieldError( fieldErrors.tail_interval ) }
 					</Notice>
 				) }
+
+				<AlertsPanel />
 
 				{ saveError && Object.keys( fieldErrors ).length === 0 && (
 					<Notice status="error" isDismissible={ false }>
