@@ -56,6 +56,67 @@
 		Menlo, Consolas, monospace;
 }
 
+// Explicit theme override block — used when the in-plugin theme toggle
+// has been clicked. Mirrors the @prefers-color-scheme palette but wins
+// over both the OS preference and the WP admin-color-* body classes
+// because the user picked it intentionally. The matching light-mode
+// override below pins the warm pastel palette for users on a dark OS
+// who still want light wp-admin.
+html[ data-logscope-theme='dark' ] {
+	--logscope-bg: #15161b;
+	--logscope-bg-muted: #1d1f25;
+	--logscope-bg-sunken: #0f1014;
+	--logscope-bg-track: #23252c;
+	--logscope-fg: #e8e6ea;
+	--logscope-fg-muted: #9a98a3;
+	--logscope-fg-mute: #6b6970;
+	--logscope-border: #2a2c33;
+	--logscope-border-soft: #23252c;
+	--logscope-border-strong: #3a3c44;
+	--logscope-row-hover: #23252c;
+	--logscope-accent: #72aee6;
+	--logscope-accent-fg: #14171a;
+	--logscope-focus-ring: #72aee6;
+	--logscope-pill-fatal-bg: #3d1418;
+	--logscope-pill-fatal-fg: #ffabaf;
+	--logscope-pill-warning-bg: #3d2c08;
+	--logscope-pill-warning-fg: #f6c777;
+	--logscope-pill-notice-bg: #142a45;
+	--logscope-pill-notice-fg: #a7c8ed;
+	--logscope-pill-deprecated-bg: #271938;
+	--logscope-pill-deprecated-fg: #c4a5e8;
+	--logscope-pill-unknown-bg: #23252c;
+	--logscope-pill-unknown-fg: #9a98a3;
+	--logscope-skeleton-base: #23252c;
+	--logscope-skeleton-shimmer: #2e3038;
+}
+
+html[ data-logscope-theme='light' ] {
+	--logscope-bg: #faf7f2;
+	--logscope-bg-muted: #ffffff;
+	--logscope-bg-sunken: #f3efe8;
+	--logscope-bg-track: #efeae0;
+	--logscope-fg: #1a1a1f;
+	--logscope-fg-muted: #6b6b78;
+	--logscope-fg-mute: #9a96a3;
+	--logscope-border: #ece7df;
+	--logscope-border-soft: #f3efe8;
+	--logscope-border-strong: #d8d2c3;
+	--logscope-row-hover: #faf7f2;
+	--logscope-pill-fatal-bg: #ffe1e3;
+	--logscope-pill-fatal-fg: #9b1c2a;
+	--logscope-pill-warning-bg: #fff3c2;
+	--logscope-pill-warning-fg: #785b00;
+	--logscope-pill-notice-bg: #d8eaff;
+	--logscope-pill-notice-fg: #0c4a8a;
+	--logscope-pill-deprecated-bg: #e6e0ff;
+	--logscope-pill-deprecated-fg: #43308f;
+	--logscope-pill-unknown-bg: #ece8e2;
+	--logscope-pill-unknown-fg: #5b5751;
+	--logscope-skeleton-base: #ece7df;
+	--logscope-skeleton-shimmer: #f6f3ec;
+}
+
 @media ( prefers-color-scheme: dark ) {
 	:root {
 		--logscope-bg: #15161b;
@@ -181,6 +242,28 @@ body.admin-color-midnight {
 		margin: 0;
 		color: var( --logscope-fg-muted );
 		font-size: 14.5px;
+	}
+
+	&__theme {
+		appearance: none;
+		width: 36px;
+		height: 36px;
+		border-radius: var( --logscope-radius-pill );
+		border: 1px solid var( --logscope-border );
+		background: var( --logscope-bg-muted );
+		color: var( --logscope-fg-muted );
+		font-size: 16px;
+		line-height: 1;
+		cursor: pointer;
+		margin-top: 6px;
+		margin-right: 8px;
+		transition: background 0.1s, color 0.1s, border-color 0.1s;
+
+		&:hover {
+			background: var( --logscope-row-hover );
+			color: var( --logscope-fg );
+			border-color: var( --logscope-border-strong );
+		}
 	}
 
 	&__live {

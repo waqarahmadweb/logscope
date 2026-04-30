@@ -21,6 +21,7 @@ import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf, _n } from '@wordpress/i18n';
 
 import { STORE_KEY } from '../store';
+import useTheme from '../hooks/useTheme';
 import { SHORTCUT, SHORTCUT_EVENT } from '../shortcuts';
 import LogViewer from './LogViewer';
 import SettingsPanel from './SettingsPanel';
@@ -63,6 +64,7 @@ export default function App() {
 	}, [] );
 	const { setActiveTab } = useDispatch( STORE_KEY );
 	const [ helpOpen, setHelpOpen ] = useState( false );
+	const { theme, cycle: cycleTheme } = useTheme();
 
 	// Live indicator counts: total comes from the API response (matches
 	// active filters across pagination); fatalInView is computed from the
@@ -173,6 +175,15 @@ export default function App() {
 						) }
 					</p>
 				</div>
+				<button
+					type="button"
+					className="logscope-page-head__theme"
+					onClick={ cycleTheme }
+					title={ themeLabel( theme ) }
+					aria-label={ themeLabel( theme ) }
+				>
+					{ themeIcon( theme ) }
+				</button>
 				<div
 					className="logscope-page-head__live"
 					role="status"
@@ -260,6 +271,26 @@ export default function App() {
 			{ helpOpen && <HelpModal onClose={ () => setHelpOpen( false ) } /> }
 		</div>
 	);
+}
+
+function themeIcon( theme ) {
+	if ( theme === 'light' ) {
+		return '☀';
+	}
+	if ( theme === 'dark' ) {
+		return '☾';
+	}
+	return '◐';
+}
+
+function themeLabel( theme ) {
+	if ( theme === 'light' ) {
+		return __( 'Theme: Light (click for Dark)', 'logscope' );
+	}
+	if ( theme === 'dark' ) {
+		return __( 'Theme: Dark (click for System)', 'logscope' );
+	}
+	return __( 'Theme: System (click for Light)', 'logscope' );
 }
 
 function TabContent( { name } ) {
