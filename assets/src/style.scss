@@ -570,15 +570,50 @@ body.admin-color-midnight {
 }
 
 .logscope-mode-toggle {
-	display: flex;
-	gap: 4px;
-	flex-wrap: wrap;
+	display: inline-flex;
+	gap: 0;
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
+	padding: 4px;
+
+	// Override the WP Button defaults inside the seg control so the
+	// active variant gets a flat dark fill rather than the WP primary
+	// blue that fights the warm surface.
+	.components-button {
+		border-radius: var( --logscope-radius-sm );
+		min-height: 30px;
+		padding: 0 14px;
+		font-size: 13px;
+		font-weight: 500;
+		color: var( --logscope-fg-muted );
+		background: transparent;
+		box-shadow: none;
+		border: 0;
+
+		&:not( :disabled ):hover {
+			color: var( --logscope-fg );
+			background: transparent;
+		}
+
+		&.is-primary {
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
+			font-weight: 600;
+
+			&:hover:not( :disabled ) {
+				background: var( --logscope-fg );
+				color: var( --logscope-bg-muted );
+				filter: brightness( 1.1 );
+			}
+		}
+	}
 }
 
 .logscope-viewer {
-	background: var( --logscope-bg );
+	background: var( --logscope-bg-muted );
 	border: 1px solid var( --logscope-border );
-	border-radius: 4px;
+	border-radius: var( --logscope-radius-md );
 	overflow: hidden;
 	position: relative;
 
@@ -591,7 +626,7 @@ body.admin-color-midnight {
 	}
 
 	&__list {
-		background: var( --logscope-bg );
+		background: var( --logscope-bg-muted );
 	}
 
 	&__new-pill {
@@ -601,18 +636,18 @@ body.admin-color-midnight {
 		transform: translateX( -50% );
 		z-index: 5;
 		appearance: none;
-		background: var( --logscope-accent );
-		color: var( --logscope-accent-fg );
+		background: var( --logscope-fg );
+		color: var( --logscope-bg-muted );
 		border: 0;
-		border-radius: 999px;
-		padding: 4px 12px;
+		border-radius: var( --logscope-radius-pill );
+		padding: 5px 14px;
 		font-size: 12px;
 		font-weight: 600;
 		cursor: pointer;
-		box-shadow: 0 2px 6px rgba( 0, 0, 0, 0.2 );
+		box-shadow: 0 6px 16px -6px rgba( 20, 15, 30, 0.3 );
 
 		&:hover {
-			filter: brightness( 1.05 );
+			filter: brightness( 1.1 );
 		}
 	}
 }
@@ -643,67 +678,120 @@ body.admin-color-midnight {
 .logscope-entry {
 	display: flex;
 	flex-direction: column;
-	border-bottom: 1px solid var( --logscope-border );
-	padding: 6px 12px;
+	border-bottom: 1px solid var( --logscope-border-soft );
+	border-left: 3px solid transparent;
+	padding: 6px 14px;
 	box-sizing: border-box;
-	font-family: SFMono-Regular, Menlo, Consolas, monospace;
-	font-size: 12px;
+	font-family: var( --logscope-font-mono );
+	font-size: 12.5px;
 	color: var( --logscope-fg );
+	background: var( --logscope-bg-muted );
+	transition: background 0.08s;
+
+	&:hover {
+		background: var( --logscope-bg );
+
+		.logscope-entry__toggle {
+			opacity: 1;
+		}
+	}
 
 	&__head {
-		display: flex;
-		gap: 8px;
+		display: grid;
+		grid-template-columns: auto auto 1fr minmax( 0, 320px ) auto;
+		gap: 12px;
 		align-items: center;
-		min-height: 36px;
+		min-height: 32px;
 	}
 
 	&__timestamp {
 		color: var( --logscope-fg-muted );
 		flex-shrink: 0;
 		white-space: nowrap;
+		font-size: 12px;
 	}
 
 	&__message {
-		flex: 1 1 auto;
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
+	&__path {
+		color: var( --logscope-fg-muted );
+		font-size: 11.5px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		text-align: right;
+	}
+
 	&__toggle {
 		appearance: none;
 		background: transparent;
-		border: 1px solid var( --logscope-border );
-		border-radius: 2px;
+		border: 1px solid transparent;
+		border-radius: var( --logscope-radius-sm );
 		color: var( --logscope-fg-muted );
 		cursor: pointer;
 		font: inherit;
+		font-family: var( --logscope-font-mono );
 		min-width: 28px;
-		min-height: 24px;
-		padding: 0 4px;
+		min-height: 26px;
+		padding: 0 6px;
+		opacity: 0;
+		transition: opacity 0.1s, background 0.1s;
 
 		&:hover {
 			background: var( --logscope-bg-muted );
 			color: var( --logscope-fg );
+			border-color: var( --logscope-border );
+		}
+
+		&[aria-expanded='true'] {
+			opacity: 1;
 		}
 	}
 
+	&--fatal { border-left-color: var( --logscope-dot-fatal ); }
+	&--warning { border-left-color: var( --logscope-dot-warning ); }
+	&--notice { border-left-color: var( --logscope-dot-notice ); }
+	&--deprecated { border-left-color: var( --logscope-dot-deprecated ); }
+
 	&--expanded {
-		background: var( --logscope-bg-muted );
+		background: var( --logscope-bg );
 	}
 }
 
 .logscope-pill {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
 	font-size: 11px;
 	font-weight: 600;
 	text-transform: uppercase;
-	letter-spacing: 0.02em;
-	padding: 2px 8px;
-	border-radius: 999px;
+	letter-spacing: 0.04em;
+	padding: 3px 9px;
+	border-radius: var( --logscope-radius-xs );
 	flex-shrink: 0;
 	background: var( --logscope-pill-unknown-bg );
 	color: var( --logscope-pill-unknown-fg );
+	font-family: 'Inter', system-ui, sans-serif;
+
+	&__dot {
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		display: inline-block;
+		background: currentColor;
+		opacity: 0.85;
+
+		&--fatal { background: var( --logscope-dot-fatal ); opacity: 1; }
+		&--warning { background: var( --logscope-dot-warning ); opacity: 1; }
+		&--notice { background: var( --logscope-dot-notice ); opacity: 1; }
+		&--deprecated { background: var( --logscope-dot-deprecated ); opacity: 1; }
+		&--unknown { background: var( --logscope-dot-unknown ); opacity: 1; }
+	}
 
 	&--fatal {
 		background: var( --logscope-pill-fatal-bg );
@@ -725,21 +813,24 @@ body.admin-color-midnight {
 
 .logscope-trace {
 	list-style: none;
-	margin: 4px 0 8px;
-	padding: 8px 12px;
+	margin: 4px 12px 10px;
+	padding: 10px 14px;
 	background: var( --logscope-bg-sunken );
-	border-radius: 2px;
+	border: 1px solid var( --logscope-border-soft );
+	border-radius: var( --logscope-radius-sm );
+	font-family: var( --logscope-font-mono );
 
 	&__frame {
 		display: flex;
-		gap: 8px;
+		gap: 10px;
 		align-items: baseline;
-		padding: 2px 0;
-		font-size: 11px;
+		padding: 3px 0;
+		font-size: 11.5px;
+		line-height: 1.55;
 	}
 
 	&__index {
-		color: var( --logscope-fg-muted );
+		color: var( --logscope-fg-mute );
 		flex-shrink: 0;
 		width: 28px;
 	}
@@ -752,6 +843,7 @@ body.admin-color-midnight {
 		color: var( --logscope-accent );
 		cursor: pointer;
 		font: inherit;
+		font-family: var( --logscope-font-mono );
 		text-decoration: underline dotted;
 
 		&:hover {
@@ -768,10 +860,10 @@ body.admin-color-midnight {
 	&__copied {
 		display: inline-block;
 		margin-left: 6px;
-		padding: 0 6px;
+		padding: 1px 7px;
 		background: var( --logscope-pill-notice-bg );
 		color: var( --logscope-pill-notice-fg );
-		border-radius: 2px;
+		border-radius: var( --logscope-radius-xs );
 		font-size: 10px;
 		font-weight: 600;
 	}

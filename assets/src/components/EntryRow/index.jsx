@@ -3,6 +3,13 @@
  * + an inline style from react-window (which absolutely-positions the
  * row with a fixed height) plus the shared `items` array via rowProps.
  *
+ * Visually a row is a single-line table layout: severity badge,
+ * timestamp (mono), message (mono, flex), file:line (mono, right-
+ * aligned), and a hover-revealed `⋯` expand affordance. A 3px left
+ * edge bar carries the severity color so the page can be skimmed by
+ * peripheral vision without parsing each badge. When expanded the
+ * StackTracePanel renders inline below the head row.
+ *
  * Expansion state lives in the store (`expandedTraces[entryKey]`) so it
  * survives react-window's row recycling on scroll. The row reads its
  * own expansion state directly from the store rather than via rowProps,
@@ -19,9 +26,9 @@ import StackTracePanel from '../StackTracePanel';
 
 export { entryKey };
 
-export const ROW_HEIGHT_BASE = 48;
-export const ROW_HEIGHT_FRAME = 28;
-export const ROW_HEIGHT_FRAME_PADDING = 16;
+export const ROW_HEIGHT_BASE = 44;
+export const ROW_HEIGHT_FRAME = 26;
+export const ROW_HEIGHT_FRAME_PADDING = 24;
 
 export function rowHeightFor( entry, isExpanded ) {
 	if ( ! entry ) {
@@ -36,6 +43,13 @@ export function rowHeightFor( entry, isExpanded ) {
 		frames.length * ROW_HEIGHT_FRAME +
 		ROW_HEIGHT_FRAME_PADDING
 	);
+}
+
+function pathLabel( entry ) {
+	if ( ! entry?.file ) {
+		return '';
+	}
+	return entry.line ? entry.file + ':' + entry.line : entry.file;
 }
 
 export default function EntryRow( { index, style, items } ) {
@@ -55,6 +69,7 @@ export default function EntryRow( { index, style, items } ) {
 	const label = severityLabel( entry.severity );
 	const frames = Array.isArray( entry.frames ) ? entry.frames : [];
 	const hasTrace = frames.length > 0;
+	const path = pathLabel( entry );
 
 	return (
 		<div
@@ -69,6 +84,12 @@ export default function EntryRow( { index, style, items } ) {
 					className={ `logscope-pill logscope-pill--${ tone }` }
 					aria-label={ label }
 				>
+					<span
+						className={
+							'logscope-pill__dot logscope-pill__dot--' + tone
+						}
+						aria-hidden="true"
+					/>
 					{ label }
 				</span>
 				<time
@@ -80,6 +101,11 @@ export default function EntryRow( { index, style, items } ) {
 				<span className="logscope-entry__message">
 					{ entry.message || '' }
 				</span>
+				{ path && (
+					<span className="logscope-entry__path" title={ path }>
+						{ path }
+					</span>
+				) }
 				{ hasTrace && (
 					<button
 						type="button"
