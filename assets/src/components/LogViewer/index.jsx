@@ -22,6 +22,7 @@ import EntryRow, { entryKey, rowHeightFor, ROW_HEIGHT_BASE } from '../EntryRow';
 import EmptyState from '../EmptyState';
 import FilterBar from '../FilterBar';
 import GroupedView from '../GroupedView';
+import OnboardingBanner from '../OnboardingBanner';
 import { ListSkeleton } from '../Skeleton';
 import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
 import useUrlQuerySync from '../../hooks/useUrlQuerySync';
@@ -53,13 +54,22 @@ export default function LogViewer() {
 		},
 		[]
 	);
-	const { fetchLogs, setViewMode, setTailActive } = useDispatch( STORE_KEY );
+	const { fetchLogs, fetchDiagnostics, setViewMode, setTailActive } =
+		useDispatch( STORE_KEY );
 
 	useUrlQuerySync( viewMode, filters );
 
 	useEffect( () => {
 		fetchLogs( buildQueryParams( filters, viewMode ) );
 	}, [ fetchLogs, viewMode, filters ] );
+
+	// Diagnostics powers the onboarding banner and the upcoming
+	// reason-aware empty state. Fetched once on mount — the snapshot
+	// is cheap server-side and the host's debug-flag state does not
+	// change without a wp-config edit + a tab reload.
+	useEffect( () => {
+		fetchDiagnostics();
+	}, [ fetchDiagnostics ] );
 
 	// Subscribe to global keyboard shortcut events from App. Toggle handlers
 	// live in this component because they own the state setters; the focus-
@@ -105,6 +115,7 @@ export default function LogViewer() {
 
 	return (
 		<div className="logscope-logs">
+			<OnboardingBanner />
 			<FilterBar />
 
 			<div

@@ -107,6 +107,11 @@ const DEFAULT_STATE = {
 		isLoading: false,
 		loadError: null,
 	},
+	diagnostics: {
+		data: null,
+		isLoading: false,
+		loadError: null,
+	},
 	toasts: [],
 };
 
@@ -477,6 +482,26 @@ const actions = {
 			yield actions.receiveStats( payload );
 		} catch ( error ) {
 			yield actions.failLoadStats( error?.message || 'Unknown error' );
+		}
+	},
+	startLoadingDiagnostics() {
+		return { type: 'DIAGNOSTICS_LOADING' };
+	},
+	receiveDiagnostics( payload ) {
+		return { type: 'DIAGNOSTICS_RECEIVED', payload };
+	},
+	failLoadDiagnostics( error ) {
+		return { type: 'DIAGNOSTICS_LOAD_FAILED', error };
+	},
+	*fetchDiagnostics() {
+		yield actions.startLoadingDiagnostics();
+		try {
+			const payload = yield { type: 'API_FETCH_DIAGNOSTICS' };
+			yield actions.receiveDiagnostics( payload );
+		} catch ( error ) {
+			yield actions.failLoadDiagnostics(
+				error?.message || 'Unknown error'
+			);
 		}
 	},
 	pushToast( { message, status = 'info', ttlMs = TOAST_DEFAULT_TTL_MS } ) {
@@ -962,6 +987,33 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					loadError: action.error,
 				},
 			};
+		case 'DIAGNOSTICS_LOADING':
+			return {
+				...state,
+				diagnostics: {
+					...state.diagnostics,
+					isLoading: true,
+					loadError: null,
+				},
+			};
+		case 'DIAGNOSTICS_RECEIVED':
+			return {
+				...state,
+				diagnostics: {
+					data: action.payload,
+					isLoading: false,
+					loadError: null,
+				},
+			};
+		case 'DIAGNOSTICS_LOAD_FAILED':
+			return {
+				...state,
+				diagnostics: {
+					...state.diagnostics,
+					isLoading: false,
+					loadError: action.error,
+				},
+			};
 		case 'TOAST_PUSHED':
 			return { ...state, toasts: [ ...state.toasts, action.toast ] };
 		case 'TOAST_DISMISSED':
@@ -1023,6 +1075,9 @@ const selectors = {
 	getStatsData: ( state ) => state.stats.data,
 	isLoadingStats: ( state ) => state.stats.isLoading,
 	getStatsLoadError: ( state ) => state.stats.loadError,
+	getDiagnostics: ( state ) => state.diagnostics.data,
+	isLoadingDiagnostics: ( state ) => state.diagnostics.isLoading,
+	getDiagnosticsLoadError: ( state ) => state.diagnostics.loadError,
 	getToasts: ( state ) => state.toasts,
 };
 
@@ -1068,6 +1123,9 @@ const controls = {
 		const range = select( STORE_KEY ).getStatsRange();
 		const bucket = select( STORE_KEY ).getStatsBucket();
 		return client.getStats( { range, bucket } );
+	},
+	API_FETCH_DIAGNOSTICS() {
+		return client.getDiagnostics();
 	},
 };
 

@@ -651,7 +651,7 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
     -   **AC**: Integration test — endpoint returns the snapshot shape.
     -   **Commit**: `feat(rest): add GET /diagnostics endpoint`
 
--   [ ] **16.3** Onboarding banner on Logs tab when `WP_DEBUG_LOG` is off
+-   [x] **16.3** Onboarding banner on Logs tab when `WP_DEBUG_LOG` is off
 
     -   Dismissible-per-session banner above the FilterBar with manual `wp-config.php` instructions (no auto-edit — that's deferred to post-1.0).
     -   Banner copy includes the exact lines to add and links to the WP handbook.
