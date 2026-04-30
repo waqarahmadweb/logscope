@@ -114,6 +114,12 @@ export const client = {
 			method: 'DELETE',
 		} );
 	},
+	getStats( { range = '24h', bucket = 'hour' } = {} ) {
+		const query = new URLSearchParams( { range, bucket } );
+		return apiFetch( {
+			path: logscopePath( '/stats' ) + '?' + query.toString(),
+		} );
+	},
 };
 
 export { bootstrap };

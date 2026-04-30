@@ -603,7 +603,7 @@ Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time 
     -   **AC**: Integration test — fixture log returns expected bucket count + top-N.
     -   **Commit**: `feat(rest): add GET /stats endpoint`
 
--   [ ] **15.3** New "Stats" React tab
+-   [x] **15.3** New "Stats" React tab
 
     -   Third tab next to Logs / Settings. Tab order: Logs · Stats · Settings (Stats slots between because it shares filter context).
     -   `@wordpress/data` `stats` slice with the same draft/values shape as settings.

@@ -672,3 +672,43 @@ body.admin-color-midnight {
 		}
 	}
 }
+
+
+.logscope-stats {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 16px 0;
+
+	&__controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px;
+	}
+
+	&__group {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		border: 1px solid var( --logscope-border );
+		border-radius: 4px;
+		padding: 4px 10px;
+		margin: 0;
+	}
+
+	&__legend {
+		font-size: 12px;
+		color: var( --logscope-fg-muted );
+		margin: 0 6px 0 0;
+		padding: 0;
+	}
+
+	&__status {
+		color: var( --logscope-fg-muted );
+		margin: 0;
+	}
+
+	&__summary {
+		font-size: 13px;
+	}
+}
