@@ -54,6 +54,14 @@ const DEFAULT_STATE = {
 	filters: { ...DEFAULT_FILTERS, ...( initialQuery?.filters || {} ) },
 	expandedGroups: {},
 	expandedTraces: {},
+	// List-view per-entry selection. Stored as a plain object (entryKey →
+	// true) rather than a Set so the reducer stays serialisable and the
+	// equality checks stay shallow. Pruned on every LOGS_RECEIVED so a
+	// row that disappeared because the user changed filters does not
+	// linger as a phantom selection. Grouped-view selection is local to
+	// the GroupedView component because a different domain (signatures)
+	// keys it; cross-mode selection is intentionally not supported.
+	selectedEntries: {},
 	scrollOffsets: { list: 0, grouped: 0 },
 	tail: {
 		active: false,
@@ -136,6 +144,15 @@ const actions = {
 	},
 	toggleTraceExpanded( key ) {
 		return { type: 'TOGGLE_TRACE_EXPANDED', key };
+	},
+	toggleEntrySelected( key ) {
+		return { type: 'TOGGLE_ENTRY_SELECTED', key };
+	},
+	clearEntrySelection() {
+		return { type: 'CLEAR_ENTRY_SELECTION' };
+	},
+	selectAllEntries( keys ) {
+		return { type: 'SELECT_ALL_ENTRIES', keys };
 	},
 	setScrollOffset( mode, offset ) {
 		return { type: 'SET_SCROLL_OFFSET', mode, offset };
@@ -628,6 +645,24 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 			}
 			return { ...state, expandedTraces: next };
 		}
+		case 'TOGGLE_ENTRY_SELECTED': {
+			const next = { ...state.selectedEntries };
+			if ( next[ action.key ] ) {
+				delete next[ action.key ];
+			} else {
+				next[ action.key ] = true;
+			}
+			return { ...state, selectedEntries: next };
+		}
+		case 'CLEAR_ENTRY_SELECTION':
+			return { ...state, selectedEntries: {} };
+		case 'SELECT_ALL_ENTRIES': {
+			const next = {};
+			( action.keys || [] ).forEach( ( k ) => {
+				next[ k ] = true;
+			} );
+			return { ...state, selectedEntries: next };
+		}
 		case 'TAIL_SET_ACTIVE':
 			return {
 				...state,
@@ -708,9 +743,20 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					expandedTraces[ key ] = true;
 				}
 			} );
+			// Same prune for the per-entry selection — a row that was
+			// checked but is no longer in the response (different filter
+			// applied, page flipped) cannot be acted on, so dropping it
+			// from the set keeps the count honest.
+			const selectedEntries = {};
+			Object.keys( state.selectedEntries ).forEach( ( key ) => {
+				if ( liveKeys[ key ] ) {
+					selectedEntries[ key ] = true;
+				}
+			} );
 			return {
 				...state,
 				expandedTraces,
+				selectedEntries,
 				logs: {
 					...state.logs,
 					isLoading: false,
@@ -1096,6 +1142,10 @@ const selectors = {
 		Boolean( state.expandedGroups[ signature ] ),
 	isTraceExpanded: ( state, key ) => Boolean( state.expandedTraces[ key ] ),
 	getExpandedTraces: ( state ) => state.expandedTraces,
+	isEntrySelected: ( state, key ) => Boolean( state.selectedEntries[ key ] ),
+	getSelectedEntryKeys: ( state ) => Object.keys( state.selectedEntries ),
+	getSelectedEntryCount: ( state ) =>
+		Object.keys( state.selectedEntries ).length,
 	getScrollOffset: ( state, mode ) => state.scrollOffsets[ mode ] || 0,
 	isTailActive: ( state ) => state.tail.active,
 	getTailLastByte: ( state ) => state.tail.lastByte,

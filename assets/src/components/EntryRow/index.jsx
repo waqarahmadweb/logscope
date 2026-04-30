@@ -55,11 +55,18 @@ function pathLabel( entry ) {
 export default function EntryRow( { index, style, items } ) {
 	const entry = items[ index ];
 	const key = entryKey( entry );
-	const isExpanded = useSelect(
-		( select ) => select( STORE_KEY ).isTraceExpanded( key ),
+	const { isExpanded, isSelected } = useSelect(
+		( select ) => {
+			const store = select( STORE_KEY );
+			return {
+				isExpanded: store.isTraceExpanded( key ),
+				isSelected: store.isEntrySelected( key ),
+			};
+		},
 		[ key ]
 	);
-	const { toggleTraceExpanded } = useDispatch( STORE_KEY );
+	const { toggleTraceExpanded, toggleEntrySelected } =
+		useDispatch( STORE_KEY );
 
 	if ( ! entry ) {
 		return <div style={ style } aria-hidden="true" />;
@@ -75,11 +82,18 @@ export default function EntryRow( { index, style, items } ) {
 		<div
 			className={ `logscope-entry logscope-entry--${ tone }${
 				isExpanded ? ' logscope-entry--expanded' : ''
-			}` }
+			}${ isSelected ? ' logscope-entry--selected' : '' }` }
 			style={ style }
 			role="listitem"
 		>
 			<div className="logscope-entry__head">
+				<input
+					type="checkbox"
+					className="logscope-entry__checkbox"
+					checked={ isSelected }
+					onChange={ () => toggleEntrySelected( key ) }
+					aria-label={ __( 'Select this log entry', 'logscope' ) }
+				/>
 				<span
 					className={ `logscope-pill logscope-pill--${ tone }` }
 					aria-label={ label }

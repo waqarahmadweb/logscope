@@ -595,6 +595,94 @@ body.admin-color-midnight {
 	}
 }
 
+// Sticky dark bulk-action bar — surfaces only when ≥ 1 row is checked
+// in List view. Coexists with the toolbar's Mute / Export buttons (the
+// light buttons stay enabled for the same actions); the dark bar is
+// the persistent affordance that follows you down the page while you
+// keep working through the selection.
+.logscope-bulk-bar {
+	position: sticky;
+	top: 32px; // wp-admin top bar
+	z-index: 6;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background: var( --logscope-fg );
+	color: var( --logscope-bg-muted );
+	border-radius: var( --logscope-radius-md );
+	padding: 9px 14px;
+	margin-bottom: 10px;
+	box-shadow: 0 8px 24px -12px rgba( 20, 15, 30, 0.4 );
+	font-size: 13px;
+
+	&__count {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+
+		strong {
+			font-weight: 600;
+		}
+	}
+
+	&__check {
+		width: 14px;
+		height: 14px;
+		border-radius: var( --logscope-radius-xs );
+		background: var( --logscope-bg-muted );
+		background-image: linear-gradient(
+			135deg,
+			transparent 35%,
+			var( --logscope-fg ) 35%,
+			var( --logscope-fg ) 45%,
+			transparent 45%,
+			transparent 60%,
+			var( --logscope-fg ) 60%,
+			var( --logscope-fg ) 70%,
+			transparent 70%
+		);
+	}
+
+	&__sep {
+		color: rgba( 255, 255, 255, 0.32 );
+	}
+
+	&__btn {
+		appearance: none;
+		font: inherit;
+		font-size: 12.5px;
+		font-weight: 500;
+		padding: 5px 11px;
+		border-radius: var( --logscope-radius-sm );
+		border: 1px solid rgba( 255, 255, 255, 0.18 );
+		background: transparent;
+		color: var( --logscope-bg-muted );
+		cursor: pointer;
+
+		&:hover {
+			background: rgba( 255, 255, 255, 0.08 );
+			border-color: rgba( 255, 255, 255, 0.28 );
+		}
+	}
+
+	&__cancel {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		font: inherit;
+		font-size: 12.5px;
+		color: rgba( 255, 255, 255, 0.72 );
+		cursor: pointer;
+		padding: 6px 10px;
+		border-radius: var( --logscope-radius-sm );
+
+		&:hover {
+			color: var( --logscope-bg-muted );
+			background: rgba( 255, 255, 255, 0.08 );
+		}
+	}
+}
+
 .logscope-toolbar {
 	display: flex;
 	align-items: center;
@@ -773,10 +861,20 @@ body.admin-color-midnight {
 
 	&__head {
 		display: grid;
-		grid-template-columns: auto auto 1fr minmax( 0, 320px ) auto;
+		grid-template-columns: 22px auto auto 1fr minmax( 0, 320px ) auto;
 		gap: 12px;
 		align-items: center;
 		min-height: 32px;
+	}
+
+	&__checkbox {
+		margin: 0;
+		width: 14px;
+		height: 14px;
+	}
+
+	&--selected {
+		background: var( --logscope-row-hover );
 	}
 
 	&__timestamp {

@@ -11,7 +11,7 @@
  * the rowHeight function closes over the store's `expandedTraces` map
  * so toggling expansion forces a measure pass.
  */
-import { useCallback, useEffect, useRef } from '@wordpress/element';
+import { useCallback, useEffect, useMemo, useRef } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf, _n } from '@wordpress/i18n';
 import { Button } from '@wordpress/components';
@@ -49,6 +49,8 @@ export default function LogViewer() {
 		isTailing,
 		diagnostics,
 		muteCount,
+		selectedKeys,
+		selectedCount,
 	} = useSelect( ( select ) => {
 		const store = select( STORE_KEY );
 		return {
@@ -60,6 +62,8 @@ export default function LogViewer() {
 			isTailing: store.isTailActive(),
 			diagnostics: store.getDiagnostics(),
 			muteCount: store.getMutes().length,
+			selectedKeys: store.getSelectedEntryKeys(),
+			selectedCount: store.getSelectedEntryCount(),
 		};
 	}, [] );
 	const {
@@ -68,7 +72,62 @@ export default function LogViewer() {
 		fetchMutes,
 		setViewMode,
 		setTailActive,
+		clearEntrySelection,
+		pushToast,
 	} = useDispatch( STORE_KEY );
+
+	// Per-entry bulk actions. Mute-by-entry is intentionally out of
+	// scope — the mute domain is per-signature (grouped view), not
+	// per-entry. Copy paths grabs `file:line` strings from the
+	// selected rows and writes them newline-joined to the clipboard.
+	// Export builds a CSV mirroring the grouped-view export shape so
+	// downstream tooling does not have to special-case list output.
+	const selectedEntries = useMemo( () => {
+		if ( selectedCount === 0 ) {
+			return [];
+		}
+		const set = new Set( selectedKeys );
+		return items.filter( ( entry ) => set.has( entryKey( entry ) ) );
+	}, [ items, selectedKeys, selectedCount ] );
+
+	const onCopyPaths = async () => {
+		if ( selectedCount === 0 || ! navigator?.clipboard ) {
+			return;
+		}
+		const lines = selectedEntries
+			.map( ( e ) =>
+				e.file && e.line ? `${ e.file }:${ e.line }` : e.file || ''
+			)
+			.filter( Boolean );
+		try {
+			await navigator.clipboard.writeText( lines.join( '\n' ) );
+			pushToast( {
+				message: sprintf(
+					/* translators: %d is the number of file paths copied. */
+					_n(
+						'Copied %d path to clipboard.',
+						'Copied %d paths to clipboard.',
+						lines.length,
+						'logscope'
+					),
+					lines.length
+				),
+				status: 'success',
+			} );
+		} catch ( e ) {
+			pushToast( {
+				message: __( 'Could not copy to clipboard.', 'logscope' ),
+				status: 'error',
+			} );
+		}
+	};
+
+	const onExportSelected = () => {
+		if ( selectedCount === 0 ) {
+			return;
+		}
+		downloadEntriesCsv( selectedEntries );
+	};
 
 	useUrlQuerySync( viewMode, filters );
 
@@ -180,27 +239,106 @@ export default function LogViewer() {
 					<button
 						type="button"
 						className="logscope-toolbar__bulk-btn"
-						disabled
+						disabled={ selectedCount === 0 }
 						title={ __(
-							'Select rows to enable bulk mute',
+							'Mute applies per signature — switch to Grouped view to mute by signature',
 							'logscope'
 						) }
+						onClick={ () => {
+							if ( selectedCount === 0 ) {
+								return;
+							}
+							setViewMode( 'grouped' );
+							pushToast( {
+								message: __(
+									'Switched to Grouped view — select the matching signature(s) and use the Mute action there.',
+									'logscope'
+								),
+								status: 'info',
+							} );
+						} }
 					>
-						{ __( 'Mute selected', 'logscope' ) }
+						{ selectedCount > 0
+							? sprintf(
+									/* translators: %d is the number of selected entries. */
+									_n(
+										'Mute (%d)',
+										'Mute (%d)',
+										selectedCount,
+										'logscope'
+									),
+									selectedCount
+							  )
+							: __( 'Mute selected', 'logscope' ) }
 					</button>
 					<button
 						type="button"
 						className="logscope-toolbar__bulk-btn logscope-toolbar__bulk-btn--primary"
-						disabled
-						title={ __(
-							'Select rows to enable bulk export',
-							'logscope'
-						) }
+						disabled={ selectedCount === 0 }
+						onClick={ onExportSelected }
 					>
-						{ __( 'Export selected', 'logscope' ) }
+						{ selectedCount > 0
+							? sprintf(
+									/* translators: %d is the number of selected entries. */
+									_n(
+										'Export (%d)',
+										'Export (%d)',
+										selectedCount,
+										'logscope'
+									),
+									selectedCount
+							  )
+							: __( 'Export selected', 'logscope' ) }
 					</button>
 				</div>
 			</div>
+
+			{ selectedCount > 0 && (
+				<div
+					className="logscope-bulk-bar"
+					role="region"
+					aria-label={ __( 'Bulk actions', 'logscope' ) }
+				>
+					<span className="logscope-bulk-bar__count">
+						<span
+							className="logscope-bulk-bar__check"
+							aria-hidden="true"
+						/>
+						<strong>{ selectedCount }</strong>{ ' ' }
+						{ _n(
+							'selected',
+							'selected',
+							selectedCount,
+							'logscope'
+						) }
+					</span>
+					<span className="logscope-bulk-bar__sep" aria-hidden="true">
+						·
+					</span>
+					<button
+						type="button"
+						className="logscope-bulk-bar__btn"
+						onClick={ onCopyPaths }
+					>
+						📋 { __( 'Copy paths', 'logscope' ) }
+					</button>
+					<button
+						type="button"
+						className="logscope-bulk-bar__btn"
+						onClick={ onExportSelected }
+					>
+						⤓ { __( 'Export', 'logscope' ) }
+					</button>
+					<span style={ { flex: 1 } } />
+					<button
+						type="button"
+						className="logscope-bulk-bar__cancel"
+						onClick={ () => clearEntrySelection() }
+					>
+						{ __( 'Clear selection', 'logscope' ) }
+					</button>
+				</div>
+			) }
 
 			<ViewerBody
 				items={ items }
@@ -383,5 +521,75 @@ function GroupedScrollPane() {
 		>
 			<GroupedView />
 		</div>
+	);
+}
+
+/**
+ * Builds a CSV blob from selected log entries and triggers a browser
+ * download. Mirrors the grouped-view export shape (severity, file,
+ * line, message, raw, timestamp) so downstream tools that already
+ * parse the grouped CSV need only minimal column-mapping changes.
+ *
+ * @param {Array<object>} entries Selected entry payloads.
+ */
+function downloadEntriesCsv( entries ) {
+	const header = [
+		'timestamp',
+		'severity',
+		'file',
+		'line',
+		'message',
+		'raw',
+	];
+	const lines = [ header.join( ',' ) ];
+	entries.forEach( ( entry ) => {
+		lines.push(
+			[
+				csvCell( entry.timestamp ),
+				csvCell( entry.severity ),
+				csvCell( entry.file ),
+				csvCell( entry.line ),
+				csvCell( entry.message ),
+				csvCell( entry.raw ),
+			].join( ',' )
+		);
+	} );
+	const csv = lines.join( '\r\n' ) + '\r\n';
+
+	const blob = new Blob( [ '﻿', csv ], {
+		type: 'text/csv;charset=utf-8',
+	} );
+	const url = URL.createObjectURL( blob );
+	const anchor = document.createElement( 'a' );
+	anchor.href = url;
+	anchor.download = `logscope-entries-${ timestampForFilename() }.csv`;
+	document.body.appendChild( anchor );
+	anchor.click();
+	document.body.removeChild( anchor );
+	setTimeout( () => URL.revokeObjectURL( url ), 1000 );
+}
+
+function csvCell( value ) {
+	if ( value === undefined || value === null ) {
+		return '';
+	}
+	const str = String( value );
+	if ( /[",\r\n]/.test( str ) ) {
+		return '"' + str.replace( /"/g, '""' ) + '"';
+	}
+	return str;
+}
+
+function timestampForFilename() {
+	const now = new Date();
+	const pad = ( n ) => String( n ).padStart( 2, '0' );
+	return (
+		now.getFullYear() +
+		pad( now.getMonth() + 1 ) +
+		pad( now.getDate() ) +
+		'-' +
+		pad( now.getHours() ) +
+		pad( now.getMinutes() ) +
+		pad( now.getSeconds() )
 	);
 }
