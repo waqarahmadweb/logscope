@@ -260,60 +260,311 @@ body.admin-color-midnight {
 }
 
 .logscope-filter-bar {
-	background: var( --logscope-bg-muted );
-	border: 1px solid var( --logscope-border );
-	border-radius: 4px;
-	padding: 12px;
 	display: flex;
-	flex-wrap: wrap;
-	gap: 12px 16px;
-	align-items: flex-end;
+	flex-direction: column;
+	gap: 8px;
 
-	&__severity {
-		border: 0;
-		padding: 0;
-		margin: 0;
+	&__toolbar {
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
+		padding: 8px 10px;
 		display: flex;
 		flex-wrap: wrap;
-		gap: 4px 12px;
+		gap: 6px;
 		align-items: center;
+	}
 
-		legend {
-			font-weight: 600;
-			padding: 0;
-			margin-right: 8px;
+	&__pill {
+		appearance: none;
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		padding: 5px 11px;
+		border-radius: var( --logscope-radius-pill );
+		font: inherit;
+		font-size: 12.5px;
+		font-weight: 500;
+		color: var( --logscope-fg );
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		cursor: pointer;
+		transition: background 0.1s, border-color 0.1s;
+
+		&:hover {
+			background: var( --logscope-bg );
+			border-color: var( --logscope-border-strong );
+		}
+
+		&--on {
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
+			border-color: var( --logscope-fg );
+		}
+
+		&--ghost {
+			color: var( --logscope-fg-muted );
+		}
+
+		&--active {
+			color: var( --logscope-fg );
+			background: var( --logscope-bg );
+			border-color: var( --logscope-border-strong );
 		}
 	}
 
-	&__severity-item {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		font-size: 12px;
+	&__dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		display: inline-block;
+		flex-shrink: 0;
+
+		&--fatal { background: var( --logscope-dot-fatal ); }
+		&--parse { background: var( --logscope-dot-parse ); }
+		&--warning { background: var( --logscope-dot-warning ); }
+		&--notice { background: var( --logscope-dot-notice ); }
+		&--deprecated { background: var( --logscope-dot-deprecated ); }
+		&--strict { background: var( --logscope-dot-strict ); }
+		&--unknown { background: var( --logscope-dot-unknown ); }
 	}
 
-	&__field {
+	&__sep {
+		width: 1px;
+		height: 20px;
+		background: var( --logscope-border );
+		margin: 0 4px;
+	}
+
+	&__search {
+		flex: 1;
+		min-width: 240px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-pill );
+		padding: 0 12px;
+		transition: border-color 0.1s;
+
+		&:focus-within {
+			border-color: var( --logscope-fg );
+		}
+
+		input {
+			flex: 1;
+			border: 0;
+			outline: 0;
+			background: transparent;
+			padding: 6px 0;
+			font: inherit;
+			font-family: var( --logscope-font-mono );
+			font-size: 12.5px;
+			color: var( --logscope-fg );
+
+			&::placeholder {
+				color: var( --logscope-fg-mute );
+			}
+
+			// Hide the WebKit search-cancel button so the kbd hint doesn't
+			// fight the X icon for the same corner of the input.
+			&::-webkit-search-cancel-button {
+				display: none;
+			}
+		}
+	}
+
+	&__search-icon {
+		font-size: 11px;
+		opacity: 0.55;
+	}
+
+	&__kbd {
+		font-family: var( --logscope-font-mono );
+		font-size: 11px;
+		padding: 1px 6px;
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-xs );
+		color: var( --logscope-fg-muted );
+		background: var( --logscope-bg );
+	}
+
+	&__menu-wrap {
+		position: relative;
+	}
+
+	&__menu {
+		position: absolute;
+		top: calc( 100% + 6px );
+		left: 0;
+		z-index: 30;
+		min-width: 220px;
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
+		padding: 6px;
+		box-shadow: 0 12px 32px -12px rgba( 20, 15, 30, 0.18 );
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
-		font-size: 12px;
 
-		span {
+		&--date {
+			padding: 12px;
+			gap: 10px;
+
+			label {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+				font-size: 12px;
+				font-weight: 500;
+				color: var( --logscope-fg-muted );
+
+				input {
+					background: var( --logscope-bg );
+					color: var( --logscope-fg );
+					border: 1px solid var( --logscope-border );
+					border-radius: var( --logscope-radius-sm );
+					padding: 6px 8px;
+					font: inherit;
+					font-size: 13px;
+				}
+			}
+		}
+
+		&--source,
+		&--preset {
+			max-height: 280px;
+			overflow-y: auto;
+		}
+	}
+
+	&__menu-item {
+		appearance: none;
+		text-align: left;
+		background: transparent;
+		border: 0;
+		padding: 7px 10px;
+		border-radius: var( --logscope-radius-sm );
+		font: inherit;
+		font-size: 13px;
+		color: var( --logscope-fg );
+		cursor: pointer;
+		font-family: var( --logscope-font-mono );
+
+		&:hover {
+			background: var( --logscope-bg-sunken );
+		}
+
+		&--on {
+			background: var( --logscope-bg-sunken );
 			font-weight: 600;
 		}
 
-		input,
-		select {
-			background: var( --logscope-bg );
-			color: var( --logscope-fg );
-			border: 1px solid var( --logscope-border );
-			border-radius: 2px;
-			padding: 4px 6px;
-			min-height: 28px;
+		&--primary {
+			font-family: inherit;
+			font-weight: 500;
+			color: var( --logscope-accent );
 		}
 
-		&--regex input {
-			min-width: 200px;
+		&--flex {
+			flex: 1;
+		}
+	}
+
+	&__menu-empty {
+		padding: 12px 10px;
+		color: var( --logscope-fg-muted );
+		font-size: 12.5px;
+		font-style: italic;
+	}
+
+	&__menu-row {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	&__menu-delete {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		color: var( --logscope-fg-mute );
+		font-size: 16px;
+		line-height: 1;
+		width: 24px;
+		height: 24px;
+		border-radius: var( --logscope-radius-sm );
+		cursor: pointer;
+
+		&:hover {
+			background: var( --logscope-pill-fatal-bg );
+			color: var( --logscope-pill-fatal-fg );
+		}
+	}
+}
+
+.logscope-filter-summary {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding: 0 4px;
+	font-size: 12.5px;
+	color: var( --logscope-fg-muted );
+
+	strong {
+		color: var( --logscope-fg );
+		font-weight: 600;
+	}
+
+	&__sep {
+		color: var( --logscope-border-strong );
+	}
+
+	&__chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 3px 4px 3px 10px;
+		border-radius: var( --logscope-radius-pill );
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		font-size: 12px;
+		color: var( --logscope-fg );
+	}
+
+	&__chip-remove {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		color: var( --logscope-fg-muted );
+		font-size: 14px;
+		line-height: 1;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		cursor: pointer;
+
+		&:hover {
+			color: var( --logscope-fg );
+			background: var( --logscope-bg-sunken );
+		}
+	}
+
+	&__clear {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		color: var( --logscope-accent );
+		font: inherit;
+		font-size: 12.5px;
+		cursor: pointer;
+		padding: 0;
+
+		&:hover {
+			text-decoration: underline;
 		}
 	}
 }
