@@ -4,6 +4,20 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-04-30
+
+Closes Phase 17.1–17.4 of the [roadmap](ROADMAP.md): the pre-1.0 release infrastructure for the wp.org cut. No runtime changes — this release lands the `readme.txt` the WordPress.org plugin directory will render, the `.wordpress-org/` asset spec the maintainer will fill in with banner / icon / screenshot binaries, and the GitHub release workflow that builds the distribution zip on every `v*.*.*` tag push. The actual v1.0.0 cut is gated on Phase 17.5 (pre-1.0 changes, scope TBD), 17.7 (full security review), and the maintainer's go-ahead — none of which fire automatically from this release.
+
+### Added
+
+-   `.github/workflows/release.yml` (Phase 17.3) — runs on a `v*.*.*` tag push, sets up PHP 8.0 + Node 20 + pnpm, runs `composer install --no-dev` and `pnpm build`, then assembles a `logscope-<version>.zip` rooted at `logscope/` (the directory layout wp.org expects). The base file set comes from `git archive HEAD` so `.gitattributes export-ignore` is the source of truth for what stays out; `vendor/` (prod-only) and `assets/build/` are then layered in from the workspace because both are gitignored. A verify step inspects the resulting zip and fails the build if any of 26 forbidden paths (tests/, docs/, .github/, .husky/, .wordpress-org/, assets/src/, node_modules/, bin/, tools/, phpunit/phpcs configs, composer/pnpm manifests, eslint/prettier configs, dotfiles, AGENTS.md / CLAUDE.md / CHANGELOG.md / ROADMAP.md) appears, or if any of seven required paths (`logscope.php`, `readme.txt`, `uninstall.php`, `vendor/autoload.php`, `assets/build/index.js`, `assets/build/index.asset.php`, `src/Plugin.php`) is missing. Asset upload uses `softprops/action-gh-release@v2`. The workflow is **not exercised in this commit** — it lands inert and triggers on the next `v*.*.*` tag push.
+
+-   `.gitattributes` `/assets/src` and `/node_modules` `export-ignore` lines (Phase 17.3) — closes two gaps the release-zip audit surfaced. `assets/src/` is the React source tree (the bundle the plugin actually loads is `assets/build/`, which is gitignored and copied in by the release workflow), and `node_modules/` is gitignored locally but a belt-and-suspenders rule here means a `git archive` from a development checkout where `.gitignore` is bypassed still excludes it.
+
+-   `.wordpress-org/README.md` spec doc (Phase 17.2) — scaffolds the directory wp.org's SVN `assets/` will mirror at submission time. Documents the eight binary assets the v1.0.0 cut needs (banner 1544×500 PNG, icon 256×256 PNG, six 1280-px-wide screenshots) with captions sourced verbatim from `readme.txt`'s `== Screenshots ==` block so the two cannot drift, plus banner safe-area / icon padding / screenshot framing guidance for the maintainer producing them by hand. The directory is `export-ignore`d from the distribution zip; wp.org pulls these from SVN, not from the plugin zip itself.
+
+-   `readme.txt` in wp.org plugin-directory format (Phase 17.1) — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Upgrade Notice, Privacy. Description mirrors the README.md feature list; the Changelog section condenses CHANGELOG.md 0.1.0 → 0.14.0 into wp.org-flavored bullets (one paragraph + 2–4 highlights per shipped version) so the `wordpress.org/plugins/logscope/` listing is self-contained without back-references to the GitHub CHANGELOG. `Tested up to: 6.9` resolves the latest stable WP at session time (6.9.4) to the major.minor wp.org accepts. Privacy section names the only outbound paths (email via `wp_mail()` and webhook POST, both off by default) and the diagnostics REST endpoint, so the wp.org reviewer's "what does this plugin send off-site" check has a one-paragraph answer.
+
 ## [0.14.0] - 2026-04-30
 
 Closes Phase 16 of the [roadmap](ROADMAP.md): three features bundled into one release that close the gap between "Logscope is installed" and "Logscope is useful." A first-time admin opening the plugin on a host with `WP_DEBUG_LOG` off now sees an actionable onboarding banner with the exact lines to drop into `wp-config.php` and a link to the WordPress handbook, instead of staring at a silently empty page; the empty-log message itself was rewritten to surface the underlying reason (file missing, file empty, all entries muted, filters too narrow) rather than the same generic line in every case; and admins triaging a flood can now select multiple groups in the grouped view and act on the selection at once — mute the lot in a single batch or export them to CSV for handoff to another tool. The mute path piggybacks on Phase 14's idempotent `/logs/mute` route and refetches the page after the batch so muted groups disappear immediately; the CSV path builds the file client-side from the already-fetched rows so no new server route is needed.
@@ -263,7 +277,8 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/waqarahmadweb/logscope/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/waqarahmadweb/logscope/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/waqarahmadweb/logscope/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/waqarahmadweb/logscope/compare/v0.11.0...v0.12.0
