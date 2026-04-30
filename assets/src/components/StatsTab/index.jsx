@@ -20,6 +20,7 @@ import { __ } from '@wordpress/i18n';
 import { Button, Notice } from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
+import SparklineGrid from './SparklineGrid';
 
 const RANGES = [
 	{ value: '24h', label: __( 'Last 24 hours', 'logscope' ) },
@@ -128,6 +129,10 @@ function StatsSummary( { data } ) {
 				{ __( 'Entries in range:', 'logscope' ) }{ ' ' }
 				<strong>{ total }</strong>
 			</p>
+			<SparklineGrid
+				buckets={ data.buckets || [] }
+				totals={ data.totals || {} }
+			/>
 		</div>
 	);
 }

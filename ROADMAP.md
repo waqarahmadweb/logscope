@@ -609,7 +609,7 @@ Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time 
     -   `@wordpress/data` `stats` slice with the same draft/values shape as settings.
     -   **Commit**: `feat(ui): add Stats tab scaffold`
 
--   [ ] **15.4** Sparkline charts per severity
+-   [x] **15.4** Sparkline charts per severity
 
     -   Hand-rolled SVG (no chart library — bundle weight stays under 20KB gz). One sparkline per severity in a small-multiple grid.
     -   `aria-label` per chart describing peak / mean / total for the range; the SVG itself is `aria-hidden`.

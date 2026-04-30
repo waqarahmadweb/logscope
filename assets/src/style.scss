@@ -712,3 +712,65 @@ body.admin-color-midnight {
 		font-size: 13px;
 	}
 }
+
+.logscope-stats__sparkline-grid {
+	display: grid;
+	grid-template-columns: repeat( auto-fill, minmax( 200px, 1fr ) );
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.logscope-stats__sparkline-cell {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0;
+	padding: 10px 12px;
+	border: 1px solid var( --logscope-border );
+	border-radius: 4px;
+	background: var( --logscope-bg-muted );
+}
+
+.logscope-stats__sparkline-caption {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	font-size: 12px;
+	color: var( --logscope-fg-muted );
+}
+
+.logscope-stats__sparkline-total {
+	font-weight: 600;
+	color: var( --logscope-fg );
+}
+
+.logscope-sparkline {
+	width: 100%;
+	height: 32px;
+	display: block;
+	color: var( --logscope-fg-muted );
+
+	rect {
+		fill: currentColor;
+	}
+
+	&--fatal {
+		color: #d63638;
+	}
+
+	&--warning {
+		color: #dba617;
+	}
+
+	&--notice {
+		color: #2271b1;
+	}
+
+	&--deprecated {
+		color: #8c8f94;
+	}
+
+	&--unknown {
+		color: var( --logscope-border-strong );
+	}
+}
