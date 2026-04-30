@@ -364,6 +364,7 @@ final class Plugin {
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'logscope_scan_fatals', array( $this, 'run_cron_scan' ) );
+		add_filter( 'cron_schedules', array( __CLASS__, 'register_cron_schedule' ) );
 
 		// Re-align the WP schedule with the persisted toggle + interval
 		// any time either option changes, so a save through `Settings::set`
@@ -386,6 +387,46 @@ final class Plugin {
 	 */
 	public static function on_cron_setting_changed(): void {
 		CronScheduler::apply();
+	}
+
+	/**
+	 * `cron_schedules` filter callback. Registers the
+	 * `logscope_scan_interval` recurrence at the configured number of
+	 * minutes so {@see CronScheduler::apply()} can pass it to
+	 * `wp_schedule_event()`. Reads the setting through `get_option`
+	 * directly (rather than the `Settings` facade) because the filter
+	 * fires from `wp_get_schedules()` which can be called before the
+	 * plugin's DI graph is ready — same constraint that drives
+	 * `CronScheduler` to read options directly. The minutes value is
+	 * clamped to the same [1, 1440] range the schema enforces so a
+	 * pre-13.3 corrupted row cannot register a 0-second recurrence.
+	 *
+	 * @param array<string, array{interval:int, display:string}>|mixed $schedules Existing schedules.
+	 * @return array<string, array{interval:int, display:string}>
+	 */
+	public static function register_cron_schedule( $schedules ): array {
+		if ( ! is_array( $schedules ) ) {
+			$schedules = array();
+		}
+
+		$minutes = (int) get_option( CronScheduler::OPT_INTERVAL, CronScheduler::DEFAULT_INTERVAL_MINUTES );
+		if ( $minutes < 1 ) {
+			$minutes = 1;
+		}
+		if ( $minutes > 1440 ) {
+			$minutes = 1440;
+		}
+
+		$schedules[ CronScheduler::RECURRENCE ] = array(
+			'interval' => $minutes * 60,
+			'display'  => sprintf(
+				/* translators: %d: scan interval in minutes. */
+				_n( 'Every %d minute (Logscope)', 'Every %d minutes (Logscope)', $minutes, 'logscope' ),
+				$minutes
+			),
+		);
+
+		return $schedules;
 	}
 
 	/**

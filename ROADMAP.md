@@ -477,7 +477,7 @@ Goal: Background cron scans the log for new fatals and feeds the AlertCoordinato
     -   **AC**: Unit test — enabling the option calls `wp_schedule_event`; disabling calls `wp_clear_scheduled_hook`.
     -   **Commit**: `feat(cron): wire scanner into activation lifecycle`
 
--   [ ] **13.3** SettingsSchema extensions
+-   [x] **13.3** SettingsSchema extensions
 
     -   `cron_scan_enabled` (bool, default false), `cron_scan_interval_minutes` (int, default 5, min 1, max 1440).
     -   Custom interval registered via `cron_schedules` filter so admin choices map to a real schedule.
