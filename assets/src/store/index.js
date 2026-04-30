@@ -80,6 +80,11 @@ const DEFAULT_STATE = {
 		testResult: null,
 		testError: null,
 		isTesting: false,
+		alertTest: {
+			isSending: false,
+			results: null,
+			error: null,
+		},
 	},
 	toasts: [],
 };
@@ -185,6 +190,45 @@ const actions = {
 	},
 	clearTestResult() {
 		return { type: 'SETTINGS_TEST_CLEARED' };
+	},
+	startSendingTestAlert() {
+		return { type: 'ALERT_TEST_SENDING' };
+	},
+	receiveAlertTestResults( results ) {
+		return { type: 'ALERT_TEST_RECEIVED', results };
+	},
+	failAlertTest( error ) {
+		return { type: 'ALERT_TEST_FAILED', error };
+	},
+	clearAlertTestResults() {
+		return { type: 'ALERT_TEST_CLEARED' };
+	},
+	*sendTestAlert() {
+		yield actions.startSendingTestAlert();
+		try {
+			const payload = yield { type: 'API_TEST_ALERT' };
+			const results = ( payload && payload.results ) || [];
+			yield actions.receiveAlertTestResults( results );
+			const sent = results.filter( ( r ) => r.outcome === 'sent' ).length;
+			yield actions.pushToast( {
+				message:
+					sent > 0
+						? __( 'Test alert sent.', 'logscope' )
+						: __(
+								'Test alert dispatched but no backend reported success.',
+								'logscope'
+						  ),
+				status: sent > 0 ? 'success' : 'warning',
+			} );
+		} catch ( error ) {
+			yield actions.failAlertTest( error?.message || 'Unknown error' );
+			yield actions.pushToast( {
+				message:
+					error?.message ||
+					__( 'Could not send test alert.', 'logscope' ),
+				status: 'error',
+			} );
+		}
 	},
 	*fetchSettings() {
 		yield actions.startLoadingSettings();
@@ -559,6 +603,54 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					testError: null,
 				},
 			};
+		case 'ALERT_TEST_SENDING':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					alertTest: {
+						isSending: true,
+						results: null,
+						error: null,
+					},
+				},
+			};
+		case 'ALERT_TEST_RECEIVED':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					alertTest: {
+						isSending: false,
+						results: action.results,
+						error: null,
+					},
+				},
+			};
+		case 'ALERT_TEST_FAILED':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					alertTest: {
+						isSending: false,
+						results: null,
+						error: action.error,
+					},
+				},
+			};
+		case 'ALERT_TEST_CLEARED':
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					alertTest: {
+						isSending: false,
+						results: null,
+						error: null,
+					},
+				},
+			};
 		case 'TOAST_PUSHED':
 			return { ...state, toasts: [ ...state.toasts, action.toast ] };
 		case 'TOAST_DISMISSED':
@@ -598,6 +690,14 @@ const selectors = {
 	getPathTestResult: ( state ) => state.settings.testResult,
 	getPathTestError: ( state ) => state.settings.testError,
 	isTestingPath: ( state ) => state.settings.isTesting,
+	isSendingTestAlert: ( state ) =>
+		Boolean(
+			state.settings.alertTest && state.settings.alertTest.isSending
+		),
+	getAlertTestResults: ( state ) =>
+		state.settings.alertTest ? state.settings.alertTest.results : null,
+	getAlertTestError: ( state ) =>
+		state.settings.alertTest ? state.settings.alertTest.error : null,
 	getToasts: ( state ) => state.toasts,
 };
 
@@ -613,6 +713,9 @@ const controls = {
 	},
 	API_TEST_LOG_PATH( { path } ) {
 		return client.testLogPath( path );
+	},
+	API_TEST_ALERT() {
+		return client.testAlert();
 	},
 };
 

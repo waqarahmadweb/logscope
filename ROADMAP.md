@@ -386,14 +386,14 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
 
 Goal: Admins get notified about new fatals without watching the log. Email + webhook dispatchers, signature-keyed dedup so a single error doesn't fire 500 emails.
 
--   [ ] **12.1** `src/Alerts/AlertDispatcherInterface.php` + `Alerts/AlertDeduplicator.php`
+-   [x] **12.1** `src/Alerts/AlertDispatcherInterface.php` + `Alerts/AlertDeduplicator.php`
 
     -   Interface: `dispatch(Group $group): void`, `name(): string`.
     -   Dedup: transient keyed by `signature_hash | dispatcher_name`; TTL = configured window (default 300s); `should_send()` / `record_sent()` round-trip.
     -   **AC**: Unit tests cover dedup window expiry, distinct dispatchers don't share window, and signature collisions across dispatchers are independent.
     -   **Commit**: `feat(alerts): dispatcher interface and signature-keyed dedup`
 
--   [ ] **12.2** `src/Alerts/EmailAlerter.php`
+-   [x] **12.2** `src/Alerts/EmailAlerter.php`
 
     -   Uses `wp_mail()` with `text/html` content-type filter and a plaintext fallback body assembled by stripping tags.
     -   Subject template: `[Logscope] <Severity> on <site_name>: <short_msg>` (60-char truncation on `short_msg`).
@@ -401,7 +401,7 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Unit test (Brain Monkey) — `wp_mail` called with expected to/subject/body shape; html + plaintext both built; filters honoured.
     -   **Commit**: `feat(alerts): email dispatcher`
 
--   [ ] **12.3** 🔒 `src/Alerts/WebhookAlerter.php`
+-   [x] **12.3** 🔒 `src/Alerts/WebhookAlerter.php`
 
     -   Uses `wp_remote_post()` with `timeout: 5`, `blocking: true`, `redirection: 0` (don't follow redirects to internal hosts).
     -   Neutral JSON payload: `{site, severity, message, file, line, signature, first_seen, last_seen, count, url}`.
@@ -410,21 +410,21 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Unit test — `wp_remote_post` called with the right shape; non-2xx responses are recorded but don't throw; non-http(s) URLs rejected before send.
     -   **Commit**: `feat(alerts): webhook dispatcher with neutral payload`
 
--   [ ] **12.4** `src/Alerts/AlertCoordinator.php`
+-   [x] **12.4** `src/Alerts/AlertCoordinator.php`
 
     -   Iterates registered dispatchers, applies dedup per-dispatcher (so a webhook can fire while email is rate-limited and vice versa), fires `logscope/before_alert` (filterable; return `false` to skip) and `logscope/alert_sent` (action) around each dispatch.
     -   `dispatch_for_groups(Group[] $groups)` takes the LogRepository's grouped output directly.
     -   **AC**: Unit test — disabled dispatchers skipped; `before_alert` returning `false` short-circuits cleanly; `alert_sent` fires with `(group, dispatcher_name)`.
     -   **Commit**: `feat(alerts): coordinator with fanout + per-dispatcher dedup`
 
--   [ ] **12.5** SettingsSchema extensions
+-   [x] **12.5** SettingsSchema extensions
 
     -   New fields: `alert_email_enabled` (bool, default false), `alert_email_to` (sanitise via `sanitize_email`), `alert_webhook_enabled` (bool), `alert_webhook_url` (sanitise via `esc_url_raw` + protocol allowlist), `alert_dedup_window` (int seconds, default 300, min 60).
     -   `Activator::DEFAULT_OPTIONS` updated to seed the new keys (cross-link comment kept in sync).
     -   **AC**: Unit test — invalid email coerces to empty string; non-http URL coerces to empty; dedup window < 60 coerces to 60.
     -   **Commit**: `feat(settings): add alert fields to schema`
 
--   [ ] **12.6** 🔒 `src/REST/AlertsController.php` — `POST /alerts/test`
+-   [x] **12.6** 🔒 `src/REST/AlertsController.php` — `POST /alerts/test`
 
     -   Bypasses dedup; sends one synthetic alert to every enabled dispatcher.
     -   Returns per-dispatcher result: `{dispatcher, ok, error?}`.
@@ -432,7 +432,7 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Integration test — POST with email enabled returns `ok:true` for email; POST with both disabled returns 400 `logscope_rest_no_alerters_enabled`.
     -   **Commit**: `feat(rest): add POST /alerts/test endpoint`
 
--   [ ] **12.7** React `AlertsPanel` in Settings tab
+-   [x] **12.7** React `AlertsPanel` in Settings tab
 
     -   New section under existing settings form: email toggle + recipient `TextControl`, webhook toggle + URL `TextControl`, dedup window slider/number input, "Send test alert" button.
     -   Test result toast shows per-dispatcher outcome.
@@ -440,17 +440,19 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Hand-test on a WP install — change email, save, hit "Send test alert", receive the email.
     -   **Commit**: `feat(ui): alerts settings panel with test-send`
 
--   [ ] **12.8** 🔒 `security-review` skill pass
+-   [x] **12.8** 🔒 `security-review` skill pass
 
     -   Scope: `WebhookAlerter` (URL validation, redirect handling, payload escaping), `/alerts/test` route (rate limiting? cap check), email subject/body building (no header injection).
     -   **AC**: All HIGH / MEDIUM findings resolved (fix or documented non-issue).
     -   **Commit(s)**: one per fix as needed.
 
--   [ ] **12.9** 🏷️ **Release v0.10.0** — Alerts
+-   [x] **12.9** 🏷️ **Release v0.10.0** — Alerts
     -   Bump `Version:` in [logscope.php](logscope.php) to `0.10.0`.
     -   Roll `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) under `[0.10.0] - YYYY-MM-DD`; refresh link references.
     -   Update [README.md](README.md) status line.
     -   **Commit**: `chore(release): v0.10.0`
+
+> Phase 12 complete on 2026-04-30.
 
 ---
 

@@ -26,9 +26,14 @@ final class Activator {
 	 * @var array<string, mixed>
 	 */
 	private const DEFAULT_OPTIONS = array(
-		'logscope_log_path'      => '',
-		'logscope_tail_interval' => 3,
-		'logscope_db_version'    => '1',
+		'logscope_log_path'              => '',
+		'logscope_tail_interval'         => 3,
+		'logscope_alert_email_enabled'   => 0,
+		'logscope_alert_email_to'        => '',
+		'logscope_alert_webhook_enabled' => 0,
+		'logscope_alert_webhook_url'     => '',
+		'logscope_alert_dedup_window'    => 300,
+		'logscope_db_version'            => '1',
 	);
 
 	/**

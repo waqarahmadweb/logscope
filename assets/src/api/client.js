@@ -72,6 +72,12 @@ export const client = {
 			data: { path },
 		} );
 	},
+	testAlert() {
+		return apiFetch( {
+			path: logscopePath( '/alerts/test' ),
+			method: 'POST',
+		} );
+	},
 };
 
 export { bootstrap };
