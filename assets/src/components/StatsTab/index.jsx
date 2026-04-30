@@ -20,6 +20,7 @@ import { __ } from '@wordpress/i18n';
 import { Button, Notice } from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
+import BreakdownBar from './BreakdownBar';
 import SparklineGrid from './SparklineGrid';
 import TopSignaturesTable from './TopSignaturesTable';
 
@@ -130,6 +131,7 @@ function StatsSummary( { data } ) {
 				{ __( 'Entries in range:', 'logscope' ) }{ ' ' }
 				<strong>{ total }</strong>
 			</p>
+			<BreakdownBar totals={ data.totals || {} } />
 			<SparklineGrid
 				buckets={ data.buckets || [] }
 				totals={ data.totals || {} }

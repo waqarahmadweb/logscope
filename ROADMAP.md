@@ -622,7 +622,7 @@ Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time 
     -   **AC**: Click → tab switch → Logs view filtered.
     -   **Commit**: `feat(ui): top signatures table with click-through`
 
--   [ ] **15.6** Severity breakdown bar (range totals)
+-   [x] **15.6** Severity breakdown bar (range totals)
 
     -   Single horizontal stacked bar showing the proportion of each severity over the selected range.
     -   **Commit**: `feat(ui): severity breakdown bar`
