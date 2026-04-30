@@ -774,3 +774,35 @@ body.admin-color-midnight {
 		color: var( --logscope-border-strong );
 	}
 }
+
+.logscope-stats__top-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 24px;
+	font-size: 13px;
+
+	th,
+	td {
+		border-bottom: 1px solid var( --logscope-border );
+		padding: 8px 10px;
+		text-align: left;
+		vertical-align: top;
+	}
+
+	th {
+		font-weight: 600;
+		color: var( --logscope-fg-muted );
+		background: var( --logscope-bg-muted );
+	}
+}
+
+.logscope-stats__top-table-msg {
+	max-width: 480px;
+	word-break: break-word;
+}
+
+.logscope-stats__top-table-count {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}

@@ -21,6 +21,7 @@ import { Button, Notice } from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
 import SparklineGrid from './SparklineGrid';
+import TopSignaturesTable from './TopSignaturesTable';
 
 const RANGES = [
 	{ value: '24h', label: __( 'Last 24 hours', 'logscope' ) },
@@ -133,6 +134,7 @@ function StatsSummary( { data } ) {
 				buckets={ data.buckets || [] }
 				totals={ data.totals || {} }
 			/>
+			<TopSignaturesTable rows={ data.top || [] } />
 		</div>
 	);
 }

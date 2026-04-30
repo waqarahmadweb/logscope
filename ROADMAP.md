@@ -616,7 +616,7 @@ Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time 
     -   **AC**: Smooth render on a 30-day fixture; passes axe-core.
     -   **Commit**: `feat(ui): severity sparklines`
 
--   [ ] **15.5** Top-10 signatures table
+-   [x] **15.5** Top-10 signatures table
 
     -   Click-through dispatches to the Logs tab with the FilterBar pre-populated to the clicked signature's severity + a regex matching its message.
     -   **AC**: Click → tab switch → Logs view filtered.
