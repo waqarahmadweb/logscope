@@ -24,11 +24,80 @@ import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
 const REGEX_DEBOUNCE_MS = 300;
 
 export default function FilterBar() {
-	const { filters, items } = useSelect( ( select ) => {
-		const store = select( STORE_KEY );
-		return { filters: store.getFilters(), items: store.getLogs() };
-	}, [] );
-	const { setFilters, resetFilters } = useDispatch( STORE_KEY );
+	const { filters, items, viewMode, presets, isSavingPresets } = useSelect(
+		( select ) => {
+			const store = select( STORE_KEY );
+			return {
+				filters: store.getFilters(),
+				items: store.getLogs(),
+				viewMode: store.getViewMode(),
+				presets: store.getPresets(),
+				isSavingPresets: store.isSavingPresets(),
+			};
+		},
+		[]
+	);
+	const {
+		setFilters,
+		resetFilters,
+		setViewMode,
+		fetchPresets,
+		savePreset,
+		deletePreset,
+	} = useDispatch( STORE_KEY );
+
+	useEffect( () => {
+		fetchPresets();
+	}, [ fetchPresets ] );
+
+	const onSavePreset = () => {
+		const name = window.prompt(
+			__( 'Save current filters as preset:', 'logscope' ),
+			''
+		);
+		if ( name === null ) {
+			return;
+		}
+		const trimmed = name.trim();
+		if ( '' === trimmed ) {
+			return;
+		}
+		savePreset( trimmed, { ...filters, viewMode } );
+	};
+
+	const onLoadPreset = ( event ) => {
+		const name = event.target.value;
+		if ( '' === name ) {
+			return;
+		}
+		const preset = presets.find( ( p ) => p.name === name );
+		event.target.value = '';
+		if ( ! preset ) {
+			return;
+		}
+		const f = preset.filters || {};
+		setFilters( {
+			severity: Array.isArray( f.severity ) ? f.severity : [],
+			from: f.from || '',
+			to: f.to || '',
+			q: f.q || '',
+			source: f.source || '',
+		} );
+		if ( 'list' === f.viewMode || 'grouped' === f.viewMode ) {
+			setViewMode( f.viewMode );
+		}
+	};
+
+	const onDeletePreset = ( name ) => {
+		if (
+			window.confirm(
+				/* translators: confirmation prompt before deleting a saved filter preset. */
+				__( 'Delete this preset?', 'logscope' )
+			)
+		) {
+			deletePreset( name );
+		}
+	};
 
 	const [ regexInput, setRegexInput ] = useState( filters.q );
 	const debouncedRegex = useDebouncedValue( regexInput, REGEX_DEBOUNCE_MS );
@@ -163,6 +232,55 @@ export default function FilterBar() {
 					) ) }
 				</select>
 			</label>
+
+			<div className="logscope-filter-bar__presets">
+				<label className="logscope-filter-bar__field">
+					<span>{ __( 'Preset', 'logscope' ) }</span>
+					<select
+						value=""
+						onChange={ onLoadPreset }
+						aria-label={ __( 'Load saved preset', 'logscope' ) }
+					>
+						<option value="">
+							{ presets.length === 0
+								? __( 'No saved presets', 'logscope' )
+								: __( 'Load preset…', 'logscope' ) }
+						</option>
+						{ presets.map( ( preset ) => (
+							<option key={ preset.name } value={ preset.name }>
+								{ preset.name }
+							</option>
+						) ) }
+					</select>
+				</label>
+				<Button
+					variant="tertiary"
+					onClick={ onSavePreset }
+					disabled={ isSavingPresets }
+				>
+					{ __( 'Save preset', 'logscope' ) }
+				</Button>
+				{ presets.map( ( preset ) => (
+					<button
+						key={ preset.name }
+						type="button"
+						className="logscope-filter-bar__preset-delete"
+						onClick={ () => onDeletePreset( preset.name ) }
+						aria-label={
+							__( 'Delete preset', 'logscope' ) +
+							' — ' +
+							preset.name
+						}
+						title={
+							__( 'Delete preset', 'logscope' ) +
+							' — ' +
+							preset.name
+						}
+					>
+						× { preset.name }
+					</button>
+				) ) }
+			</div>
 
 			<Button
 				variant="tertiary"

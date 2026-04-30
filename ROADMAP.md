@@ -571,7 +571,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
     -   **AC**: Integration tests on all three.
     -   **Commit**: `feat(rest): add filter preset endpoints`
 
--   [ ] **14.10** UI: preset dropdown in FilterBar
+-   [x] **14.10** UI: preset dropdown in FilterBar
 
     -   "Save current filters as preset" → name prompt → POST.
     -   "Load preset" dropdown lists user's presets; selecting one populates the FilterBar slice + URL.

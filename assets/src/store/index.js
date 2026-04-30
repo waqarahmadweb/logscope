@@ -93,6 +93,13 @@ const DEFAULT_STATE = {
 		loadError: null,
 		saveError: null,
 	},
+	presets: {
+		items: [],
+		isLoading: false,
+		isSaving: false,
+		loadError: null,
+		saveError: null,
+	},
 	toasts: [],
 };
 
@@ -368,6 +375,75 @@ const actions = {
 				message:
 					error?.message ||
 					__( 'Could not unmute the signature.', 'logscope' ),
+				status: 'error',
+			} );
+		}
+	},
+	startLoadingPresets() {
+		return { type: 'PRESETS_LOADING' };
+	},
+	receivePresets( items ) {
+		return { type: 'PRESETS_RECEIVED', items };
+	},
+	failLoadPresets( error ) {
+		return { type: 'PRESETS_LOAD_FAILED', error };
+	},
+	startSavingPresets() {
+		return { type: 'PRESETS_SAVING' };
+	},
+	failSavePresets( error ) {
+		return { type: 'PRESETS_SAVE_FAILED', error };
+	},
+	*fetchPresets() {
+		yield actions.startLoadingPresets();
+		try {
+			const payload = yield { type: 'API_FETCH_PRESETS' };
+			yield actions.receivePresets( ( payload && payload.items ) || [] );
+		} catch ( error ) {
+			yield actions.failLoadPresets( error?.message || 'Unknown error' );
+		}
+	},
+	*savePreset( name, filters ) {
+		yield actions.startSavingPresets();
+		try {
+			const payload = yield {
+				type: 'API_SAVE_PRESET',
+				name,
+				filters,
+			};
+			yield actions.receivePresets( ( payload && payload.items ) || [] );
+			yield actions.pushToast( {
+				message: __( 'Preset saved.', 'logscope' ),
+				status: 'success',
+			} );
+		} catch ( error ) {
+			yield actions.failSavePresets( error?.message || 'Unknown error' );
+			yield actions.pushToast( {
+				message:
+					error?.message ||
+					__( 'Could not save the preset.', 'logscope' ),
+				status: 'error',
+			} );
+		}
+	},
+	*deletePreset( name ) {
+		yield actions.startSavingPresets();
+		try {
+			const payload = yield {
+				type: 'API_DELETE_PRESET',
+				name,
+			};
+			yield actions.receivePresets( ( payload && payload.items ) || [] );
+			yield actions.pushToast( {
+				message: __( 'Preset deleted.', 'logscope' ),
+				status: 'success',
+			} );
+		} catch ( error ) {
+			yield actions.failSavePresets( error?.message || 'Unknown error' );
+			yield actions.pushToast( {
+				message:
+					error?.message ||
+					__( 'Could not delete the preset.', 'logscope' ),
 				status: 'error',
 			} );
 		}
@@ -775,6 +851,46 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					saveError: action.error,
 				},
 			};
+		case 'PRESETS_LOADING':
+			return {
+				...state,
+				presets: { ...state.presets, isLoading: true, loadError: null },
+			};
+		case 'PRESETS_RECEIVED':
+			return {
+				...state,
+				presets: {
+					...state.presets,
+					isLoading: false,
+					isSaving: false,
+					loadError: null,
+					saveError: null,
+					items: action.items,
+				},
+			};
+		case 'PRESETS_LOAD_FAILED':
+			return {
+				...state,
+				presets: {
+					...state.presets,
+					isLoading: false,
+					loadError: action.error,
+				},
+			};
+		case 'PRESETS_SAVING':
+			return {
+				...state,
+				presets: { ...state.presets, isSaving: true, saveError: null },
+			};
+		case 'PRESETS_SAVE_FAILED':
+			return {
+				...state,
+				presets: {
+					...state.presets,
+					isSaving: false,
+					saveError: action.error,
+				},
+			};
 		case 'TOAST_PUSHED':
 			return { ...state, toasts: [ ...state.toasts, action.toast ] };
 		case 'TOAST_DISMISSED':
@@ -822,6 +938,8 @@ const selectors = {
 		state.settings.alertTest ? state.settings.alertTest.results : null,
 	getAlertTestError: ( state ) =>
 		state.settings.alertTest ? state.settings.alertTest.error : null,
+	getPresets: ( state ) => state.presets.items,
+	isSavingPresets: ( state ) => state.presets.isSaving,
 	getMutes: ( state ) => state.mutes.items,
 	isLoadingMutes: ( state ) => state.mutes.isLoading,
 	isSavingMutes: ( state ) => state.mutes.isSaving,
@@ -856,6 +974,15 @@ const controls = {
 	},
 	API_UNMUTE_SIGNATURE( { signature } ) {
 		return client.unmuteSignature( signature );
+	},
+	API_FETCH_PRESETS() {
+		return client.getPresets();
+	},
+	API_SAVE_PRESET( { name, filters } ) {
+		return client.savePreset( name, filters );
+	},
+	API_DELETE_PRESET( { name } ) {
+		return client.deletePreset( name );
 	},
 };
 
