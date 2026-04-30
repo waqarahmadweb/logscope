@@ -125,7 +125,10 @@ export default function GroupedView() {
 	return (
 		<div className="logscope-grouped-wrapper">
 			<div
-				className="logscope-grouped__header"
+				className={
+					'logscope-grouped__header' +
+					( someSelected ? ' logscope-grouped__header--active' : '' )
+				}
 				role="region"
 				aria-label={ __( 'Bulk actions', 'logscope' ) }
 			>
@@ -163,22 +166,38 @@ export default function GroupedView() {
 							: __( 'Select all', 'logscope' ) }
 					</span>
 				</label>
-				<div className="logscope-grouped__bulk-actions">
-					<Button
-						variant="secondary"
-						disabled={ ! someSelected || isSavingMutes }
-						onClick={ onMuteSelected }
-					>
-						{ __( 'Mute selected', 'logscope' ) }
-					</Button>
-					<Button
-						variant="secondary"
-						disabled={ ! someSelected }
-						onClick={ onExportSelected }
-					>
-						{ __( 'Export selected', 'logscope' ) }
-					</Button>
-				</div>
+				{ someSelected && (
+					<>
+						<span
+							className="logscope-grouped__header-sep"
+							aria-hidden="true"
+						>
+							·
+						</span>
+						<div className="logscope-grouped__bulk-actions">
+							<Button
+								variant="secondary"
+								disabled={ isSavingMutes }
+								onClick={ onMuteSelected }
+							>
+								🔕 { __( 'Mute', 'logscope' ) }
+							</Button>
+							<Button
+								variant="secondary"
+								onClick={ onExportSelected }
+							>
+								⤓ { __( 'Export', 'logscope' ) }
+							</Button>
+						</div>
+						<button
+							type="button"
+							className="logscope-grouped__cancel"
+							onClick={ () => setSelected( new Set() ) }
+						>
+							{ __( 'Clear selection', 'logscope' ) }
+						</button>
+					</>
+				) }
 			</div>
 			<ul className="logscope-grouped" role="list">
 				{ groups.map( ( group ) => (
