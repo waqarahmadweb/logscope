@@ -78,6 +78,26 @@ export const client = {
 			method: 'POST',
 		} );
 	},
+	getMutes( includeMuted = false ) {
+		const qs = includeMuted ? '?include_muted=true' : '';
+		return apiFetch( {
+			path: logscopePath( '/logs/mute' ) + qs,
+		} );
+	},
+	muteSignature( signature, reason = '' ) {
+		return apiFetch( {
+			path: logscopePath( '/logs/mute' ),
+			method: 'POST',
+			data: { signature, reason },
+		} );
+	},
+	unmuteSignature( signature ) {
+		return apiFetch( {
+			path:
+				logscopePath( '/logs/mute/' ) + encodeURIComponent( signature ),
+			method: 'DELETE',
+		} );
+	},
 };
 
 export { bootstrap };

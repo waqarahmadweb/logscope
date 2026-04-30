@@ -550,7 +550,7 @@ Goal: Long-running sites don't accumulate 200MB log files; admins can hide known
     -   **AC**: Integration test — mute a signature; default `/logs` doesn't return it; `/logs?include_muted=true` does.
     -   **Commit**: `feat(log): filter muted signatures from default queries`
 
--   [ ] **14.7** UI: "Mute" button + management panel
+-   [x] **14.7** UI: "Mute" button + management panel
 
     -   Grouped row `EntryRow`: "Mute" button → modal asking for optional reason → POST `/logs/mute`.
     -   Settings tab: new "Muted signatures" panel listing all muted entries with "Unmute" buttons.
