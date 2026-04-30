@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+-   `Logscope\Alerts\AlertDispatcherInterface` and `Logscope\Alerts\AlertDeduplicator` (Phase 12.1) — interface + signature-keyed dedup window backing the alert pipeline. `AlertDispatcherInterface` declares `name()` (stable backend id), `is_enabled()` (settings-driven gate the coordinator checks before invoking dispatch), and `dispatch(Group $group): bool` (returns `false` on transport failure rather than throwing, so the coordinator can record the outcome and continue with the remaining backends). `AlertDeduplicator` keeps a separate transient-backed window per `(dispatcher_name, signature)` pair so silencing email on a noisy fatal does not silence the webhook on the same fatal. Window length is configurable with a 60-second floor (anything shorter defeats dedup on a noisy site). The transient prefix is `logscope_alert_<dispatcher>_<sig>` and stays well under WP's 172-char key limit. A `clear()` helper drops the mark — used by the `/alerts/test` endpoint so an admin clicking "Send test alert" twice in quick succession is never silently rate-limited.
+
 ### Changed
 
 -   **Roadmap restructure (2026-04-30).** Five feature phases were inserted before the wp.org cut so the plugin ships with more than a viewer-only MVP. New Phases 12 (Alerts), 13 (Scheduled fatal scanner), 14 (Retention + mute + filter presets), 15 (Stats dashboard), and 16 (Onboarding + diagnostics + bulk actions) replace what was previously a thin "release infrastructure → cut v1.0.0" phase. Alerts and the cron scanner were pulled forward from post-1.0 (originally v1.1.0 / v1.2.0). The original Phase 12 content (readme.txt, wp.org assets, release workflow, security gate, v1.0.0 cut, wp.org submission) moved verbatim to Phase 17 with no scope change. Version line: 0.10.0 → 0.14.0 close Phases 12–16, 0.15.0 closes Phase 17.1–17.4 release infra, optional 0.x.0 bumps cover Phase 17.5–17.6 pre-1.0 changes, and 1.0.0 closes Phase 17.7–17.11. See [ROADMAP.md](ROADMAP.md) for the full breakdown and [AGENTS.md §12](AGENTS.md#12-build-order) for the mirrored summary.

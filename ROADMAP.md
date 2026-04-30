@@ -386,7 +386,7 @@ Goal: A mount point under **Tools → Logscope** that renders the log viewer.
 
 Goal: Admins get notified about new fatals without watching the log. Email + webhook dispatchers, signature-keyed dedup so a single error doesn't fire 500 emails.
 
--   [ ] **12.1** `src/Alerts/AlertDispatcherInterface.php` + `Alerts/AlertDeduplicator.php`
+-   [x] **12.1** `src/Alerts/AlertDispatcherInterface.php` + `Alerts/AlertDeduplicator.php`
 
     -   Interface: `dispatch(Group $group): void`, `name(): string`.
     -   Dedup: transient keyed by `signature_hash | dispatcher_name`; TTL = configured window (default 300s); `should_send()` / `record_sent()` round-trip.
