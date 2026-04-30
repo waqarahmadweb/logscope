@@ -693,7 +693,7 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
 
     -   **Commit**: `docs: add wp.org banner, icon, screenshots`
 
--   [ ] **17.3** Release workflow `.github/workflows/release.yml`: build zip, strip dev deps (honor `.gitattributes export-ignore`), tag → upload asset
+-   [x] **17.3** Release workflow `.github/workflows/release.yml`: build zip, strip dev deps (honor `.gitattributes export-ignore`), tag → upload asset
 
     -   **AC**: Dry-run on a throwaway tag produces a zip with no `vendor/`, no `node_modules/`, no `tests/`, no `.github/`.
     -   **Commit**: `ci: add release workflow`
