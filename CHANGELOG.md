@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-04-30
+
+Closes Phase 12 of the [roadmap](ROADMAP.md): the alerts subsystem. Logscope can now notify admins about new fatals via email, webhook, or both — fanned out by a single `AlertCoordinator` that applies signature-keyed dedup per-dispatcher (so silencing email on a noisy fatal does not silence the webhook on the same fatal). Five new settings drive the surface (`alert_email_enabled`, `alert_email_to`, `alert_webhook_enabled`, `alert_webhook_url`, `alert_dedup_window`); the React Settings tab grows an `AlertsPanel` section with a "Send test alert" button that hits a new `POST /wp-json/logscope/v1/alerts/test` endpoint. The webhook dispatcher is the first surface introducing outbound HTTP — hardened with a two-layer http(s) scheme allowlist (settings sanitiser + dispatcher runtime check), `redirection: 0` against SSRF via 30x bounce, and a 5s timeout. A full `security-review` skill pass on the alerts surface returned zero HIGH/MEDIUM findings.
+
+The pipeline is in place but not yet driven by anything in the plugin — Phase 13 (scheduled fatal scanner) is what actually pulls fatals from the log on a cron schedule and feeds them to the coordinator. v0.10.0 ships the dispatch path + UI; v0.11.0 will ship the producer.
+
 ### Added
 
 -   React `AlertsPanel` and store wiring (Phase 12.7) — new section under the Settings tab with `ToggleControl`s for email and webhook backends, conditional `TextControl`s for the recipient address and webhook URL (revealed only when the corresponding toggle is on so the form stays uncluttered for admins who don't want alerts), a numeric `TextControl` for the dedup window with a 60s `min`, and a "Send test alert" button. The button stays disabled until at least one backend is enabled with an inline hint ("Enable email or webhook above first, then save."), and per-dispatcher results render as colour-coded `Notice` rows after a test (`sent` → success, `failed` → error, `skipped`/`deduped` → info). Alert fields share the existing settings draft slice — there's still one Save button at the bottom of the Settings tab — so the dirty-check now spans seven fields and the save POST sends the full body. New store actions: `startSendingTestAlert`, `receiveAlertTestResults`, `failAlertTest`, `clearAlertTestResults`, and the `*sendTestAlert` generator that fires a success or warning toast based on whether any backend reported `sent`. New selectors: `isSendingTestAlert`, `getAlertTestResults`, `getAlertTestError`. New API client method: `client.testAlert()`. Bundle weight: 47.7 KiB (was 45.2 KiB; +2.5 KiB for the panel + 5 new translatable strings).
@@ -161,7 +167,9 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/waqarahmadweb/logscope/compare/v0.9.0...v0.10.0
+[0.9.0]: https://github.com/waqarahmadweb/logscope/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/waqarahmadweb/logscope/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/waqarahmadweb/logscope/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/waqarahmadweb/logscope/compare/v0.5.0...v0.6.0

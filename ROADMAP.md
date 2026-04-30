@@ -440,17 +440,19 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Hand-test on a WP install — change email, save, hit "Send test alert", receive the email.
     -   **Commit**: `feat(ui): alerts settings panel with test-send`
 
--   [ ] **12.8** 🔒 `security-review` skill pass
+-   [x] **12.8** 🔒 `security-review` skill pass
 
     -   Scope: `WebhookAlerter` (URL validation, redirect handling, payload escaping), `/alerts/test` route (rate limiting? cap check), email subject/body building (no header injection).
     -   **AC**: All HIGH / MEDIUM findings resolved (fix or documented non-issue).
     -   **Commit(s)**: one per fix as needed.
 
--   [ ] **12.9** 🏷️ **Release v0.10.0** — Alerts
+-   [x] **12.9** 🏷️ **Release v0.10.0** — Alerts
     -   Bump `Version:` in [logscope.php](logscope.php) to `0.10.0`.
     -   Roll `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) under `[0.10.0] - YYYY-MM-DD`; refresh link references.
     -   Update [README.md](README.md) status line.
     -   **Commit**: `chore(release): v0.10.0`
+
+> Phase 12 complete on 2026-04-30.
 
 ---
 
