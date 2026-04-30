@@ -410,7 +410,7 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Unit test — `wp_remote_post` called with the right shape; non-2xx responses are recorded but don't throw; non-http(s) URLs rejected before send.
     -   **Commit**: `feat(alerts): webhook dispatcher with neutral payload`
 
--   [ ] **12.4** `src/Alerts/AlertCoordinator.php`
+-   [x] **12.4** `src/Alerts/AlertCoordinator.php`
 
     -   Iterates registered dispatchers, applies dedup per-dispatcher (so a webhook can fire while email is rate-limited and vice versa), fires `logscope/before_alert` (filterable; return `false` to skip) and `logscope/alert_sent` (action) around each dispatch.
     -   `dispatch_for_groups(Group[] $groups)` takes the LogRepository's grouped output directly.

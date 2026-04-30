@@ -27,7 +27,7 @@ namespace Logscope\Alerts;
  * it (cache flush, restart) at worst means one extra alert fires, not a
  * stuck mute.
  */
-final class AlertDeduplicator {
+class AlertDeduplicator {
 
 	/**
 	 * Transient key prefix. Combined with dispatcher name + signature

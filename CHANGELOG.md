@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format is based on 
 
 ### Added
 
+-   `Logscope\Alerts\AlertCoordinator` (Phase 12.4) — fans a grouped error out to every registered dispatcher and applies dedup per-dispatcher so a webhook can fire while email is rate-limited (and vice versa). Disabled dispatchers and deduped signatures are skipped without invoking `dispatch()`. Two filterable hooks bracket each send: `logscope/before_alert` (filter; return `false` to skip — gives extensions a custom-mute hook that doesn't have to mutate the deduplicator) and `logscope/alert_sent` (action, fires only on success). `dispatch_one()` exposes a `$bypass_dedup` flag used by the test-alert endpoint that skips the `should_send` check and clears any existing dedup mark on success so a subsequent real fatal in the window is not silently suppressed by the test send. Returns a structured per-call summary (`{dispatcher, signature, outcome}`) where `outcome` is one of `sent` / `deduped` / `skipped` / `failed`. 8 unit tests cover the disabled gate, dedup short-circuit, success path with `record_sent` + `alert_sent`, failure path (no record), `before_alert` short-circuit, independent dedup across dispatchers, and the bypass+clear branch.
+
+### Changed
+
+-   `Logscope\Alerts\AlertDeduplicator` is no longer `final`. The coordinator's unit tests need a Mockery double to assert the dedup interaction; matching the precedent set by `SettingsSchema` (un-finaled in Phase 5 review for the same reason).
+
+### Added
+
 -   `Logscope\Alerts\WebhookAlerter` (Phase 12.3) — `wp_remote_post`-backed dispatcher with a neutral JSON payload (`{site, url, severity, message, file, line, signature, count, first_seen, last_seen}`) so site owners can adapt for Slack / Discord / Teams / PagerDuty via the `logscope/webhook_payload` filter rather than waiting for first-class formatters. Calls go out with `timeout: 5` (a slow webhook cannot stall the pipeline), `redirection: 0` (a 30x from the configured host cannot bounce the request to an internal address), and `blocking: true`. Two-layer URL hardening: `wp_http_validate_url()` rejects malformed URLs, then a scheme allowlist refuses anything that isn't `http(s)://` so a configured `file://` cannot smuggle a local-file read into the HTTP API. Non-2xx responses and `WP_Error` results both return false without throwing — the coordinator records the outcome and continues with remaining backends. The payload filter accepts any return shape (Slack message blocks, Discord embeds, …); a non-array return reverts to the default to keep a misbehaving filter from silently dropping alerts. 10 unit tests cover the URL-validation refusal, scheme allowlist, response-code branches, and filter integration.
 
 ### Security
