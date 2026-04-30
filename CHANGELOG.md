@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-04-30
+
+Closes Phase 15 of the [roadmap](ROADMAP.md): a new **Stats** tab that gives an at-a-glance view of error frequency over time without leaving wp-admin. Server-side, `LogStats` reuses `LogParser` + `LogGrouper` over the same trailing 50 MiB read budget the repository uses, buckets entries by hour or day across a 24h / 7d / 30d window, and returns a `{range, bucket, buckets, totals, top}` payload through `GET /stats`. Results cache in a transient keyed by file size, mtime, range, bucket, and the snapped-now bucket boundary so a roll into the next bucket implicitly invalidates without requiring a write to the file. Mute filtering is intentionally **not** applied to stats — they are the ground truth of error volume; muting is a Logs-view noise control. Client-side, the new Stats tab slots between Logs and Settings (`Logs · Stats · Settings`) so the upcoming click-through from the top-N table populates the Logs FilterBar without leaving the visual neighbourhood.
+
+The dashboard renders three coordinated views over the same payload: a **horizontal stacked breakdown bar** answering "what's the mix right now" (per-segment `flex-grow` so widths sum to 100% by construction), a **small-multiple sparkline grid** (hand-rolled SVG, no chart library) answering "how does each severity move over time" with bars normalised to per-chart peaks so a quiet severity is still readable next to a noisy one, and a **top-10 signatures table** with a "View in Logs" action that pre-populates the FilterBar with the row's severity plus a regex anchored on a 50-character prefix of the sample message — round-tripping the server's lossy normaliser from the client would either re-introduce that lossiness or require a parallel implementation, and the literal prefix is good enough to catch the same class of error in practice. Both the breakdown bar (`role="img"` + descriptive aria-label) and the sparkline cells (`<figure>` with peak / mean / total aria-label, SVG `aria-hidden`) carry text-equivalent summaries so the dashboard reads the same to AT users as it does at a glance.
+
 ### Added
 
 -   Severity breakdown bar (Phase 15.6) — single horizontal stacked bar above the sparkline grid showing the proportion of each severity over the selected range. Where the sparkline grid answers "how does each severity move over time," this answers "what is the mix right now" — comparing magnitudes across severities, which the per-chart-peak normalisation in `Sparkline` deliberately does not do. Segments size via `flex-grow: <count>` rather than computed `width` percentages so the widths sum to 100% by construction and a re-render with one more entry redistributes proportionally without precision drift. Severities with zero entries are dropped from both the bar and the legend so a quiet-site bar doesn't render as an over-segmented stripe of empty slivers. The bar carries a `role="img"` and an aria-label of the form `"Severity breakdown over the range: <Severity1> NN%, <Severity2> NN%, …"` so AT users get the same proportional summary a sighted user gets from glancing. Legend below the bar lists each visible severity with its raw count and percentage. Bundle weight: 147 KiB built modules (was 144 KiB; +3 KiB for the component and styles).
@@ -235,7 +241,8 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/waqarahmadweb/logscope/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/waqarahmadweb/logscope/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/waqarahmadweb/logscope/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/waqarahmadweb/logscope/compare/v0.9.0...v0.10.0

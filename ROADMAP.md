@@ -627,8 +627,10 @@ Goal: A "Stats" tab that gives an at-a-glance view of error frequency over time 
     -   Single horizontal stacked bar showing the proportion of each severity over the selected range.
     -   **Commit**: `feat(ui): severity breakdown bar`
 
--   [ ] **15.7** 🏷️ **Release v0.13.0** — Stats dashboard
+-   [x] **15.7** 🏷️ **Release v0.13.0** — Stats dashboard
     -   **Commit**: `chore(release): v0.13.0`
+
+> Phase 15 complete on 2026-04-30.
 
 ---
 
