@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+-   `readme.txt` in wp.org plugin-directory format (Phase 17.1) — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Upgrade Notice, Privacy. Description mirrors the README.md feature list; the Changelog section condenses CHANGELOG.md 0.1.0 → 0.14.0 into wp.org-flavored bullets (one paragraph + 2–4 highlights per shipped version) so the `wordpress.org/plugins/logscope/` listing is self-contained without back-references to the GitHub CHANGELOG. `Tested up to: 6.9` resolves the latest stable WP at session time (6.9.4) to the major.minor wp.org accepts. Privacy section names the only outbound paths (email via `wp_mail()` and webhook POST, both off by default) and the diagnostics REST endpoint, so the wp.org reviewer's "what does this plugin send off-site" check has a one-paragraph answer.
+
 ## [0.14.0] - 2026-04-30
 
 Closes Phase 16 of the [roadmap](ROADMAP.md): three features bundled into one release that close the gap between "Logscope is installed" and "Logscope is useful." A first-time admin opening the plugin on a host with `WP_DEBUG_LOG` off now sees an actionable onboarding banner with the exact lines to drop into `wp-config.php` and a link to the WordPress handbook, instead of staring at a silently empty page; the empty-log message itself was rewritten to surface the underlying reason (file missing, file empty, all entries muted, filters too narrow) rather than the same generic line in every case; and admins triaging a flood can now select multiple groups in the grouped view and act on the selection at once — mute the lot in a single batch or export them to CSV for handoff to another tool. The mute path piggybacks on Phase 14's idempotent `/logs/mute` route and refetches the page after the batch so muted groups disappear immediately; the CSV path builds the file client-side from the already-fetched rows so no new server route is needed.

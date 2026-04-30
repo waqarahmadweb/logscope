@@ -685,7 +685,7 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
 
 ### Pre-1.0 release infrastructure
 
--   [ ] **17.1** `readme.txt` (wp.org format — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Privacy)
+-   [x] **17.1** `readme.txt` (wp.org format — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Privacy)
 
     -   **Commit**: `docs: add wp.org readme.txt`
 
