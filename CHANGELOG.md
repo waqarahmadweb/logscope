@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-04-30
+
+Closes Phase 13 of the [roadmap](ROADMAP.md): the producer that drives Phase 12's alert pipeline. A new `LogScanner` runs on a configurable WP-Cron schedule (off by default; opt-in via the Settings tab), reads the slice of the log appended since the last tick, filters parsed entries down to `fatal` and `parse` severities, groups them, and dispatches the resulting groups through the existing `AlertCoordinator`. Rotation handling, an in-memory cursor, a per-tick timestamp, and a per-tick dispatched count round out the scanner; the React Settings UI grows a "Scheduled scan" section with the toggle, interval input (1–1440 minute clamp), and a "Last scan: …" status line. The lifecycle is fully owned by a new `CronScheduler` so toggling the option in the UI, the activation hook, and a future WP-CLI path all converge on the same schedule.
+
+The integration test landed in this phase wires a real `AlertCoordinator` with a tiny capturing dispatcher and triggers the scan via `do_action('logscope_scan_fatals')` so a regression that disconnects the action callback would surface immediately rather than passing through unit-level mocks.
+
 ### Added
 
 -   `LogScannerIntegrationTest` — end-to-end coverage of the `do_action('logscope_scan_fatals') -> LogScanner -> AlertCoordinator -> dispatcher` pipeline (Phase 13.5). Brain Monkey records `add_action` / `do_action` for assertions but does not actually invoke registered callbacks, so the test stubs both onto a per-test callback registry. With that wiring in place, calling `do_action('logscope_scan_fatals')` drives `LogScanner::scan()` the same way WP-Cron would in production. Two integration tests cover the happy path (two-fatal fixture → real `AlertCoordinator` + a tiny capturing `AlertDispatcherInterface` implementation observes both groups, cursor and dispatched-count options advance) and the no-new-bytes second invocation (capture stays at 1, dispatched count drops to 0). Closes the loop the unit suite leaves open: a regression that disconnects the action callback now fails this test rather than passing through unit-level mocks.
@@ -183,7 +189,8 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/waqarahmadweb/logscope/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/waqarahmadweb/logscope/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/waqarahmadweb/logscope/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/waqarahmadweb/logscope/compare/v0.7.0...v0.8.0

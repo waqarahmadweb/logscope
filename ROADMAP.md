@@ -496,8 +496,10 @@ Goal: Background cron scans the log for new fatals and feeds the AlertCoordinato
     -   **AC**: Integration test calls `do_action('logscope_scan_fatals')` against a fixture log and observes the alert pipeline receive the parsed groups; second invocation with no new bytes is a no-op.
     -   **Commit**: `test(cron): integration test driving scanner via do_action`
 
--   [ ] **13.6** 🏷️ **Release v0.11.0** — Scheduled fatal scanner
+-   [x] **13.6** 🏷️ **Release v0.11.0** — Scheduled fatal scanner
     -   **Commit**: `chore(release): v0.11.0`
+
+> Phase 13 complete on 2026-04-30.
 
 ---
 
