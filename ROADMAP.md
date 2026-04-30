@@ -393,7 +393,7 @@ Goal: Admins get notified about new fatals without watching the log. Email + web
     -   **AC**: Unit tests cover dedup window expiry, distinct dispatchers don't share window, and signature collisions across dispatchers are independent.
     -   **Commit**: `feat(alerts): dispatcher interface and signature-keyed dedup`
 
--   [ ] **12.2** `src/Alerts/EmailAlerter.php`
+-   [x] **12.2** `src/Alerts/EmailAlerter.php`
 
     -   Uses `wp_mail()` with `text/html` content-type filter and a plaintext fallback body assembled by stripping tags.
     -   Subject template: `[Logscope] <Severity> on <site_name>: <short_msg>` (60-char truncation on `short_msg`).

@@ -41,4 +41,32 @@ final class Severity {
 			self::UNKNOWN,
 		);
 	}
+
+	/**
+	 * Returns the translated, display-form label for a severity token.
+	 * Mirrors the JS `severityLabel()` helper in `assets/src/utils/severity.js`
+	 * so PHP-side surfaces (alerts, future CLI output) read the same way
+	 * as the React UI.
+	 *
+	 * @param string $severity Severity token.
+	 * @return string
+	 */
+	public static function label( string $severity ): string {
+		switch ( $severity ) {
+			case self::FATAL:
+				return __( 'Fatal error', 'logscope' );
+			case self::PARSE:
+				return __( 'Parse error', 'logscope' );
+			case self::WARNING:
+				return __( 'Warning', 'logscope' );
+			case self::NOTICE:
+				return __( 'Notice', 'logscope' );
+			case self::DEPRECATED:
+				return __( 'Deprecated', 'logscope' );
+			case self::STRICT:
+				return __( 'Strict standards', 'logscope' );
+			default:
+				return __( 'Unknown', 'logscope' );
+		}
+	}
 }
