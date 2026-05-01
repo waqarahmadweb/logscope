@@ -119,7 +119,7 @@ html[ data-logscope-theme='light' ] {
 
 @media ( prefers-color-scheme: dark ) {
 	:root {
-		--logscope-bg: #15161b;
+		--logscope-bg: #faf7f2;
 		--logscope-bg-muted: #1d1f25;
 		--logscope-bg-sunken: #0f1014;
 		--logscope-bg-track: #23252c;
@@ -192,24 +192,26 @@ body.admin-color-midnight {
 	padding: 0;
 	background: var( --logscope-bg );
 	min-height: calc( 100vh - 32px ); // 32px = wp-admin top bar
-	margin-left: -20px;
-	margin-right: -20px;
-	margin-top: 0;
 }
 
-#wpcontent {
-	// wp-admin pads its content column 20px; the wrap above neutralises
-	// the horizontal padding via negative margins. Vertical padding is
-	// handled inside .logscope-app so the pastel surface starts exactly
-	// at the top of the content column.
-	padding-left: 20px;
+// Paint the wp-admin column the same warm pastel so the .logscope-wrap
+// surface looks edge-to-edge without resorting to negative margins
+// (which caused a horizontal scrollbar). Scoped to the Logscope page
+// via the WP-generated body class so other admin screens stay default.
+body.tools_page_logscope {
+	#wpcontent,
+	#wpbody,
+	#wpbody-content {
+		background: var( --logscope-bg );
+	}
 }
 
 .logscope-app {
 	color: var( --logscope-fg );
 	font-size: 13px;
 	background: var( --logscope-bg );
-	padding: 24px 32px 60px;
+	padding: 15px 35px 10px 15px;
+
 
 	*:focus-visible {
 		outline: 2px solid var( --logscope-focus-ring );
@@ -229,9 +231,10 @@ body.admin-color-midnight {
 		min-width: 0;
 	}
 
-	&__title {
-		font-size: 38px;
-		font-weight: 800;
+	// Doubled class to outweigh WP admin's `.wrap h1` (specificity 0,1,1).
+	&__title#{&}__title {
+		font-size: 50px;
+		font-weight: 700;
 		letter-spacing: -0.03em;
 		line-height: 1.05;
 		margin: 0 0 4px;
@@ -241,10 +244,11 @@ body.admin-color-midnight {
 	&__sub {
 		margin: 0;
 		color: var( --logscope-fg-muted );
-		font-size: 14.5px;
+		font-size: 15px;
 	}
 
 	&__theme {
+		display: none;
 		appearance: none;
 		width: 36px;
 		height: 36px;
@@ -365,7 +369,10 @@ body.admin-color-midnight {
 .logscope-logs {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+  gap: 15px;
+	.logscope-entry:last-child {
+		border-bottom: 0;
+	}
 }
 
 .logscope-filter-bar {
@@ -406,9 +413,14 @@ body.admin-color-midnight {
 		}
 
 		&--on {
-			background: var( --logscope-fg );
-			color: var( --logscope-bg-muted );
-			border-color: var( --logscope-fg );
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
+			border-color: var( --logscope-border-strong );
+		}
+
+		&--on:hover {
+			background: var( --logscope-bg-track );
+			border-color: var( --logscope-border-strong );
 		}
 
 		&--ghost {
@@ -472,6 +484,15 @@ body.admin-color-midnight {
 			font-size: 12.5px;
 			color: var( --logscope-fg );
 
+			// Wrapper handles the focus state via :focus-within, so suppress
+			// the global .logscope-app *:focus-visible blue outline here.
+			&:focus,
+			&:focus-visible {
+				outline: none;
+				border-radius: 0;
+				box-shadow: none;
+			}
+
 			&::placeholder {
 				color: var( --logscope-fg-mute );
 			}
@@ -506,9 +527,11 @@ body.admin-color-midnight {
 	&__menu {
 		position: absolute;
 		top: calc( 100% + 6px );
-		left: 0;
+		right: 0;
+		left: auto;
 		z-index: 30;
 		min-width: 220px;
+		max-width: min( 360px, calc( 100vw - 40px ) );
 		background: var( --logscope-bg-muted );
 		border: 1px solid var( --logscope-border );
 		border-radius: var( --logscope-radius-md );
@@ -709,21 +732,40 @@ body.admin-color-midnight {
 	}
 
 	&__check {
+		appearance: none;
+		-webkit-appearance: none;
 		width: 14px;
 		height: 14px;
 		border-radius: var( --logscope-radius-xs );
-		background: var( --logscope-bg-muted );
-		background-image: linear-gradient(
-			135deg,
-			transparent 35%,
-			var( --logscope-fg ) 35%,
-			var( --logscope-fg ) 45%,
-			transparent 45%,
-			transparent 60%,
-			var( --logscope-fg ) 60%,
-			var( --logscope-fg ) 70%,
-			transparent 70%
-		);
+		border: 1px solid rgba( 255, 255, 255, 0.45 );
+		background: transparent;
+		cursor: pointer;
+		margin: 0;
+		display: inline-block;
+		position: relative;
+
+		&:checked,
+		&:indeterminate {
+			background: var( --logscope-bg-muted );
+			border-color: var( --logscope-bg-muted );
+		}
+
+		&:checked::after {
+			content: '';
+			position: absolute;
+			inset: 1px 3px 3px 2px;
+			border-right: 2px solid var( --logscope-fg );
+			border-bottom: 2px solid var( --logscope-fg );
+			transform: rotate( 40deg );
+		}
+
+		&:indeterminate::after {
+			content: '';
+			position: absolute;
+			inset: 5px 2px;
+			background: var( --logscope-fg );
+			border-radius: 1px;
+		}
 	}
 
 	&__sep {
@@ -824,33 +866,51 @@ body.admin-color-midnight {
 	padding: 4px;
 
 	// Override the WP Button defaults inside the seg control so the
-	// active variant gets a flat dark fill rather than the WP primary
-	// blue that fights the warm surface.
+	// active variant uses the soft pastel sunken fill rather than the
+	// WP primary blue that fights the warm surface, and so hover/focus
+	// don't paint a blue outline.
 	.components-button {
 		border-radius: var( --logscope-radius-sm );
-		min-height: 30px;
-		padding: 0 14px;
+		min-height: 26px;
+		padding: 0 20px;
 		font-size: 13px;
 		font-weight: 500;
 		color: var( --logscope-fg-muted );
 		background: transparent;
 		box-shadow: none;
 		border: 0;
+		outline: none;
 
 		&:not( :disabled ):hover {
 			color: var( --logscope-fg );
 			background: transparent;
+			box-shadow: none;
+			border: 0;
+			outline: none;
+		}
+
+		&:focus,
+		&:focus-visible,
+		&:active {
+			box-shadow: none;
+			outline: none;
+			border: 0;
 		}
 
 		&.is-primary {
-			background: var( --logscope-fg );
-			color: var( --logscope-bg-muted );
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
 			font-weight: 600;
 
-			&:hover:not( :disabled ) {
-				background: var( --logscope-fg );
-				color: var( --logscope-bg-muted );
-				filter: brightness( 1.1 );
+			&:hover:not( :disabled ),
+			&:focus,
+			&:focus-visible,
+			&:active {
+				background: var( --logscope-bg-sunken );
+				color: var( --logscope-fg );
+				box-shadow: none;
+				outline: none;
+				filter: none;
 			}
 		}
 	}
@@ -862,6 +922,9 @@ body.admin-color-midnight {
 	border-radius: var( --logscope-radius-md );
 	overflow: hidden;
 	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
 
 	&--loading {
 		padding: 16px;
@@ -924,14 +987,15 @@ body.admin-color-midnight {
 .logscope-entry {
 	display: flex;
 	flex-direction: column;
-	border-bottom: 1px solid var( --logscope-border-soft );
+	border-bottom: 1px solid var( --logscope-border );
 	border-left: 3px solid transparent;
-	padding: 6px 14px;
+	padding: 15px 16px;
 	box-sizing: border-box;
 	font-family: var( --logscope-font-mono );
 	font-size: 12.5px;
 	color: var( --logscope-fg );
 	background: var( --logscope-bg-muted );
+	cursor: pointer;
 	transition: background 0.08s;
 
 	&:hover {
@@ -1016,6 +1080,36 @@ body.admin-color-midnight {
 
 	&--expanded {
 		background: var( --logscope-row-hover );
+	}
+
+	// Inline expanded body — full message + path, wrapped. Sits below the
+	// __head row when the user clicks the row to expand details. Height
+	// reserved by ROW_HEIGHT_DETAILS in EntryRow so the virtualizer keeps
+	// it inside the row's allotted height.
+	&__details {
+		margin-top: 10px;
+		padding: 10px 12px;
+		background: var( --logscope-bg );
+		border: 1px solid var( --logscope-border-soft );
+		border-radius: var( --logscope-radius-sm );
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		cursor: text;
+	}
+
+	&__details-message {
+		color: var( --logscope-fg );
+		font-size: 12.5px;
+		line-height: 1.5;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	&__details-path {
+		color: var( --logscope-fg-muted );
+		font-size: 11.5px;
+		word-break: break-all;
 	}
 }
 

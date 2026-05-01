@@ -11,23 +11,23 @@
  * the rowHeight function closes over the store's `expandedTraces` map
  * so toggling expansion forces a measure pass.
  */
-import { useCallback, useEffect, useMemo, useRef } from '@wordpress/element';
-import { useDispatch, useSelect } from '@wordpress/data';
-import { __, sprintf, _n } from '@wordpress/i18n';
 import { Button } from '@wordpress/components';
+import { useDispatch, useSelect } from '@wordpress/data';
+import { useCallback, useEffect, useMemo, useRef } from '@wordpress/element';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import { List, useListRef } from 'react-window';
 
+import useTailPolling from '../../hooks/useTailPolling';
+import useUrlQuerySync from '../../hooks/useUrlQuerySync';
+import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
 import { STORE_KEY } from '../../store';
-import EntryRow, { entryKey, rowHeightFor, ROW_HEIGHT_BASE } from '../EntryRow';
+import buildFilterParams from '../../utils/filterParams';
 import EmptyState from '../EmptyState';
+import EntryRow, { entryKey, ROW_HEIGHT_BASE, rowHeightFor } from '../EntryRow';
 import FilterBar from '../FilterBar';
 import GroupedView from '../GroupedView';
 import OnboardingBanner from '../OnboardingBanner';
 import { ListSkeleton } from '../Skeleton';
-import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
-import useUrlQuerySync from '../../hooks/useUrlQuerySync';
-import useTailPolling from '../../hooks/useTailPolling';
-import buildFilterParams from '../../utils/filterParams';
 
 const LIST_HEIGHT = 600;
 
@@ -73,6 +73,7 @@ export default function LogViewer() {
 		setViewMode,
 		setTailActive,
 		clearEntrySelection,
+		selectAllEntries,
 		pushToast,
 	} = useDispatch( STORE_KEY );
 
@@ -299,10 +300,34 @@ export default function LogViewer() {
 					role="region"
 					aria-label={ __( 'Bulk actions', 'logscope' ) }
 				>
-					<span className="logscope-bulk-bar__count">
-						<span
+					<label className="logscope-bulk-bar__count">
+						<input
+							type="checkbox"
 							className="logscope-bulk-bar__check"
-							aria-hidden="true"
+							checked={
+								items.length > 0 &&
+								selectedCount === items.length
+							}
+							ref={ ( el ) => {
+								if ( el ) {
+									el.indeterminate =
+										selectedCount > 0 &&
+										selectedCount < items.length;
+								}
+							} }
+							onChange={ () => {
+								if ( selectedCount === items.length ) {
+									clearEntrySelection();
+								} else {
+									selectAllEntries(
+										items.map( ( e ) => entryKey( e ) )
+									);
+								}
+							} }
+							aria-label={ __(
+								'Select all entries',
+								'logscope'
+							) }
 						/>
 						<strong>{ selectedCount }</strong>{ ' ' }
 						{ _n(
@@ -311,7 +336,7 @@ export default function LogViewer() {
 							selectedCount,
 							'logscope'
 						) }
-					</span>
+					</label>
 					<span className="logscope-bulk-bar__sep" aria-hidden="true">
 						·
 					</span>

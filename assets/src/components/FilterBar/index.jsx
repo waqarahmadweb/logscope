@@ -143,8 +143,8 @@ export default function FilterBar() {
 	const sources = useMemo( () => {
 		const seen = new Set();
 		items.forEach( ( item ) => {
-			if ( item?.file ) {
-				seen.add( item.file );
+			if ( item?.source ) {
+				seen.add( item.source );
 			}
 		} );
 		return Array.from( seen ).sort();

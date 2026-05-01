@@ -26,20 +26,22 @@ import StackTracePanel from '../StackTracePanel';
 
 export { entryKey };
 
-export const ROW_HEIGHT_BASE = 44;
+export const ROW_HEIGHT_BASE = 62;
 export const ROW_HEIGHT_FRAME = 26;
 export const ROW_HEIGHT_FRAME_PADDING = 24;
+export const ROW_HEIGHT_DETAILS = 90;
 
 export function rowHeightFor( entry, isExpanded ) {
-	if ( ! entry ) {
+	if ( ! entry || ! isExpanded ) {
 		return ROW_HEIGHT_BASE;
 	}
 	const frames = Array.isArray( entry.frames ) ? entry.frames : [];
-	if ( ! isExpanded || frames.length === 0 ) {
-		return ROW_HEIGHT_BASE;
+	if ( frames.length === 0 ) {
+		return ROW_HEIGHT_BASE + ROW_HEIGHT_DETAILS;
 	}
 	return (
 		ROW_HEIGHT_BASE +
+		ROW_HEIGHT_DETAILS +
 		frames.length * ROW_HEIGHT_FRAME +
 		ROW_HEIGHT_FRAME_PADDING
 	);
@@ -78,6 +80,19 @@ export default function EntryRow( { index, style, items } ) {
 	const hasTrace = frames.length > 0;
 	const path = pathLabel( entry );
 
+	const onRowClick = ( e ) => {
+		// Ignore clicks on interactive children (checkbox, toggle button, links).
+		const t = e.target;
+		if (
+			t.closest(
+				'.logscope-entry__checkbox, .logscope-entry__toggle, a, button, input'
+			)
+		) {
+			return;
+		}
+		toggleTraceExpanded( key );
+	};
+
 	return (
 		<div
 			className={ `logscope-entry logscope-entry--${ tone }${
@@ -85,6 +100,7 @@ export default function EntryRow( { index, style, items } ) {
 			}${ isSelected ? ' logscope-entry--selected' : '' }` }
 			style={ style }
 			role="listitem"
+			onClick={ onRowClick }
 		>
 			<div className="logscope-entry__head">
 				<input
@@ -92,6 +108,7 @@ export default function EntryRow( { index, style, items } ) {
 					className="logscope-entry__checkbox"
 					checked={ isSelected }
 					onChange={ () => toggleEntrySelected( key ) }
+					onClick={ ( e ) => e.stopPropagation() }
 					aria-label={ __( 'Select this log entry', 'logscope' ) }
 				/>
 				<span
@@ -136,6 +153,18 @@ export default function EntryRow( { index, style, items } ) {
 					</button>
 				) }
 			</div>
+			{ isExpanded && (
+				<div className="logscope-entry__details">
+					<div className="logscope-entry__details-message">
+						{ entry.message || '' }
+					</div>
+					{ path && (
+						<div className="logscope-entry__details-path">
+							{ path }
+						</div>
+					) }
+				</div>
+			) }
 			{ isExpanded && hasTrace && <StackTracePanel frames={ frames } /> }
 		</div>
 	);
