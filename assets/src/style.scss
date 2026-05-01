@@ -1563,228 +1563,450 @@ body.tools_page_logscope {
 }
 
 
+// Severity tone palette — pulled into local vars so the new Stats
+// components can reference them without retyping the hex everywhere.
+$severity-fatal: #e5484d;
+$severity-parse: #f76b15;
+$severity-warning: #f5a524;
+$severity-notice: #3e63dd;
+$severity-deprecated: #8347b9;
+$severity-strict: #29a383;
+$severity-unknown: #889096;
+
 .logscope-stats {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
-	padding: 16px 0;
+	gap: 14px;
+	padding: 6px 0 0;
 
 	&__controls {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 16px;
+		gap: 12px 24px;
+		align-items: center;
+		padding: 12px 14px;
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
 	}
 
 	&__group {
-		display: flex;
+		display: inline-flex;
 		align-items: center;
-		gap: 6px;
-		border: 1px solid var( --logscope-border );
-		border-radius: 4px;
-		padding: 4px 10px;
-		margin: 0;
+		gap: 10px;
 	}
 
 	&__legend {
-		font-size: 12px;
-		color: var( --logscope-fg-muted );
-		margin: 0 6px 0 0;
-		padding: 0;
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var( --logscope-fg-mute );
+		font-weight: 600;
 	}
 
 	&__status {
 		color: var( --logscope-fg-muted );
 		margin: 0;
+		padding: 16px 4px;
 	}
 
 	&__summary {
-		font-size: 13px;
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+	}
+
+	&__hero-row {
+		display: grid;
+		grid-template-columns: minmax( 0, 1.7fr ) minmax( 0, 1fr );
+		gap: 14px;
+
+		@media ( max-width: 960px ) {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	&__panel {
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
+		padding: 18px 20px 14px;
+	}
+
+	&__panel--top {
+		padding: 18px 20px 8px;
+	}
+
+	&__panel-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-bottom: 12px;
+	}
+
+	&__panel-title {
+		margin: 0;
+		font-size: 14px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__panel-meta {
+		font-size: 11px;
+		font-weight: 500;
+		color: var( --logscope-fg-mute );
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
 	}
 }
 
-.logscope-stats__sparkline-grid {
-	display: grid;
-	grid-template-columns: repeat( auto-fill, minmax( 200px, 1fr ) );
-	gap: 12px;
-	margin-top: 16px;
+// Segmented toggle — shared between Range and Bucket controls.
+.logscope-seg {
+	display: inline-flex;
+	padding: 3px;
+	background: var( --logscope-bg-sunken );
+	border-radius: var( --logscope-radius-sm );
+	gap: 2px;
+
+	&__btn {
+		appearance: none;
+		border: 0;
+		background: transparent;
+		padding: 5px 12px;
+		border-radius: var( --logscope-radius-xs );
+		font: inherit;
+		font-size: 13px;
+		font-weight: 500;
+		color: var( --logscope-fg-muted );
+		cursor: pointer;
+		outline: none;
+
+		&:hover {
+			color: var( --logscope-fg );
+		}
+
+		&:focus,
+		&:focus-visible {
+			outline: none;
+			box-shadow: none;
+		}
+
+		&--on {
+			background: var( --logscope-bg-muted );
+			color: var( --logscope-fg );
+			font-weight: 600;
+			box-shadow: 0 1px 2px rgba( 20, 15, 30, 0.06 );
+		}
+	}
 }
 
-.logscope-stats__sparkline-cell {
+// KPI tiles row.
+.logscope-kpi-grid {
+	display: grid;
+	grid-template-columns: repeat( 6, minmax( 0, 1fr ) );
+	gap: 12px;
+
+	@media ( max-width: 1200px ) {
+		grid-template-columns: repeat( 3, minmax( 0, 1fr ) );
+	}
+	@media ( max-width: 640px ) {
+		grid-template-columns: repeat( 2, minmax( 0, 1fr ) );
+	}
+}
+
+.logscope-kpi {
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: 10px;
+	padding: 14px 16px 12px;
+	position: relative;
+	overflow: hidden;
+	min-height: 96px;
+
+	&__label {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		color: var( --logscope-fg-mute );
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	&__value {
+		font-size: 28px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.1;
+		margin-top: 6px;
+		color: var( --logscope-fg );
+	}
+
+	&__meta {
+		font-size: 11.5px;
+		color: var( --logscope-fg-muted );
+		margin-top: 4px;
+	}
+
+	&__dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		display: inline-block;
+		flex-shrink: 0;
+
+		&--fatal { background: $severity-fatal; }
+		&--parse { background: $severity-parse; }
+		&--warning { background: $severity-warning; }
+		&--notice { background: $severity-notice; }
+		&--deprecated { background: $severity-deprecated; }
+		&--strict { background: $severity-strict; }
+		&--unknown { background: $severity-unknown; }
+	}
+
+	&__spark {
+		position: absolute;
+		right: 12px;
+		bottom: 10px;
+		width: 80px;
+		height: 22px;
+		opacity: 0.65;
+
+		polyline { stroke-linecap: round; stroke-linejoin: round; }
+		&--fatal polyline { stroke: $severity-fatal; }
+		&--parse polyline { stroke: $severity-parse; }
+		&--warning polyline { stroke: $severity-warning; }
+		&--notice polyline { stroke: $severity-notice; }
+		&--deprecated polyline { stroke: $severity-deprecated; }
+		&--strict polyline { stroke: $severity-strict; }
+		&--unknown polyline { stroke: $severity-unknown; }
+	}
+
+	&--total {
+		background: linear-gradient( 135deg, #1a1a1f, #2a2a32 );
+		border-color: #1a1a1f;
+		color: #fff;
+
+		.logscope-kpi__label { color: rgba( 255, 255, 255, 0.65 ); }
+		.logscope-kpi__value { color: #fff; font-size: 32px; }
+		.logscope-kpi__meta { color: rgba( 255, 255, 255, 0.7 ); }
+	}
+
+	&--fatal .logscope-kpi__value { color: $severity-fatal; }
+	&--parse .logscope-kpi__value { color: $severity-parse; }
+}
+
+// Volume chart panel.
+.logscope-volume {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
-	margin: 0;
-	padding: 10px 12px;
-	border: 1px solid var( --logscope-border );
-	border-radius: 4px;
-	background: var( --logscope-bg-muted );
+	gap: 10px;
+
+	&__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	&__title {
+		margin: 0;
+		font-size: 14px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__legend {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		font-size: 12px;
+		color: var( --logscope-fg-muted );
+
+		li {
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+		}
+	}
+
+	&__chart {
+		height: 220px;
+		position: relative;
+
+		svg { display: block; width: 100%; height: 100%; }
+	}
+
+	&__axis {
+		display: flex;
+		justify-content: space-between;
+		font-size: 11px;
+		color: var( --logscope-fg-mute );
+		font-family: var( --logscope-font-mono );
+		padding: 4px 0 0;
+	}
 }
 
-.logscope-stats__sparkline-caption {
-	display: flex;
-	justify-content: space-between;
-	align-items: baseline;
-	font-size: 12px;
-	color: var( --logscope-fg-muted );
+// Severity mix panel.
+.logscope-breakdown {
+	&__title {
+		margin: 0 0 12px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	&__row {
+		display: flex;
+		flex-direction: column;
+		gap: 5px;
+	}
+
+	&__head {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 13px;
+	}
+
+	&__name {
+		flex: 1;
+		color: var( --logscope-fg );
+	}
+
+	&__count {
+		font-family: var( --logscope-font-mono );
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__pct {
+		color: var( --logscope-fg-mute );
+		font-size: 12px;
+		font-family: var( --logscope-font-mono );
+		min-width: 44px;
+		text-align: right;
+	}
+
+	&__track {
+		height: 6px;
+		background: var( --logscope-bg-sunken );
+		border-radius: 3px;
+		overflow: hidden;
+	}
+
+	&__fill {
+		height: 100%;
+
+		&--fatal { background: $severity-fatal; }
+		&--parse { background: $severity-parse; }
+		&--warning { background: $severity-warning; }
+		&--notice { background: $severity-notice; }
+		&--deprecated { background: $severity-deprecated; }
+		&--strict { background: $severity-strict; }
+		&--unknown { background: $severity-unknown; }
+	}
 }
 
-.logscope-stats__sparkline-total {
-	font-weight: 600;
-	color: var( --logscope-fg );
-}
-
-.logscope-sparkline {
-	width: 100%;
-	height: 32px;
-	display: block;
-	color: var( --logscope-fg-muted );
-
-	rect {
-		fill: currentColor;
-	}
-
-	&--fatal {
-		color: #d63638;
-	}
-
-	&--warning {
-		color: #dba617;
-	}
-
-	&--notice {
-		color: #2271b1;
-	}
-
-	&--deprecated {
-		color: #8c8f94;
-	}
-
-	&--unknown {
-		color: var( --logscope-border-strong );
-	}
-}
-
+// Top signatures table.
 .logscope-stats__top-table {
 	width: 100%;
 	border-collapse: collapse;
-	margin-top: 24px;
 	font-size: 13px;
-
-	th,
-	td {
-		border-bottom: 1px solid var( --logscope-border );
-		padding: 8px 10px;
-		text-align: left;
-		vertical-align: top;
-	}
+	table-layout: fixed;
 
 	th {
-		font-weight: 600;
-		color: var( --logscope-fg-muted );
-		background: var( --logscope-bg-muted );
+		font-weight: 500;
+		color: var( --logscope-fg-mute );
+		text-align: left;
+		padding: 6px 8px;
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		border-bottom: 1px solid var( --logscope-border );
 	}
+
+	td {
+		padding: 11px 8px;
+		border-bottom: 1px solid var( --logscope-border-soft );
+		vertical-align: middle;
+	}
+
+	tr:last-child td {
+		border-bottom: 0;
+	}
+
+	// Pills inside the sev column should never wrap onto a second line —
+	// the layout reserves a fixed column width for the badge so the
+	// message column can take the rest.
+	.logscope-pill {
+		white-space: nowrap;
+	}
+}
+
+.logscope-stats__top-row {
+	cursor: pointer;
+	transition: background 0.08s;
+
+	&:hover {
+		background: var( --logscope-row-hover );
+	}
+
+	&:focus-visible {
+		background: var( --logscope-row-hover );
+		outline: 2px solid var( --logscope-focus-ring );
+		outline-offset: -2px;
+	}
+}
+
+.logscope-stats__top-rank {
+	width: 36px;
+	color: var( --logscope-fg-mute );
+	font-family: var( --logscope-font-mono );
+}
+
+.logscope-stats__top-rank-num {
+	color: var( --logscope-fg-mute );
+	font-family: var( --logscope-font-mono );
+	font-size: 12px;
+}
+
+.logscope-stats__top-sev {
+	width: 130px;
 }
 
 .logscope-stats__top-table-msg {
-	max-width: 480px;
-	word-break: break-word;
-}
-
-.logscope-stats__top-table-count {
-	text-align: right;
-	font-variant-numeric: tabular-nums;
+	font-family: var( --logscope-font-mono );
+	font-size: 12.5px;
+	color: var( --logscope-fg );
+	overflow: hidden;
+	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.logscope-stats__breakdown {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-top: 8px;
-}
-
-.logscope-stats__breakdown-bar {
-	display: flex;
-	width: 100%;
-	height: 12px;
-	border-radius: 6px;
-	overflow: hidden;
-	border: 1px solid var( --logscope-border );
-	background: var( --logscope-bg-muted );
-}
-
-.logscope-stats__breakdown-segment {
-	display: block;
-	height: 100%;
-
-	&--fatal {
-		background: #d63638;
-	}
-
-	&--warning {
-		background: #dba617;
-	}
-
-	&--notice {
-		background: #2271b1;
-	}
-
-	&--deprecated {
-		background: #8c8f94;
-	}
-
-	&--unknown {
-		background: var( --logscope-border-strong );
-	}
-}
-
-.logscope-stats__breakdown-legend {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px 16px;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-	font-size: 12px;
-	color: var( --logscope-fg-muted );
-}
-
-.logscope-stats__breakdown-legend-item {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.logscope-stats__breakdown-legend-count {
-	color: var( --logscope-fg );
-	font-variant-numeric: tabular-nums;
-}
-
-.logscope-stats__breakdown-swatch {
-	display: inline-block;
-	width: 10px;
-	height: 10px;
-	border-radius: 2px;
-
-	&--fatal {
-		background: #d63638;
-	}
-
-	&--warning {
-		background: #dba617;
-	}
-
-	&--notice {
-		background: #2271b1;
-	}
-
-	&--deprecated {
-		background: #8c8f94;
-	}
-
-	&--unknown {
-		background: var( --logscope-border-strong );
-	}
+// Bumping specificity above the generic `th { text-align: left; }` rule
+// so the COUNT header right-aligns with the numeric cells below it.
+.logscope-stats__top-table th.logscope-stats__top-table-count,
+.logscope-stats__top-table td.logscope-stats__top-table-count {
+	text-align: right;
+	font-family: var( --logscope-font-mono );
+	font-weight: 600;
+	width: 80px;
 }
 
 .logscope-onboarding-banner {
