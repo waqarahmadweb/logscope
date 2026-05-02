@@ -34,12 +34,15 @@ final class Activator {
 		'logscope_alert_email_to'             => '',
 		'logscope_alert_webhook_enabled'      => 0,
 		'logscope_alert_webhook_url'          => '',
-		'logscope_alert_dedup_window'         => 300,
+		'logscope_alert_dedup_window'         => 1800,
 		'logscope_cron_scan_enabled'          => 0,
 		'logscope_cron_scan_interval_minutes' => 5,
 		'logscope_retention_enabled'          => 0,
 		'logscope_retention_max_size_mb'      => 50,
 		'logscope_retention_max_archives'     => 5,
+		'logscope_default_per_page'           => 50,
+		'logscope_default_severity_filter'    => '',
+		'logscope_timestamp_tz'               => 'site',
 		'logscope_db_version'                 => '1',
 	);
 

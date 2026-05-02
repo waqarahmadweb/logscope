@@ -48,6 +48,21 @@ const DEFAULT_FILTERS = {
 
 const initialQuery = readInitialQueryState();
 
+// Admin-configured default page size (Settings → Display). Floor + ceiling
+// mirror the schema sanitiser so a corrupt bootstrap value can't blow up
+// the initial fetch.
+const bootstrapPerPage = ( () => {
+	const raw = Number(
+		( typeof window !== 'undefined' &&
+			window.LogscopeAdmin?.defaultPerPage ) ||
+			0
+	);
+	if ( ! Number.isFinite( raw ) || raw < 10 ) {
+		return 50;
+	}
+	return raw > 500 ? 500 : raw;
+} )();
+
 const DEFAULT_STATE = {
 	activeTab: 'logs',
 	viewMode: initialQuery?.viewMode || 'list',
@@ -79,7 +94,7 @@ const DEFAULT_STATE = {
 		items: [],
 		total: 0,
 		page: 1,
-		perPage: 50,
+		perPage: bootstrapPerPage,
 		isLoading: false,
 		error: null,
 	},

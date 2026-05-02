@@ -23,17 +23,22 @@ import { Button } from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
 import { severityLabel, severityTone } from '../../utils/severity';
+import { formatEntryTimestamp } from '../../utils/formatTimestamp';
 import buildFilterParams from '../../utils/filterParams';
 
 export default function GroupedView() {
-	const { groups, filters, isSavingMutes } = useSelect( ( select ) => {
-		const store = select( STORE_KEY );
-		return {
-			groups: store.getLogs(),
-			filters: store.getFilters(),
-			isSavingMutes: store.isSavingMutes(),
-		};
-	}, [] );
+	const { groups, filters, isSavingMutes, perPage } = useSelect(
+		( select ) => {
+			const store = select( STORE_KEY );
+			return {
+				groups: store.getLogs(),
+				filters: store.getFilters(),
+				isSavingMutes: store.isSavingMutes(),
+				perPage: store.getLogsPerPage(),
+			};
+		},
+		[]
+	);
 	const { bulkMuteSignatures, fetchLogs } = useDispatch( STORE_KEY );
 
 	const [ selected, setSelected ] = useState( () => new Set() );
@@ -95,6 +100,7 @@ export default function GroupedView() {
 		// always in grouped mode here.
 		fetchLogs( {
 			page: 1,
+			per_page: perPage,
 			grouped: true,
 			...buildFilterParams( filters ),
 		} );
@@ -329,9 +335,17 @@ function GroupRow( { group, isSelected, onToggleSelected } ) {
 				>
 					<dl>
 						<dt>{ __( 'First seen', 'logscope' ) }</dt>
-						<dd>{ group.first_seen || '—' }</dd>
+						<dd>
+							{ group.first_seen
+								? formatEntryTimestamp( group.first_seen )
+								: '—' }
+						</dd>
 						<dt>{ __( 'Last seen', 'logscope' ) }</dt>
-						<dd>{ group.last_seen || '—' }</dd>
+						<dd>
+							{ group.last_seen
+								? formatEntryTimestamp( group.last_seen )
+								: '—' }
+						</dd>
 						{ fileLine && (
 							<>
 								<dt>{ __( 'Location', 'logscope' ) }</dt>

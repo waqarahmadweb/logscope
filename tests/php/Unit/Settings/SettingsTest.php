@@ -141,8 +141,8 @@ final class SettingsTest extends TestCase {
 
 		Functions\expect( 'get_option' )
 			->once()
-			->with( 'logscope_alert_dedup_window', 300 )
-			->andReturn( 300 );
+			->with( 'logscope_alert_dedup_window', 1800 )
+			->andReturn( 1800 );
 
 		Functions\expect( 'get_option' )
 			->once()
@@ -169,6 +169,21 @@ final class SettingsTest extends TestCase {
 			->with( 'logscope_retention_max_archives', 5 )
 			->andReturn( 5 );
 
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_default_per_page', 50 )
+			->andReturn( 50 );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_default_severity_filter', '' )
+			->andReturn( '' );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_timestamp_tz', 'site' )
+			->andReturn( 'site' );
+
 		$settings = new Settings( new SettingsSchema() );
 
 		$this->assertSame(
@@ -179,11 +194,14 @@ final class SettingsTest extends TestCase {
 				'alert_email_to'             => '',
 				'alert_webhook_enabled'      => 0,
 				'alert_webhook_url'          => '',
-				'alert_dedup_window'         => 300,
+				'alert_dedup_window'         => 1800,
 				'cron_scan_enabled'          => 0,
 				'cron_scan_interval_minutes' => 5,
 				'retention_enabled'          => 0,
 				'retention_max_size_mb'      => 50,
+				'default_per_page'           => 50,
+				'default_severity_filter'    => '',
+				'timestamp_tz'               => 'site',
 				'retention_max_archives'     => 5,
 			),
 			$settings->all()

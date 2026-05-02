@@ -65,21 +65,38 @@ final class DiagnosticsService {
 	private bool $wp_debug_log;
 
 	/**
+	 * Whether `WP_DEBUG_DISPLAY` is defined and truthy. Surfaced so the
+	 * Settings UI can warn the admin when errors are being emitted into
+	 * the response body — a security and usability hazard on a public site.
+	 *
+	 * @var bool
+	 */
+	private bool $wp_debug_display;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param PathGuard $guard        Allowlist-aware path validator.
-	 * @param string    $log_path     Candidate log path; the same value
-	 *                                `FileLogSource` was constructed with so
-	 *                                the snapshot reflects the file the
-	 *                                plugin would actually read.
-	 * @param bool      $wp_debug     Whether `WP_DEBUG` is on.
-	 * @param bool      $wp_debug_log Whether `WP_DEBUG_LOG` is enabled.
+	 * @param PathGuard $guard            Allowlist-aware path validator.
+	 * @param string    $log_path         Candidate log path; the same value
+	 *                                    `FileLogSource` was constructed with so
+	 *                                    the snapshot reflects the file the
+	 *                                    plugin would actually read.
+	 * @param bool      $wp_debug         Whether `WP_DEBUG` is on.
+	 * @param bool      $wp_debug_log     Whether `WP_DEBUG_LOG` is enabled.
+	 * @param bool      $wp_debug_display Whether `WP_DEBUG_DISPLAY` is on.
 	 */
-	public function __construct( PathGuard $guard, string $log_path, bool $wp_debug, bool $wp_debug_log ) {
-		$this->guard        = $guard;
-		$this->log_path     = $log_path;
-		$this->wp_debug     = $wp_debug;
-		$this->wp_debug_log = $wp_debug_log;
+	public function __construct(
+		PathGuard $guard,
+		string $log_path,
+		bool $wp_debug,
+		bool $wp_debug_log,
+		bool $wp_debug_display = false
+	) {
+		$this->guard            = $guard;
+		$this->log_path         = $log_path;
+		$this->wp_debug         = $wp_debug;
+		$this->wp_debug_log     = $wp_debug_log;
+		$this->wp_debug_display = $wp_debug_display;
 	}
 
 	/**
@@ -104,7 +121,9 @@ final class DiagnosticsService {
 			}
 		}
 
-		return new self( $guard, $log_path, $wp_debug, $wp_debug_log );
+		$wp_debug_display = defined( 'WP_DEBUG_DISPLAY' ) && (bool) constant( 'WP_DEBUG_DISPLAY' );
+
+		return new self( $guard, $log_path, $wp_debug, $wp_debug_log, $wp_debug_display );
 	}
 
 	/**
@@ -115,6 +134,9 @@ final class DiagnosticsService {
 	 *   - `wp_debug`        — `WP_DEBUG` constant is defined and truthy.
 	 *   - `wp_debug_log`    — `WP_DEBUG_LOG` is defined and either `true`
 	 *                          or a non-empty string (a path override).
+	 *   - `wp_debug_display` — `WP_DEBUG_DISPLAY` is defined and truthy.
+	 *                          Should be `false` on production sites; the
+	 *                          Settings UI surfaces a warning when it isn't.
 	 *   - `log_path`        — the candidate path the plugin would tail.
 	 *                          Empty string when no path is configured
 	 *                          and `WP_CONTENT_DIR` is undefined.
@@ -126,7 +148,7 @@ final class DiagnosticsService {
 	 *   - `modified_at`     — Unix timestamp of last modification; `0`
 	 *                          when missing.
 	 *
-	 * @return array{wp_debug:bool, wp_debug_log:bool, log_path:string, exists:bool, parent_writable:bool, file_size:int, modified_at:int}
+	 * @return array{wp_debug:bool, wp_debug_log:bool, wp_debug_display:bool, log_path:string, exists:bool, parent_writable:bool, file_size:int, modified_at:int}
 	 */
 	public function snapshot(): array {
 		$exists      = false;
@@ -150,13 +172,14 @@ final class DiagnosticsService {
 		}
 
 		return array(
-			'wp_debug'        => $this->wp_debug,
-			'wp_debug_log'    => $this->wp_debug_log,
-			'log_path'        => $this->log_path,
-			'exists'          => $exists,
-			'parent_writable' => '' !== $this->log_path && $this->guard->is_writable_parent_of( $this->log_path ),
-			'file_size'       => $file_size,
-			'modified_at'     => $modified_at,
+			'wp_debug'         => $this->wp_debug,
+			'wp_debug_log'     => $this->wp_debug_log,
+			'wp_debug_display' => $this->wp_debug_display,
+			'log_path'         => $this->log_path,
+			'exists'           => $exists,
+			'parent_writable'  => '' !== $this->log_path && $this->guard->is_writable_parent_of( $this->log_path ),
+			'file_size'        => $file_size,
+			'modified_at'      => $modified_at,
 		);
 	}
 }

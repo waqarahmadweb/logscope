@@ -1,5 +1,5 @@
 /**
- * Settings tab — schema-driven editor for `log_path` and `tail_interval`.
+ * Settings tab — schema-driven editor backed by the @wordpress/data store.
  *
  * The panel keeps a `draft` slice in the store separate from the `values`
  * slice so the admin can edit freely (and bail with Reset) without
@@ -8,11 +8,13 @@
  * back into both slots.
  *
  * Layout: a sticky left sidenav anchors into four sections (Log file,
- * Alerts, Schedule, Muted signatures) with a single Save button at the
- * top of the rail. An IntersectionObserver mirrors the active section
- * back into the nav so the highlight tracks scrolling. The "Test path"
- * button hits the side-effect-free `/settings/test-path` REST route and
- * the verdict renders inline beneath the path field.
+ * Monitoring & alerts, Display, Muted signatures) with a single Save
+ * button at the top of the rail. An IntersectionObserver mirrors the
+ * active section back into the nav so the highlight tracks scrolling.
+ *
+ * The save body covers every settings key the UI exposes (log + tail +
+ * cron + alerts + display). Channel/cron toggles all flow through the
+ * shared draft so a single Save persists everything atomically.
  */
 import { useEffect, useRef, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
@@ -21,19 +23,14 @@ import { Button, Notice, TextControl } from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
 import { FormSkeleton } from '../Skeleton';
-import AlertsPanel from '../AlertsPanel';
-import CronPanel from '../CronPanel';
+import MonitoringPanel, { validateMonitoring } from '../MonitoringPanel';
+import DisplayPanel, { validateDisplay } from '../DisplayPanel';
 import MutedSignaturesPanel from '../MutedSignaturesPanel';
 
 const TAIL_INTERVAL_MIN = 1;
 const DEDUP_WINDOW_MIN = 60;
-const ALERT_FIELD_KEYS = [
-	'alert_email_enabled',
-	'alert_email_to',
-	'alert_webhook_enabled',
-	'alert_webhook_url',
-	'alert_dedup_window',
-];
+const SCAN_INTERVAL_MIN = 1;
+const PER_PAGE_MIN = 10;
 
 const SECTIONS = [
 	{
@@ -42,14 +39,14 @@ const SECTIONS = [
 		icon: '📄',
 	},
 	{
-		id: 'logscope-settings-alerts',
-		label: __( 'Alerts', 'logscope' ),
+		id: 'logscope-settings-monitoring',
+		label: __( 'Monitoring & alerts', 'logscope' ),
 		icon: '🔔',
 	},
 	{
-		id: 'logscope-settings-schedule',
-		label: __( 'Schedule', 'logscope' ),
-		icon: '⏱',
+		id: 'logscope-settings-display',
+		label: __( 'Display', 'logscope' ),
+		icon: '🎛',
 	},
 	{
 		id: 'logscope-settings-muted',
@@ -99,7 +96,6 @@ export default function SettingsPanel() {
 		fetchSettings,
 		saveSettings,
 		setSettingsDraft,
-		resetSettingsDraft,
 		testLogPath,
 		clearTestResult,
 	} = useDispatch( STORE_KEY );
@@ -130,36 +126,48 @@ export default function SettingsPanel() {
 		return null;
 	}
 
+	const monitoringValidation = validateMonitoring( draft );
+	const displayValidation = validateDisplay( draft );
+
 	// Trim before compare so a trailing space on log_path doesn't toggle
-	// the Save button into a dirty state for a no-op edit; the sanitiser
-	// trims server-side anyway, so the trimmed value is what would land.
-	const baseDirty =
-		values &&
-		( ( draft.log_path || '' ).trim() !==
-			( values.log_path || '' ).trim() ||
-			Number( draft.tail_interval ) !== Number( values.tail_interval ) );
+	// the Save button into a dirty state for a no-op edit.
+	const isFieldDirty = ( key, isString ) => {
+		if ( ! values ) {
+			return false;
+		}
+		const a = draft[ key ];
+		const b = values[ key ];
+		if ( isString ) {
+			return (
+				( a || '' ).toString().trim() !== ( b || '' ).toString().trim()
+			);
+		}
+		return Number( a ) !== Number( b );
+	};
 
-	const alertDirty =
-		values &&
-		ALERT_FIELD_KEYS.some( ( key ) => {
-			const a = draft[ key ];
-			const b = values[ key ];
-			if (
-				key === 'alert_email_enabled' ||
-				key === 'alert_webhook_enabled' ||
-				key === 'alert_dedup_window'
-			) {
-				return Number( a ) !== Number( b );
-			}
-			return ( a || '' ).trim() !== ( b || '' ).trim();
-		} );
+	const isDirty =
+		isFieldDirty( 'log_path', true ) ||
+		isFieldDirty( 'tail_interval', false ) ||
+		isFieldDirty( 'cron_scan_enabled', false ) ||
+		isFieldDirty( 'cron_scan_interval_minutes', false ) ||
+		isFieldDirty( 'alert_email_enabled', false ) ||
+		isFieldDirty( 'alert_email_to', true ) ||
+		isFieldDirty( 'alert_webhook_enabled', false ) ||
+		isFieldDirty( 'alert_webhook_url', true ) ||
+		isFieldDirty( 'alert_dedup_window', false ) ||
+		isFieldDirty( 'default_per_page', false ) ||
+		isFieldDirty( 'default_severity_filter', true ) ||
+		isFieldDirty( 'timestamp_tz', true );
 
-	const isDirty = baseDirty || alertDirty;
+	const validationOk = monitoringValidation.valid && displayValidation.valid;
 
 	const handleSave = () => {
 		saveSettings( {
 			log_path: draft.log_path,
 			tail_interval: Number( draft.tail_interval ) || TAIL_INTERVAL_MIN,
+			cron_scan_enabled: Number( draft.cron_scan_enabled ) === 1 ? 1 : 0,
+			cron_scan_interval_minutes:
+				Number( draft.cron_scan_interval_minutes ) || SCAN_INTERVAL_MIN,
 			alert_email_enabled:
 				Number( draft.alert_email_enabled ) === 1 ? 1 : 0,
 			alert_email_to: draft.alert_email_to || '',
@@ -168,6 +176,9 @@ export default function SettingsPanel() {
 			alert_webhook_url: draft.alert_webhook_url || '',
 			alert_dedup_window:
 				Number( draft.alert_dedup_window ) || DEDUP_WINDOW_MIN,
+			default_per_page: Number( draft.default_per_page ) || PER_PAGE_MIN,
+			default_severity_filter: draft.default_severity_filter || '',
+			timestamp_tz: draft.timestamp_tz === 'utc' ? 'utc' : 'site',
 		} );
 	};
 
@@ -181,6 +192,9 @@ export default function SettingsPanel() {
 			aria-busy={ isSaving }
 			onSubmit={ ( event ) => {
 				event.preventDefault();
+				if ( ! isDirty || isSaving || ! validationOk ) {
+					return;
+				}
 				handleSave();
 			} }
 		>
@@ -188,7 +202,7 @@ export default function SettingsPanel() {
 				<SettingsNav
 					isDirty={ isDirty }
 					isSaving={ isSaving }
-					onReset={ resetSettingsDraft }
+					isValid={ validationOk }
 				/>
 
 				<div className="logscope-settings-panel__pane">
@@ -219,7 +233,9 @@ export default function SettingsPanel() {
 									) }
 									value={ draft.log_path }
 									onChange={ ( next ) => {
-										setSettingsDraft( { log_path: next } );
+										setSettingsDraft( {
+											log_path: next,
+										} );
 										if ( testResult ) {
 											clearTestResult();
 										}
@@ -314,20 +330,22 @@ export default function SettingsPanel() {
 								</div>
 							) }
 						</div>
+
+						<DebugConstantsCard />
 					</section>
 
 					<section
 						id={ SECTIONS[ 1 ].id }
 						className="logscope-settings-panel__section"
 					>
-						<AlertsPanel />
+						<MonitoringPanel />
 					</section>
 
 					<section
 						id={ SECTIONS[ 2 ].id }
 						className="logscope-settings-panel__section"
 					>
-						<CronPanel />
+						<DisplayPanel />
 					</section>
 
 					<section
@@ -348,7 +366,118 @@ export default function SettingsPanel() {
 	);
 }
 
-function SettingsNav( { isDirty, isSaving, onReset } ) {
+/**
+ * Read-only card that shows the current state of the WP debug constants.
+ * Editing them requires a wp-config.php change, which the plugin does not
+ * perform automatically — this is a diagnostic surface only.
+ */
+function DebugConstantsCard() {
+	const constants = ( typeof window !== 'undefined' &&
+		window.LogscopeAdmin?.debugConstants ) || {
+		wp_debug: false,
+		wp_debug_log: false,
+		wp_debug_display: false,
+	};
+
+	const rows = [
+		{
+			key: 'wp_debug',
+			label: __( 'WP_DEBUG', 'logscope' ),
+			value: Boolean( constants.wp_debug ),
+			recommended: true,
+			tip: __(
+				'Master debug switch. Must be on for WordPress to record errors anywhere.',
+				'logscope'
+			),
+		},
+		{
+			key: 'wp_debug_log',
+			label: __( 'WP_DEBUG_LOG', 'logscope' ),
+			value: Boolean( constants.wp_debug_log ),
+			recommended: true,
+			tip: __(
+				'Writes errors to wp-content/debug.log so Logscope has something to read. Required.',
+				'logscope'
+			),
+		},
+		{
+			key: 'wp_debug_display',
+			label: __( 'WP_DEBUG_DISPLAY', 'logscope' ),
+			value: Boolean( constants.wp_debug_display ),
+			// Recommended OFF — this is a security/UX hazard on production.
+			recommended: false,
+			tip: __(
+				'Echoes errors into the page response. Should be off on a public site — leaks paths and may break layouts.',
+				'logscope'
+			),
+		},
+	];
+
+	const anyMisaligned = rows.some( ( row ) => row.value !== row.recommended );
+
+	return (
+		<div className="logscope-debug-constants">
+			<h3 className="logscope-debug-constants__heading">
+				{ __( 'WordPress debug constants', 'logscope' ) }
+			</h3>
+			<p className="logscope-debug-constants__lead">
+				{ __(
+					'Read-only view of how WordPress is configured for debug logging. Change these by editing wp-config.php.',
+					'logscope'
+				) }
+			</p>
+			<ul className="logscope-debug-constants__list">
+				{ rows.map( ( row ) => {
+					const aligned = row.value === row.recommended;
+					return (
+						<li
+							key={ row.key }
+							className={
+								'logscope-debug-constants__row' +
+								( aligned
+									? ' logscope-debug-constants__row--ok'
+									: ' logscope-debug-constants__row--warn' )
+							}
+						>
+							<div className="logscope-debug-constants__row-head">
+								<code className="logscope-debug-constants__name">
+									{ row.label }
+								</code>
+								<span className="logscope-debug-constants__state">
+									{ row.value
+										? __( 'true', 'logscope' )
+										: __( 'false', 'logscope' ) }
+								</span>
+								<span className="logscope-debug-constants__rec">
+									{ sprintf(
+										/* translators: %s: 'true' or 'false' */
+										__( 'recommended: %s', 'logscope' ),
+										row.recommended
+											? __( 'true', 'logscope' )
+											: __( 'false', 'logscope' )
+									) }
+								</span>
+							</div>
+							<p className="logscope-debug-constants__tip">
+								{ row.tip }
+							</p>
+						</li>
+					);
+				} ) }
+			</ul>
+			{ anyMisaligned && (
+				<Notice status="warning" isDismissible={ false }>
+					{ __(
+						'One or more debug constants are not at the recommended setting. Edit wp-config.php to change them — Logscope does not modify your WordPress configuration.',
+						'logscope'
+					) }
+				</Notice>
+			) }
+		</div>
+	);
+}
+
+function SettingsNav( { isDirty, isSaving, isValid } ) {
 	const [ activeId, setActiveId ] = useState( SECTIONS[ 0 ].id );
 	const lockUntilRef = useRef( 0 );
 
@@ -437,23 +566,23 @@ function SettingsNav( { isDirty, isSaving, onReset } ) {
 					variant="primary"
 					type="submit"
 					isBusy={ isSaving }
-					disabled={ isSaving || ! isDirty }
+					disabled={ isSaving || ! isDirty || ! isValid }
 				>
 					{ isSaving
 						? __( 'Saving…', 'logscope' )
 						: __( 'Save settings', 'logscope' ) }
 				</Button>
-				<Button
-					variant="tertiary"
-					type="button"
-					onClick={ onReset }
-					disabled={ isSaving || ! isDirty }
-				>
-					{ __( 'Reset', 'logscope' ) }
-				</Button>
 				{ isDirty && (
 					<div className="logscope-settings-panel__nav-dirty">
 						{ __( 'Unsaved changes', 'logscope' ) }
+					</div>
+				) }
+				{ isDirty && ! isValid && (
+					<div className="logscope-settings-panel__nav-invalid">
+						{ __(
+							'Fix the highlighted fields to enable Save.',
+							'logscope'
+						) }
 					</div>
 				) }
 			</div>
