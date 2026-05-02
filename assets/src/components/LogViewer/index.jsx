@@ -11,9 +11,15 @@
  * the rowHeight function closes over the store's `expandedTraces` map
  * so toggling expansion forces a measure pass.
  */
-import { Button } from '@wordpress/components';
+import { Button, Modal } from '@wordpress/components';
 import { useDispatch, useSelect } from '@wordpress/data';
-import { useCallback, useEffect, useMemo, useRef } from '@wordpress/element';
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 import { List, useListRef } from 'react-window';
 
@@ -21,7 +27,9 @@ import useTailPolling from '../../hooks/useTailPolling';
 import useUrlQuerySync from '../../hooks/useUrlQuerySync';
 import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
 import { STORE_KEY } from '../../store';
+import { client } from '../../api/client';
 import buildFilterParams from '../../utils/filterParams';
+import hiddenSig from '../../utils/hiddenSig';
 import EmptyState from '../EmptyState';
 import EntryRow, { entryKey, ROW_HEIGHT_BASE, rowHeightFor } from '../EntryRow';
 import FilterBar from '../FilterBar';
@@ -49,7 +57,7 @@ const INFINITE_SCROLL_PREFETCH_ROWS = 8;
 
 export default function LogViewer() {
 	const {
-		items,
+		items: rawItems,
 		isLoading,
 		error,
 		viewMode,
@@ -59,6 +67,8 @@ export default function LogViewer() {
 		muteCount,
 		selectedKeys,
 		selectedCount,
+		hiddenEntries,
+		hiddenCount,
 	} = useSelect( ( select ) => {
 		const store = select( STORE_KEY );
 		return {
@@ -72,6 +82,8 @@ export default function LogViewer() {
 			muteCount: store.getMutes().length,
 			selectedKeys: store.getSelectedEntryKeys(),
 			selectedCount: store.getSelectedEntryCount(),
+			hiddenEntries: store.getHiddenEntries(),
+			hiddenCount: store.getHiddenEntryCount(),
 		};
 	}, [] );
 	const {
@@ -83,7 +95,23 @@ export default function LogViewer() {
 		clearEntrySelection,
 		selectAllEntries,
 		pushToast,
+		clearAllLogs,
+		hideEntries,
+		unhideAll,
 	} = useDispatch( STORE_KEY );
+
+	// Filter out session-hidden entries before downstream consumers see
+	// them. Done here (rather than in a selector) so the hidden state
+	// stays a UI concern; the underlying logs slice keeps the truth.
+	const items = useMemo(
+		() =>
+			hiddenCount === 0
+				? rawItems
+				: rawItems.filter( ( e ) => ! hiddenEntries[ hiddenSig( e ) ] ),
+		[ rawItems, hiddenEntries, hiddenCount ]
+	);
+
+	const [ confirmClearOpen, setConfirmClearOpen ] = useState( false );
 
 	// Per-entry bulk actions. Mute-by-entry is intentionally out of
 	// scope — the mute domain is per-signature (grouped view), not
@@ -181,6 +209,43 @@ export default function LogViewer() {
 		}
 		downloadEntriesCsv( selectedEntries );
 	};
+
+	const onHideSelected = () => {
+		if ( selectedCount === 0 ) {
+			return;
+		}
+		const sigs = selectedEntries
+			.map( ( e ) => hiddenSig( e ) )
+			.filter( Boolean );
+		if ( sigs.length === 0 ) {
+			return;
+		}
+		hideEntries( sigs );
+		pushToast( {
+			message: sprintf(
+				/* translators: %d is the number of entries hidden in this session. */
+				_n(
+					'Hid %d entry in this session.',
+					'Hid %d entries in this session.',
+					sigs.length,
+					'logscope'
+				),
+				sigs.length
+			),
+			status: 'info',
+		} );
+	};
+
+	const onDownloadRawFile = () => {
+		// Open in a new tab so the current admin page is not navigated
+		// away from. The browser handles the attachment headers and
+		// stream end-to-end — no need to buffer in JS.
+		const url = client.downloadLogsUrl();
+		window.open( url, '_blank', 'noopener' );
+	};
+
+	const fileSize = diagnostics?.file_size || 0;
+	const fileExists = !! diagnostics?.exists;
 
 	useUrlQuerySync( viewMode, filters );
 
@@ -286,6 +351,45 @@ export default function LogViewer() {
 						{ isTailing
 							? __( 'Stop tail', 'logscope' )
 							: __( 'Tail', 'logscope' ) }
+					</Button>
+					<span
+						className="logscope-toolbar__divider"
+						aria-hidden="true"
+					/>
+					<Button
+						variant="tertiary"
+						onClick={ onDownloadRawFile }
+						disabled={ ! fileExists }
+						title={
+							fileExists
+								? sprintf(
+										/* translators: %s is the file size, e.g. "1.2 MB". */
+										__(
+											'Download raw debug.log (%s)',
+											'logscope'
+										),
+										formatBytes( fileSize )
+								  )
+								: __( 'No log file to download.', 'logscope' )
+						}
+					>
+						⤓ { __( 'Download', 'logscope' ) }
+					</Button>
+					<Button
+						variant="tertiary"
+						isDestructive
+						onClick={ () => setConfirmClearOpen( true ) }
+						disabled={ ! fileExists }
+						title={
+							fileExists
+								? __(
+										'Archive the current log and start a new one',
+										'logscope'
+								  )
+								: __( 'No log file to clear.', 'logscope' )
+						}
+					>
+						{ __( 'Clear log', 'logscope' ) }
 					</Button>
 				</div>
 				<div className="logscope-toolbar__bulk">
@@ -413,6 +517,17 @@ export default function LogViewer() {
 					>
 						⤓ { __( 'Export', 'logscope' ) }
 					</button>
+					<button
+						type="button"
+						className="logscope-bulk-bar__btn"
+						onClick={ onHideSelected }
+						title={ __(
+							'Hide these entries for the rest of this session (does not modify the log file).',
+							'logscope'
+						) }
+					>
+						✕ { __( 'Hide', 'logscope' ) }
+					</button>
 					<span style={ { flex: 1 } } />
 					<button
 						type="button"
@@ -420,6 +535,34 @@ export default function LogViewer() {
 						onClick={ () => clearEntrySelection() }
 					>
 						{ __( 'Clear selection', 'logscope' ) }
+					</button>
+				</div>
+			) }
+
+			{ hiddenCount > 0 && (
+				<div
+					className="logscope-hidden-banner"
+					role="status"
+					aria-live="polite"
+				>
+					<span>
+						{ sprintf(
+							/* translators: %d is the number of entries hidden via the session-only Hide action. */
+							_n(
+								'%d entry hidden in this session.',
+								'%d entries hidden in this session.',
+								hiddenCount,
+								'logscope'
+							),
+							hiddenCount
+						) }
+					</span>
+					<button
+						type="button"
+						className="logscope-hidden-banner__btn"
+						onClick={ () => unhideAll() }
+					>
+						{ __( 'Show all', 'logscope' ) }
 					</button>
 				</div>
 			) }
@@ -433,8 +576,69 @@ export default function LogViewer() {
 				diagnostics={ diagnostics }
 				muteCount={ muteCount }
 			/>
+			{ confirmClearOpen && (
+				<Modal
+					title={ __( 'Clear the debug log?', 'logscope' ) }
+					onRequestClose={ () => setConfirmClearOpen( false ) }
+					className="logscope-confirm-modal"
+				>
+					<p>
+						{ sprintf(
+							/* translators: %s is the file size, e.g. "1.2 MB". */
+							__(
+								'Logscope will rename the active log to a timestamped archive (.cleared-YYYYMMDD-HHMMSS) so it stays recoverable on disk. Current size: %s.',
+								'logscope'
+							),
+							formatBytes( fileSize )
+						) }
+					</p>
+					<p style={ { fontSize: 12, opacity: 0.8 } }>
+						{ __(
+							'Tip: download a copy first if you need to keep the entries close at hand.',
+							'logscope'
+						) }
+					</p>
+					<div className="logscope-confirm-modal__actions">
+						<Button
+							variant="tertiary"
+							onClick={ () => setConfirmClearOpen( false ) }
+						>
+							{ __( 'Cancel', 'logscope' ) }
+						</Button>
+						<Button
+							variant="primary"
+							isDestructive
+							onClick={ () => {
+								setConfirmClearOpen( false );
+								clearAllLogs();
+							} }
+						>
+							{ __( 'Clear log', 'logscope' ) }
+						</Button>
+					</div>
+				</Modal>
+			) }
 		</div>
 	);
+}
+
+/**
+ * Compact byte formatter for the toolbar / confirm copy. Uses 1024
+ * scaling because admins reading this are reading file sizes, not
+ * marketing material — keeps it consistent with what `ls -lh` shows.
+ */
+function formatBytes( bytes ) {
+	const n = Number( bytes ) || 0;
+	if ( n < 1024 ) {
+		return n + ' B';
+	}
+	if ( n < 1024 * 1024 ) {
+		return ( n / 1024 ).toFixed( 1 ) + ' KB';
+	}
+	if ( n < 1024 * 1024 * 1024 ) {
+		return ( n / ( 1024 * 1024 ) ).toFixed( 1 ) + ' MB';
+	}
+	return ( n / ( 1024 * 1024 * 1024 ) ).toFixed( 2 ) + ' GB';
 }
 
 function ViewerBody( {

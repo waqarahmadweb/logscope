@@ -62,6 +62,13 @@ const DEFAULT_STATE = {
 	// the GroupedView component because a different domain (signatures)
 	// keys it; cross-mode selection is intentionally not supported.
 	selectedEntries: {},
+	// Session-only hide list. Keyed by content signature (timestamp +
+	// raw) rather than `_clientId` so the same entry stays hidden
+	// across re-fetches (a fresh fetch stamps a new id but the content
+	// is the same). Cleared on full reload — this is intentionally not
+	// persisted; admins who want long-lived hiding should mute the
+	// signature instead, which Logscope honours server-side.
+	hiddenEntries: {},
 	scrollOffsets: { list: 0, grouped: 0 },
 	tail: {
 		active: false,
@@ -654,6 +661,40 @@ const actions = {
 			);
 		}
 	},
+	*clearAllLogs() {
+		// Server soft-deletes by renaming the active log; on success we
+		// refetch /logs (now empty) and /diagnostics (file_size now 0,
+		// exists now false) so every consumer of those slices sees the
+		// new reality without a manual reload.
+		try {
+			const payload = yield { type: 'API_CLEAR_LOGS' };
+			yield actions.fetchLogs( { page: 1 } );
+			yield actions.fetchDiagnostics();
+			yield actions.pushToast( {
+				message: payload?.archived_as
+					? sprintf(
+							/* translators: %s is the archive filename. */
+							__( 'Log cleared. Archived as %s.', 'logscope' ),
+							payload.archived_as
+					  )
+					: __( 'Log cleared.', 'logscope' ),
+				status: 'success',
+			} );
+		} catch ( error ) {
+			yield actions.pushToast( {
+				message:
+					error?.message ||
+					__( 'Could not clear the log.', 'logscope' ),
+				status: 'error',
+			} );
+		}
+	},
+	hideEntries( sigs ) {
+		return { type: 'HIDE_ENTRIES', sigs };
+	},
+	unhideAll() {
+		return { type: 'UNHIDE_ALL' };
+	},
 	pushToast( { message, status = 'info', ttlMs = TOAST_DEFAULT_TTL_MS } ) {
 		// Sequence + timestamp keeps ids unique even within the same ms tick.
 		toastSeq += 1;
@@ -734,6 +775,24 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 			} );
 			return { ...state, selectedEntries: next };
 		}
+		case 'HIDE_ENTRIES': {
+			const next = { ...state.hiddenEntries };
+			( action.sigs || [] ).forEach( ( sig ) => {
+				if ( sig ) {
+					next[ sig ] = true;
+				}
+			} );
+			// Clear selection for any rows that just disappeared from
+			// the visible set — leaving them in `selectedEntries` would
+			// keep the bulk bar's count stuck above the visible total.
+			return {
+				...state,
+				hiddenEntries: next,
+				selectedEntries: {},
+			};
+		}
+		case 'UNHIDE_ALL':
+			return { ...state, hiddenEntries: {} };
 		case 'TAIL_SET_ACTIVE':
 			return {
 				...state,
@@ -1235,6 +1294,8 @@ const selectors = {
 	getSelectedEntryKeys: ( state ) => Object.keys( state.selectedEntries ),
 	getSelectedEntryCount: ( state ) =>
 		Object.keys( state.selectedEntries ).length,
+	getHiddenEntries: ( state ) => state.hiddenEntries,
+	getHiddenEntryCount: ( state ) => Object.keys( state.hiddenEntries ).length,
 	getScrollOffset: ( state, mode ) => state.scrollOffsets[ mode ] || 0,
 	isTailActive: ( state ) => state.tail.active,
 	getTailLastByte: ( state ) => state.tail.lastByte,
@@ -1332,6 +1393,9 @@ const controls = {
 	},
 	API_FETCH_DIAGNOSTICS() {
 		return client.getDiagnostics();
+	},
+	API_CLEAR_LOGS() {
+		return client.clearLogs();
 	},
 };
 

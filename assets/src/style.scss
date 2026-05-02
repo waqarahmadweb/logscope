@@ -2563,3 +2563,52 @@ $severity-unknown: #889096;
 		background: var( --logscope-border );
 	}
 }
+
+.logscope-toolbar__divider {
+	display: inline-block;
+	width: 1px;
+	height: 22px;
+	margin: 0 4px;
+	background: var( --logscope-border );
+	vertical-align: middle;
+}
+
+.logscope-hidden-banner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 6px 12px;
+	margin: 6px 0;
+	border: 1px dashed var( --logscope-border );
+	border-radius: var( --logscope-radius-sm );
+	background: var( --logscope-bg-muted );
+	color: var( --logscope-fg-muted );
+	font-size: 12px;
+
+	&__btn {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		color: var( --logscope-fg );
+		cursor: pointer;
+		font: inherit;
+		padding: 4px 8px;
+		border-radius: var( --logscope-radius-sm );
+		text-decoration: underline;
+
+		&:hover,
+		&:focus-visible {
+			background: var( --logscope-row-hover );
+			outline: none;
+		}
+	}
+}
+
+.logscope-confirm-modal {
+	&__actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+		margin-top: 16px;
+	}
+}
