@@ -13,6 +13,7 @@ use Logscope\Log\Entry;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\Frame;
 use Logscope\Log\Group;
+use Logscope\Log\LogGrouper;
 use Logscope\Log\LogQuery;
 use Logscope\Log\LogQueryException;
 use Logscope\Log\LogRepository;
@@ -510,6 +511,10 @@ final class LogsController extends RestController {
 			'source'    => SourceClassifier::classify( $entry->file ),
 			'raw'       => $entry->raw,
 			'frames'    => $frames,
+			// Signature lets the list-view "Mute (N)" action collapse a
+			// selection down to its distinct mute keys without a server
+			// round-trip per row.
+			'signature' => LogGrouper::signature( $entry ),
 		);
 	}
 

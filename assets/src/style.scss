@@ -1051,6 +1051,14 @@ body.tools_page_logscope {
 		white-space: nowrap;
 	}
 
+	.logscope-mark {
+		background: rgba( 251, 191, 36, 0.45 );
+		color: inherit;
+		padding: 0 2px;
+		border-radius: 2px;
+		font-weight: 500;
+	}
+
 	&__path {
 		color: var( --logscope-fg-muted );
 		font-size: 11.5px;

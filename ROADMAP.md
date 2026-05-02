@@ -719,6 +719,8 @@ Open-ended placeholder for the work that has to land before the wp.org cut. Fill
         -   GroupedView sticky bulk-action bar styled as dark pill (`☑ N selected · Mute · Export · Clear selection`)
         -   StackTracePanel restyled to match the new card surface
         -   Source-of-truth mockup at [docs/ui-mockups.html](docs/ui-mockups.html)
+        -   Search highlighting — when the regex search has a match, highlight the matched text inline in the message
+        -   Bulk mute from list view — Mute (N) acts inline by computing each row's signature client-side and calling the existing mute API per signature, instead of punting to Grouped
         -   **Commits**: split per component (tokens → header → filters → summary → table → bulk bar → trace panel → docs)
 
 -   [ ] **17.6** 🏷️ **Release v0.x.0** — Pre-1.0 changes

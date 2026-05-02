@@ -23,6 +23,7 @@ import { useState } from '@wordpress/element';
 import { STORE_KEY } from '../../store';
 import { severityLabel, severityTone } from '../../utils/severity';
 import entryKey from '../../utils/entryKey';
+import highlightMatches from '../../utils/highlightMatches';
 import StackTracePanel from '../StackTracePanel';
 import RowActionsMenu from './RowActionsMenu';
 
@@ -59,12 +60,13 @@ function pathLabel( entry ) {
 export default function EntryRow( { index, style, items } ) {
 	const entry = items[ index ];
 	const key = entryKey( entry );
-	const { isExpanded, isSelected } = useSelect(
+	const { isExpanded, isSelected, searchPattern } = useSelect(
 		( select ) => {
 			const store = select( STORE_KEY );
 			return {
 				isExpanded: store.isTraceExpanded( key ),
 				isSelected: store.isEntrySelected( key ),
+				searchPattern: store.getFilters().q || '',
 			};
 		},
 		[ key ]
@@ -149,7 +151,7 @@ export default function EntryRow( { index, style, items } ) {
 					{ entry.timestamp || '' }
 				</time>
 				<span className="logscope-entry__message">
-					{ entry.message || '' }
+					{ highlightMatches( entry.message || '', searchPattern ) }
 				</span>
 				{ path && (
 					<span className="logscope-entry__path" title={ path }>
@@ -186,7 +188,10 @@ export default function EntryRow( { index, style, items } ) {
 			{ isExpanded && (
 				<div className="logscope-entry__details">
 					<div className="logscope-entry__details-message">
-						{ entry.message || '' }
+						{ highlightMatches(
+							entry.message || '',
+							searchPattern
+						) }
 					</div>
 					{ path && (
 						<div className="logscope-entry__details-path">

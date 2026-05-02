@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+-   Search highlighting in the log viewer (Phase 17.5) — when the FilterBar regex matches, occurrences inside each row's message are wrapped in `<mark class="logscope-mark">` so a hit is visible without scrolling the row to spot it. The match runs case-insensitively in the client (a `try/catch` around `RegExp` keeps a half-typed pattern from unmounting the row), with a 1000-iteration safety cap and a zero-width-match guard so pathological inputs cannot stall the render loop. The highlight is also applied in the expanded details panel so the same call-out follows you when a row is opened.
+
+### Changed
+
+-   Bulk mute now works inline from the list view (Phase 17.5) — the toolbar's `Mute (N)` button (and a new `🔕 Mute` action in the selection bulk bar) used to punt the user to Grouped view with a "go select the matching signatures over there" toast. They now collapse the selection to its distinct mute signatures and call the existing `bulkMuteSignatures` thunk directly, then refetch so the muted classes drop out of view immediately. To make this possible without recomputing the server's normalised-shape hash in JS (which would drift), `LogsController::shape_entry` now exposes the row's `signature` (computed via `LogGrouper::signature`) on every entry payload, so the client just reads it off `entry.signature`.
+
 ### Fixed
 
 -   Settings save no longer 400s with `Unknown setting(s): _locale.` — `SettingsController::handle_post()` now strips underscore-prefixed params (`_locale`, `_wpnonce`, `_method`, etc.) before the unknown-setting gate. WordPress core appends those to admin REST requests for user-locale switching and nonce handling; the controller was treating them as candidate setting keys and rejecting the save. New integration test asserts a body containing `_locale` + a real setting succeeds.

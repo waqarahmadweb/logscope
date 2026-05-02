@@ -98,7 +98,13 @@ export default function LogViewer() {
 		clearAllLogs,
 		hideEntries,
 		unhideAll,
+		bulkMuteSignatures,
 	} = useDispatch( STORE_KEY );
+
+	const isSavingMutes = useSelect(
+		( select ) => select( STORE_KEY ).isSavingMutes(),
+		[]
+	);
 
 	// Filter out session-hidden entries before downstream consumers see
 	// them. Done here (rather than in a selector) so the hidden state
@@ -208,6 +214,40 @@ export default function LogViewer() {
 			return;
 		}
 		downloadEntriesCsv( selectedEntries );
+	};
+
+	const onMuteSelected = async () => {
+		if ( selectedCount === 0 || isSavingMutes ) {
+			return;
+		}
+		// Each entry already carries the server-computed signature
+		// (LogsController.shape_entry), so collapsing the selection to a
+		// distinct mute set is just a Set construction. Falling through
+		// to bulkMuteSignatures keeps the dispatch logic identical to
+		// the grouped view's mute path — same toast, same dedup, same
+		// receiveMutes hand-off.
+		const sigs = Array.from(
+			new Set(
+				selectedEntries
+					.map( ( e ) => e.signature )
+					.filter( ( s ) => typeof s === 'string' && s.length > 0 )
+			)
+		);
+		if ( sigs.length === 0 ) {
+			pushToast( {
+				message: __(
+					'Selected entries have no mute signature.',
+					'logscope'
+				),
+				status: 'warning',
+			} );
+			return;
+		}
+		await bulkMuteSignatures( sigs, '' );
+		// Refetch so the muted signatures' rows drop out of the list
+		// immediately. Mirrors the grouped view's post-mute behaviour.
+		fetchLogs( buildQueryParams( filters, viewMode ) );
+		clearEntrySelection();
 	};
 
 	const onHideSelected = () => {
@@ -396,24 +436,12 @@ export default function LogViewer() {
 					<button
 						type="button"
 						className="logscope-toolbar__bulk-btn"
-						disabled={ selectedCount === 0 }
+						disabled={ selectedCount === 0 || isSavingMutes }
 						title={ __(
-							'Mute applies per signature — switch to Grouped view to mute by signature',
+							'Mute the signatures of the selected entries — they will stop appearing in the viewer.',
 							'logscope'
 						) }
-						onClick={ () => {
-							if ( selectedCount === 0 ) {
-								return;
-							}
-							setViewMode( 'grouped' );
-							pushToast( {
-								message: __(
-									'Switched to Grouped view — select the matching signature(s) and use the Mute action there.',
-									'logscope'
-								),
-								status: 'info',
-							} );
-						} }
+						onClick={ onMuteSelected }
 					>
 						{ selectedCount > 0
 							? sprintf(
@@ -496,6 +524,18 @@ export default function LogViewer() {
 					<span className="logscope-bulk-bar__sep" aria-hidden="true">
 						·
 					</span>
+					<button
+						type="button"
+						className="logscope-bulk-bar__btn"
+						onClick={ onMuteSelected }
+						disabled={ isSavingMutes }
+						title={ __(
+							'Mute the signatures of the selected entries — they will stop appearing in the viewer.',
+							'logscope'
+						) }
+					>
+						🔕 { __( 'Mute', 'logscope' ) }
+					</button>
 					<button
 						type="button"
 						className="logscope-bulk-bar__btn"
