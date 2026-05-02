@@ -146,7 +146,14 @@ final class SettingsSchemaTest extends TestCase {
 		$schema = new SettingsSchema();
 
 		$this->assertTrue( $schema->matches_type( 'tail_interval', 5 ) );
-		$this->assertFalse( $schema->matches_type( 'tail_interval', '5' ) );
+		// Numeric strings pass: get_option() returns LONGTEXT-stored ints
+		// as strings, and Settings::get() casts them back. Rejecting them
+		// here would silently revert every integer setting on reload.
+		$this->assertTrue( $schema->matches_type( 'tail_interval', '5' ) );
+		$this->assertTrue( $schema->matches_type( 'tail_interval', '0' ) );
+		$this->assertFalse( $schema->matches_type( 'tail_interval', '5.5' ) );
+		$this->assertFalse( $schema->matches_type( 'tail_interval', 'oops' ) );
+		$this->assertFalse( $schema->matches_type( 'tail_interval', '' ) );
 		$this->assertFalse( $schema->matches_type( 'tail_interval', null ) );
 	}
 

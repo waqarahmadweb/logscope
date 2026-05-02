@@ -378,7 +378,18 @@ class SettingsSchema {
 		$type = $this->field( $key )['type'];
 
 		if ( 'integer' === $type ) {
-			return is_int( $value );
+			// Accept numeric strings too: WordPress stores wp_options.option_value
+			// as LONGTEXT, so get_option() returns "5" for a value written as 5.
+			// Without this, every integer field would fail the type check on
+			// reload and silently revert to the schema default.
+			if ( is_int( $value ) ) {
+				return true;
+			}
+			if ( is_string( $value ) && '' !== $value ) {
+				$trimmed = trim( $value );
+				return '' !== $trimmed && (string) (int) $trimmed === $trimmed;
+			}
+			return false;
 		}
 
 		// Only 'string' remains; the type vocabulary is closed by

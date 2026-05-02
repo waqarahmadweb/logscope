@@ -178,6 +178,7 @@ export default function SettingsPanel() {
 	return (
 		<form
 			className="logscope-settings-panel"
+			aria-busy={ isSaving }
 			onSubmit={ ( event ) => {
 				event.preventDefault();
 				handleSave();
@@ -438,7 +439,9 @@ function SettingsNav( { isDirty, isSaving, onReset } ) {
 					isBusy={ isSaving }
 					disabled={ isSaving || ! isDirty }
 				>
-					{ __( 'Save settings', 'logscope' ) }
+					{ isSaving
+						? __( 'Saving…', 'logscope' )
+						: __( 'Save settings', 'logscope' ) }
 				</Button>
 				<Button
 					variant="tertiary"

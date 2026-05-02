@@ -28,8 +28,23 @@ final class SettingsTest extends TestCase {
 		$this->assertSame( 5, $settings->get( 'tail_interval' ) );
 	}
 
+	public function test_get_coerces_numeric_string_for_integer_field(): void {
+		// wp_options.option_value is LONGTEXT, so a value written as int 5
+		// comes back from get_option() as the string "5". Without coercion
+		// the type check would reject it and the field would silently revert
+		// to the schema default on every reload.
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_tail_interval', 3 )
+			->andReturn( '5' );
+
+		$settings = new Settings( new SettingsSchema() );
+
+		$this->assertSame( 5, $settings->get( 'tail_interval' ) );
+	}
+
 	public function test_get_returns_default_when_stored_value_is_wrong_type(): void {
-		// Older versions of the plugin may have stored a string here.
+		// Older versions of the plugin may have stored a non-numeric string.
 		Functions\expect( 'get_option' )
 			->once()
 			->with( 'logscope_tail_interval', 3 )
@@ -96,15 +111,18 @@ final class SettingsTest extends TestCase {
 			->with( 'logscope_log_path', '' )
 			->andReturn( '/var/log/debug.log' );
 
+		// Mirror real WP behaviour: integer-typed options come back from
+		// get_option() as numeric strings because wp_options.option_value
+		// is LONGTEXT. Settings::get() coerces them back to int.
 		Functions\expect( 'get_option' )
 			->once()
 			->with( 'logscope_tail_interval', 3 )
-			->andReturn( 7 );
+			->andReturn( '7' );
 
 		Functions\expect( 'get_option' )
 			->once()
 			->with( 'logscope_alert_email_enabled', 0 )
-			->andReturn( 0 );
+			->andReturn( '0' );
 
 		Functions\expect( 'get_option' )
 			->once()
