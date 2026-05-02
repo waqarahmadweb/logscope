@@ -31,13 +31,21 @@ import { ListSkeleton } from '../Skeleton';
 
 const LIST_HEIGHT = 600;
 
-function buildQueryParams( filters, viewMode ) {
-	const params = { page: 1, ...buildFilterParams( filters ) };
+function buildQueryParams( filters, viewMode, page = 1 ) {
+	const params = { page, ...buildFilterParams( filters ) };
 	if ( viewMode === 'grouped' ) {
 		params.grouped = true;
 	}
 	return params;
 }
+
+// How many rows from the end of the loaded list trigger the next-page
+// fetch. Small enough that we do not pre-fetch the entire log on
+// initial render, large enough that the next batch lands before the
+// user actually reaches the last row on a fast network. With the
+// default 50-per-page response, prefetching the last 8 rows gives
+// ~16% of headroom for the round-trip.
+const INFINITE_SCROLL_PREFETCH_ROWS = 8;
 
 export default function LogViewer() {
 	const {
@@ -427,15 +435,54 @@ function ViewerBody( {
 function ListScrollPane( { items, isLoading } ) {
 	const listRef = useListRef( null );
 	const scrollElementRef = useRef( null );
-	const { savedOffset, expandedTraces, newCount } = useSelect( ( select ) => {
+	const {
+		savedOffset,
+		expandedTraces,
+		newCount,
+		hasMore,
+		total,
+		page,
+		filters,
+		viewMode,
+		isTailing,
+	} = useSelect( ( select ) => {
 		const store = select( STORE_KEY );
 		return {
 			savedOffset: store.getScrollOffset( 'list' ),
 			expandedTraces: store.getExpandedTraces(),
 			newCount: store.getTailNewCount(),
+			hasMore: store.hasMoreLogs(),
+			total: store.getLogsTotal(),
+			page: store.getLogsPage(),
+			filters: store.getFilters(),
+			viewMode: store.getViewMode(),
+			isTailing: store.isTailActive(),
 		};
 	}, [] );
-	const { setScrollOffset, clearTailNewCount } = useDispatch( STORE_KEY );
+	const { setScrollOffset, clearTailNewCount, fetchNextLogsPage } =
+		useDispatch( STORE_KEY );
+
+	// Live refs so the scroll handler can read the latest values
+	// without resubscribing on every state change. Resubscribing would
+	// also reset the saved-offset restore on first paint.
+	const stateRef = useRef( {
+		hasMore,
+		page,
+		filters,
+		viewMode,
+		isTailing,
+		isLoading,
+	} );
+	useEffect( () => {
+		stateRef.current = {
+			hasMore,
+			page,
+			filters,
+			viewMode,
+			isTailing,
+			isLoading,
+		};
+	}, [ hasMore, page, filters, viewMode, isTailing, isLoading ] );
 
 	useEffect( () => {
 		const element = listRef.current?.element;
@@ -451,6 +498,32 @@ function ListScrollPane( { items, isLoading } ) {
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [] );
+
+	// Infinite-scroll trigger. The scroll-event approach is unreliable
+	// against react-window's virtualised viewport (the outer scroll
+	// container can resize across re-measures and the threshold check
+	// would race with the row-height pass). `onRowsRendered` is the
+	// purpose-built signal: fire whenever the visible window's stop
+	// index lands inside a small look-ahead window of `rowCount`. Tail
+	// polling owns the top-of-list growth path, so we suppress auto-
+	// pagination while it is running.
+	const handleRowsRendered = useCallback(
+		( visibleRows ) => {
+			const s = stateRef.current;
+			if ( s.isLoading || ! s.hasMore || s.isTailing ) {
+				return;
+			}
+			if (
+				visibleRows.stopIndex >=
+				items.length - INFINITE_SCROLL_PREFETCH_ROWS
+			) {
+				fetchNextLogsPage(
+					buildQueryParams( s.filters, s.viewMode, s.page + 1 )
+				);
+			}
+		},
+		[ items.length, fetchNextLogsPage ]
+	);
 
 	useTailPolling( scrollElementRef );
 
@@ -510,8 +583,46 @@ function ListScrollPane( { items, isLoading } ) {
 				rowHeight={ rowHeight }
 				rowComponent={ EntryRow }
 				rowProps={ { items } }
+				onRowsRendered={ handleRowsRendered }
 				style={ { height: LIST_HEIGHT } }
 			/>
+			{ hasMore && (
+				<div
+					className="logscope-viewer__more"
+					role="status"
+					aria-live="polite"
+				>
+					{ isLoading
+						? __( 'Loading more…', 'logscope' )
+						: sprintf(
+								/* translators: 1: loaded entries, 2: total matching entries. */
+								__(
+									'Showing %1$d of %2$d — scroll for more.',
+									'logscope'
+								),
+								items.length,
+								total
+						  ) }
+				</div>
+			) }
+			{ ! hasMore && items.length > 0 && (
+				<div
+					className="logscope-viewer__more logscope-viewer__more--end"
+					role="status"
+					aria-live="polite"
+				>
+					{ sprintf(
+						/* translators: %d is the total number of entries loaded. */
+						_n(
+							'End of log · %d entry loaded.',
+							'End of log · %d entries loaded.',
+							items.length,
+							'logscope'
+						),
+						items.length
+					) }
+				</div>
+			) }
 		</div>
 	);
 }

@@ -19,6 +19,13 @@ import {
 import { STORE_KEY } from '../../store';
 
 const DEDUP_WINDOW_MIN = 60;
+const ALERT_FIELD_KEYS = [
+	'alert_email_enabled',
+	'alert_email_to',
+	'alert_webhook_enabled',
+	'alert_webhook_url',
+	'alert_dedup_window',
+];
 
 function outcomeLabel( outcome ) {
 	switch ( outcome ) {
@@ -46,16 +53,22 @@ function outcomeStatus( outcome ) {
 }
 
 export default function AlertsPanel() {
-	const { draft, isSendingTestAlert, alertTestResults, alertTestError } =
-		useSelect( ( select ) => {
-			const store = select( STORE_KEY );
-			return {
-				draft: store.getSettingsDraft(),
-				isSendingTestAlert: store.isSendingTestAlert(),
-				alertTestResults: store.getAlertTestResults(),
-				alertTestError: store.getAlertTestError(),
-			};
-		}, [] );
+	const {
+		draft,
+		values,
+		isSendingTestAlert,
+		alertTestResults,
+		alertTestError,
+	} = useSelect( ( select ) => {
+		const store = select( STORE_KEY );
+		return {
+			draft: store.getSettingsDraft(),
+			values: store.getSettingsValues(),
+			isSendingTestAlert: store.isSendingTestAlert(),
+			alertTestResults: store.getAlertTestResults(),
+			alertTestError: store.getAlertTestError(),
+		};
+	}, [] );
 
 	const { setSettingsDraft, sendTestAlert, clearAlertTestResults } =
 		useDispatch( STORE_KEY );
@@ -68,9 +81,36 @@ export default function AlertsPanel() {
 	const webhookEnabled = Number( draft.alert_webhook_enabled ) === 1;
 	const anyEnabled = emailEnabled || webhookEnabled;
 
+	const alertDirty =
+		values &&
+		ALERT_FIELD_KEYS.some( ( key ) => {
+			const a = draft[ key ];
+			const b = values[ key ];
+			if (
+				key === 'alert_email_enabled' ||
+				key === 'alert_webhook_enabled' ||
+				key === 'alert_dedup_window'
+			) {
+				return Number( a ) !== Number( b );
+			}
+			return ( a || '' ).trim() !== ( b || '' ).trim();
+		} );
+
 	const handleSendTest = () => {
 		clearAlertTestResults();
-		sendTestAlert();
+		// Persist dirty alert fields first so the server-side test reads
+		// the toggle the user just flipped instead of stale values.
+		const pending = alertDirty
+			? {
+					alert_email_enabled: emailEnabled ? 1 : 0,
+					alert_email_to: draft.alert_email_to || '',
+					alert_webhook_enabled: webhookEnabled ? 1 : 0,
+					alert_webhook_url: draft.alert_webhook_url || '',
+					alert_dedup_window:
+						Number( draft.alert_dedup_window ) || DEDUP_WINDOW_MIN,
+			  }
+			: null;
+		sendTestAlert( pending );
 	};
 
 	return (
@@ -186,7 +226,7 @@ export default function AlertsPanel() {
 					{ ! anyEnabled && (
 						<span className="logscope-alerts-panel__test-hint">
 							{ __(
-								'Enable email or webhook above first, then save.',
+								'Enable email or webhook above first.',
 								'logscope'
 							) }
 						</span>

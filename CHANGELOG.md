@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Fixed
+
+-   Settings save no longer 400s with `Unknown setting(s): _locale.` — `SettingsController::handle_post()` now strips underscore-prefixed params (`_locale`, `_wpnonce`, `_method`, etc.) before the unknown-setting gate. WordPress core appends those to admin REST requests for user-locale switching and nonce handling; the controller was treating them as candidate setting keys and rejecting the save. New integration test asserts a body containing `_locale` + a real setting succeeds.
+-   "Send test alert" now persists dirty alert toggles before dispatching, so flipping email-on and clicking the button works without a separate Save round-trip. Previously the test endpoint read dispatcher state from the persisted store and returned `Enable at least one alert backend (email or webhook) before sending a test alert.` even though the toggle was visibly on. The button hint also drops the now-stale ", then save" tail.
+
 ## [0.15.0] - 2026-04-30
 
 Closes Phase 17.1–17.4 of the [roadmap](ROADMAP.md): the pre-1.0 release infrastructure for the wp.org cut. No runtime changes — this release lands the `readme.txt` the WordPress.org plugin directory will render, the `.wordpress-org/` asset spec the maintainer will fill in with banner / icon / screenshot binaries, and the GitHub release workflow that builds the distribution zip on every `v*.*.*` tag push. The actual v1.0.0 cut is gated on Phase 17.5 (pre-1.0 changes, scope TBD), 17.7 (full security review), and the maintainer's go-ahead — none of which fire automatically from this release.

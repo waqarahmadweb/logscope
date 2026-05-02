@@ -67,11 +67,12 @@ export default function App() {
 	const { theme, cycle: cycleTheme } = useTheme();
 
 	// Live indicator counts: total comes from the API response (matches
-	// active filters across pagination); fatalInView is computed from the
-	// loaded page so it shifts as the user toggles severity filters but
-	// can under-count when later pages contain more fatals. Honest enough
-	// for an at-a-glance pulse — Stats tab is the source of truth.
-	const fatalInView = useMemo(
+	// active filters across pagination); fatalInLoaded counts fatals
+	// across the entries the list has actually streamed in. With
+	// infinite-scroll loading, this grows toward the true total as the
+	// user scrolls — it is intentionally not a global aggregate (the
+	// Stats tab owns that view).
+	const fatalInLoaded = useMemo(
 		() => items.filter( ( i ) => i?.severity === 'fatal' ).length,
 		[ items ]
 	);
@@ -189,7 +190,7 @@ export default function App() {
 					role="status"
 					aria-live="polite"
 					title={ __(
-						'Entries matching the current filters · fatal count is for the loaded page.',
+						'Entries matching the current filters · fatal count grows as more entries stream in while you scroll.',
 						'logscope'
 					) }
 				>
@@ -202,21 +203,21 @@ export default function App() {
 						{ ' ' }
 						{ _n( 'entry', 'entries', logsTotal, 'logscope' ) }
 					</span>
-					{ fatalInView > 0 && (
+					{ fatalInLoaded > 0 && (
 						<>
 							<span className="logscope-page-head__live-sep">
 								·
 							</span>
 							<span className="logscope-page-head__live-fatal">
 								{ sprintf(
-									/* translators: %d is the number of fatal errors visible on the current page. */
+									/* translators: %d is the number of fatal errors among the entries currently loaded into the view. */
 									_n(
 										'%d fatal',
 										'%d fatal',
-										fatalInView,
+										fatalInLoaded,
 										'logscope'
 									),
-									fatalInView
+									fatalInLoaded
 								) }
 							</span>
 						</>

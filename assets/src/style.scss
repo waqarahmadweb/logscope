@@ -959,6 +959,19 @@ body.tools_page_logscope {
 			filter: brightness( 1.1 );
 		}
 	}
+
+	&__more {
+		padding: 10px 16px;
+		text-align: center;
+		font-size: 12px;
+		color: var( --logscope-fg-muted );
+		border-top: 1px solid var( --logscope-border );
+		background: var( --logscope-bg-muted );
+
+		&--end {
+			opacity: 0.7;
+		}
+	}
 }
 
 .logscope-empty {

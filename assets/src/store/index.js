@@ -126,6 +126,24 @@ const DEFAULT_STATE = {
 const TOAST_DEFAULT_TTL_MS = 5000;
 let toastSeq = 0;
 
+// Monotonically-increasing id stamped onto every log entry as it
+// enters the store. Selection/expansion key off this so duplicate log
+// lines (identical content + timestamp) do not collide into a single
+// row, which they would under any content-based hash. The counter is
+// process-local and never reused, so prepended tail entries and
+// appended infinite-scroll pages each get a fresh keyspace.
+let entrySeq = 0;
+function stampEntry( entry ) {
+	if ( ! entry || typeof entry !== 'object' ) {
+		return entry;
+	}
+	entrySeq += 1;
+	return { ...entry, _clientId: entrySeq };
+}
+function stampEntries( items ) {
+	return ( items || [] ).map( stampEntry );
+}
+
 const actions = {
 	setActiveTab( tab ) {
 		return { type: 'SET_ACTIVE_TAB', tab };
@@ -178,6 +196,9 @@ const actions = {
 	receiveLogs( payload ) {
 		return { type: 'LOGS_RECEIVED', payload };
 	},
+	appendLogs( payload ) {
+		return { type: 'LOGS_APPENDED', payload };
+	},
 	failLogs( error ) {
 		return { type: 'LOGS_FAILED', error };
 	},
@@ -194,6 +215,28 @@ const actions = {
 			yield actions.pushToast( {
 				message:
 					error?.message || __( 'Could not load logs.', 'logscope' ),
+				status: 'error',
+			} );
+		}
+	},
+	*fetchNextLogsPage( params = {} ) {
+		// Infinite-scroll loader. Mirrors fetchLogs but appends to the
+		// existing list rather than replacing it. The scroll handler in
+		// LogViewer is responsible for not re-firing while a request is
+		// already in flight or after the loaded set covers `total`.
+		yield actions.startLoadingLogs();
+		try {
+			const response = yield {
+				type: 'API_FETCH_LOGS',
+				params,
+			};
+			yield actions.appendLogs( response );
+		} catch ( error ) {
+			yield actions.failLogs( error?.message || 'Unknown error' );
+			yield actions.pushToast( {
+				message:
+					error?.message ||
+					__( 'Could not load more logs.', 'logscope' ),
 				status: 'error',
 			} );
 		}
@@ -246,7 +289,35 @@ const actions = {
 	clearAlertTestResults() {
 		return { type: 'ALERT_TEST_CLEARED' };
 	},
-	*sendTestAlert() {
+	*sendTestAlert( pendingSettings = null ) {
+		// If the caller passes a settings body, persist it before the test.
+		// The test endpoint reads dispatcher state from the persisted store,
+		// so an unsaved draft would be ignored — saving first lets "toggle
+		// email on, click Send test alert" work without a separate Save click.
+		if ( pendingSettings && Object.keys( pendingSettings ).length > 0 ) {
+			try {
+				const saved = yield {
+					type: 'API_SAVE_SETTINGS',
+					body: pendingSettings,
+				};
+				yield actions.settingsSaved( saved );
+			} catch ( error ) {
+				yield actions.failAlertTest(
+					error?.message ||
+						__( 'Could not save settings before test.', 'logscope' )
+				);
+				yield actions.pushToast( {
+					message:
+						error?.message ||
+						__(
+							'Could not save settings before test.',
+							'logscope'
+						),
+					status: 'error',
+				} );
+				return;
+			}
+		}
 		yield actions.startSendingTestAlert();
 		try {
 			const payload = yield { type: 'API_TEST_ALERT' };
@@ -673,7 +744,7 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				},
 			};
 		case 'TAIL_APPEND_ENTRIES': {
-			const incoming = action.entries || [];
+			const incoming = stampEntries( action.entries || [] );
 			// Rotation: server detected the file shrunk, so the response
 			// is a fresh baseline, not a delta. Replace the list, drop
 			// the new-since-you-looked counter, prune expanded-trace
@@ -723,7 +794,7 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				logs: { ...state.logs, isLoading: true, error: null },
 			};
 		case 'LOGS_RECEIVED': {
-			const items = action.payload.items || [];
+			const items = stampEntries( action.payload.items || [] );
 			// A re-fetch replaces the list outright, so any expanded-
 			// trace keys whose entries are no longer present become
 			// dead weight that would grow without bound across a long
@@ -772,6 +843,24 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					// you last looked" count from a previous tail loop is
 					// stale by definition.
 					newCount: 0,
+				},
+			};
+		}
+		case 'LOGS_APPENDED': {
+			// Infinite-scroll page append. Existing items + their
+			// expanded/selected state stay put; the appended rows get
+			// fresh `_clientId`s from stampEntries so keys remain
+			// collision-free even across many pages.
+			const appended = stampEntries( action.payload.items || [] );
+			return {
+				...state,
+				logs: {
+					...state.logs,
+					isLoading: false,
+					items: [ ...state.logs.items, ...appended ],
+					total: action.payload.total || state.logs.total,
+					page: action.payload.page || state.logs.page,
+					perPage: action.payload.per_page || state.logs.perPage,
 				},
 			};
 		}
@@ -1152,6 +1241,11 @@ const selectors = {
 	getTailNewCount: ( state ) => state.tail.newCount,
 	getLogs: ( state ) => state.logs.items,
 	getLogsTotal: ( state ) => state.logs.total,
+	getLogsPage: ( state ) => state.logs.page,
+	getLogsPerPage: ( state ) => state.logs.perPage,
+	hasMoreLogs: ( state ) =>
+		state.logs.items.length > 0 &&
+		state.logs.items.length < state.logs.total,
 	isLoadingLogs: ( state ) => state.logs.isLoading,
 	getLogsError: ( state ) => state.logs.error,
 	getSettingsValues: ( state ) => state.settings.values,
