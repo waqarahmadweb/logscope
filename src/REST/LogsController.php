@@ -13,11 +13,13 @@ use Logscope\Log\Entry;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\Frame;
 use Logscope\Log\Group;
+use Logscope\Log\LogGrouper;
 use Logscope\Log\LogQuery;
 use Logscope\Log\LogQueryException;
 use Logscope\Log\LogRepository;
 use Logscope\Log\PagedResult;
 use Logscope\Log\Severity;
+use Logscope\Log\SourceClassifier;
 use Logscope\Log\StackTraceParser;
 use Logscope\Support\PathGuard;
 use WP_REST_Request;
@@ -506,8 +508,13 @@ final class LogsController extends RestController {
 			'message'   => $entry->message,
 			'file'      => $entry->file,
 			'line'      => $entry->line,
+			'source'    => SourceClassifier::classify( $entry->file ),
 			'raw'       => $entry->raw,
 			'frames'    => $frames,
+			// Signature lets the list-view "Mute (N)" action collapse a
+			// selection down to its distinct mute keys without a server
+			// round-trip per row.
+			'signature' => LogGrouper::signature( $entry ),
 		);
 	}
 

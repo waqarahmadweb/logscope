@@ -107,11 +107,14 @@ final class SettingsControllerTest extends TestCase {
 				'alert_email_to'             => '',
 				'alert_webhook_enabled'      => 0,
 				'alert_webhook_url'          => '',
-				'alert_dedup_window'         => 300,
+				'alert_dedup_window'         => 1800,
 				'cron_scan_enabled'          => 0,
 				'cron_scan_interval_minutes' => 5,
 				'retention_enabled'          => 0,
 				'retention_max_size_mb'      => 50,
+				'default_per_page'           => 50,
+				'default_severity_filter'    => '',
+				'timestamp_tz'               => 'site',
 				'retention_max_archives'     => 5,
 			),
 			$response->get_data()
@@ -140,11 +143,14 @@ final class SettingsControllerTest extends TestCase {
 				'alert_email_to'             => '',
 				'alert_webhook_enabled'      => 0,
 				'alert_webhook_url'          => '',
-				'alert_dedup_window'         => 300,
+				'alert_dedup_window'         => 1800,
 				'cron_scan_enabled'          => 0,
 				'cron_scan_interval_minutes' => 5,
 				'retention_enabled'          => 0,
 				'retention_max_size_mb'      => 50,
+				'default_per_page'           => 50,
+				'default_severity_filter'    => '',
+				'timestamp_tz'               => 'site',
 				'retention_max_archives'     => 5,
 			),
 			$response->get_data()
@@ -181,6 +187,23 @@ final class SettingsControllerTest extends TestCase {
 		$this->assertSame( '', $this->store['logscope_log_path'] );
 	}
 
+	public function test_post_strips_underscore_prefixed_internal_params(): void {
+		// WP core appends `_locale=user` (and other `_`-prefixed params) to
+		// admin REST requests; those are not settings and must not trigger
+		// the unknown-setting 400.
+		$request  = new WP_REST_Request(
+			array(
+				'_locale'       => 'user',
+				'_wpnonce'      => 'abc123',
+				'tail_interval' => 7,
+			)
+		);
+		$response = $this->controller->handle_post( $request );
+
+		self::assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 7, $response->get_data()['tail_interval'] );
+	}
+
 	public function test_post_with_empty_body_is_a_no_op_and_returns_full_state(): void {
 		$request  = new WP_REST_Request( array() );
 		$response = $this->controller->handle_post( $request );
@@ -194,11 +217,14 @@ final class SettingsControllerTest extends TestCase {
 				'alert_email_to'             => '',
 				'alert_webhook_enabled'      => 0,
 				'alert_webhook_url'          => '',
-				'alert_dedup_window'         => 300,
+				'alert_dedup_window'         => 1800,
 				'cron_scan_enabled'          => 0,
 				'cron_scan_interval_minutes' => 5,
 				'retention_enabled'          => 0,
 				'retention_max_size_mb'      => 50,
+				'default_per_page'           => 50,
+				'default_severity_filter'    => '',
+				'timestamp_tz'               => 'site',
 				'retention_max_archives'     => 5,
 			),
 			$response->get_data()

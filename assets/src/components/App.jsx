@@ -16,12 +16,12 @@
  * the global key listener (which has to live above the tab switch) free
  * of knowledge about specific refs.
  */
-import { useCallback, useEffect, useState } from '@wordpress/element';
+import { useCallback, useEffect, useMemo, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
-import { Button } from '@wordpress/components';
+import { __, sprintf, _n } from '@wordpress/i18n';
 
 import { STORE_KEY } from '../store';
+import useTheme from '../hooks/useTheme';
 import { SHORTCUT, SHORTCUT_EVENT } from '../shortcuts';
 import LogViewer from './LogViewer';
 import SettingsPanel from './SettingsPanel';
@@ -54,12 +54,28 @@ function emitShortcut( name ) {
 }
 
 export default function App() {
-	const activeTab = useSelect(
-		( select ) => select( STORE_KEY ).getActiveTab(),
-		[]
-	);
+	const { activeTab, logsTotal, items } = useSelect( ( select ) => {
+		const store = select( STORE_KEY );
+		return {
+			activeTab: store.getActiveTab(),
+			logsTotal: store.getLogsTotal(),
+			items: store.getLogs(),
+		};
+	}, [] );
 	const { setActiveTab } = useDispatch( STORE_KEY );
 	const [ helpOpen, setHelpOpen ] = useState( false );
+	const { theme, cycle: cycleTheme } = useTheme();
+
+	// Live indicator counts: total comes from the API response (matches
+	// active filters across pagination); fatalInLoaded counts fatals
+	// across the entries the list has actually streamed in. With
+	// infinite-scroll loading, this grows toward the true total as the
+	// user scrolls — it is intentionally not a global aggregate (the
+	// Stats tab owns that view).
+	const fatalInLoaded = useMemo(
+		() => items.filter( ( i ) => i?.severity === 'fatal' ).length,
+		[ items ]
+	);
 
 	useEffect( () => {
 		const sync = () => setActiveTab( readTabFromHash() );
@@ -148,6 +164,66 @@ export default function App() {
 
 	return (
 		<div className="logscope-app">
+			<header className="logscope-page-head">
+				<div className="logscope-page-head__title-block">
+					<h1 className="logscope-page-head__title">
+						{ __( 'Logscope', 'logscope' ) }
+					</h1>
+					<p className="logscope-page-head__sub">
+						{ __(
+							'PHP error log viewer for WordPress.',
+							'logscope'
+						) }
+					</p>
+				</div>
+				<button
+					type="button"
+					className="logscope-page-head__theme"
+					onClick={ cycleTheme }
+					title={ themeLabel( theme ) }
+					aria-label={ themeLabel( theme ) }
+				>
+					{ themeIcon( theme ) }
+				</button>
+				<div
+					className="logscope-page-head__live"
+					role="status"
+					aria-live="polite"
+					title={ __(
+						'Entries matching the current filters · fatal count grows as more entries stream in while you scroll.',
+						'logscope'
+					) }
+				>
+					<span
+						className="logscope-page-head__live-dot"
+						aria-hidden="true"
+					/>
+					<strong>{ logsTotal }</strong>
+					<span>
+						{ ' ' }
+						{ _n( 'entry', 'entries', logsTotal, 'logscope' ) }
+					</span>
+					{ fatalInLoaded > 0 && (
+						<>
+							<span className="logscope-page-head__live-sep">
+								·
+							</span>
+							<span className="logscope-page-head__live-fatal">
+								{ sprintf(
+									/* translators: %d is the number of fatal errors among the entries currently loaded into the view. */
+									_n(
+										'%d fatal',
+										'%d fatal',
+										fatalInLoaded,
+										'logscope'
+									),
+									fatalInLoaded
+								) }
+							</span>
+						</>
+					) }
+				</div>
+			</header>
 			<div
 				className="logscope-tabs"
 				role="tablist"
@@ -176,15 +252,14 @@ export default function App() {
 						</button>
 					);
 				} ) }
-				<span style={ { flex: 1 } } />
-				<Button
-					variant="tertiary"
-					size="small"
+				<button
+					type="button"
+					className="logscope-tabs__shortcut-anchor"
 					onClick={ () => setHelpOpen( true ) }
 					aria-label={ __( 'Keyboard shortcuts', 'logscope' ) }
 				>
 					{ __( 'Shortcuts (?)', 'logscope' ) }
-				</Button>
+				</button>
 			</div>
 			<div
 				className="logscope-tabs__panel"
@@ -197,6 +272,26 @@ export default function App() {
 			{ helpOpen && <HelpModal onClose={ () => setHelpOpen( false ) } /> }
 		</div>
 	);
+}
+
+function themeIcon( theme ) {
+	if ( theme === 'light' ) {
+		return '☀';
+	}
+	if ( theme === 'dark' ) {
+		return '☾';
+	}
+	return '◐';
+}
+
+function themeLabel( theme ) {
+	if ( theme === 'light' ) {
+		return __( 'Theme: Light (click for Dark)', 'logscope' );
+	}
+	if ( theme === 'dark' ) {
+		return __( 'Theme: Dark (click for System)', 'logscope' );
+	}
+	return __( 'Theme: System (click for Light)', 'logscope' );
 }
 
 function TabContent( { name } ) {

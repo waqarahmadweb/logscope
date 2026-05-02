@@ -1,14 +1,8 @@
 /**
- * Single horizontal stacked bar showing the proportion of each severity
- * over the selected range. Where the sparkline grid answers "how does
- * each severity move over time," this answers "what is the mix right
- * now" — comparing magnitudes across severities, which the per-chart-
- * peak normalisation in `Sparkline` deliberately does not do.
- *
- * Uses `flex-grow: <count>` rather than computing `width` percentages
- * so a re-render with one more entry redistributes proportionally
- * without precision drift, and the segment widths sum to 100% by
- * construction.
+ * Severity mix panel: one row per severity sorted by count desc, each
+ * with a colored thin bar, count, and percentage. Replaces the older
+ * stacked horizontal bar so the panel reads cleanly when stacked next
+ * to the volume chart on the right side of the dashboard.
  */
 import { __, sprintf } from '@wordpress/i18n';
 
@@ -34,49 +28,49 @@ export default function BreakdownBar( { totals } ) {
 	}
 
 	const grandTotal = segments.reduce( ( sum, s ) => sum + s.count, 0 );
+	segments.sort( ( a, b ) => b.count - a.count );
 
 	return (
-		<div className="logscope-stats__breakdown">
-			<div
-				className="logscope-stats__breakdown-bar"
-				role="img"
-				aria-label={ buildAriaLabel( segments, grandTotal ) }
-			>
-				{ segments.map( ( s ) => (
-					<span
-						key={ s.severity }
-						className={
-							'logscope-stats__breakdown-segment logscope-stats__breakdown-segment--' +
-							severityTone( s.severity )
-						}
-						style={ { flexGrow: s.count } }
-					/>
-				) ) }
-			</div>
-			<ul className="logscope-stats__breakdown-legend">
+		<div
+			className="logscope-breakdown"
+			role="img"
+			aria-label={ buildAriaLabel( segments, grandTotal ) }
+		>
+			<h3 className="logscope-breakdown__title">
+				{ __( 'Severity mix', 'logscope' ) }
+			</h3>
+			<ul className="logscope-breakdown__list">
 				{ segments.map( ( s ) => {
-					const pct = ( ( s.count / grandTotal ) * 100 ).toFixed( 1 );
+					const pct = ( s.count / grandTotal ) * 100;
+					const tone = severityTone( s.severity );
 					return (
 						<li
 							key={ s.severity }
-							className="logscope-stats__breakdown-legend-item"
+							className="logscope-breakdown__row"
 						>
-							<span
-								className={
-									'logscope-stats__breakdown-swatch logscope-stats__breakdown-swatch--' +
-									severityTone( s.severity )
-								}
-								aria-hidden="true"
-							/>
-							{ severityLabel( s.severity ) }
-							<span className="logscope-stats__breakdown-legend-count">
-								{ sprintf(
-									// translators: 1: severity count, 2: percentage of total (one decimal place).
-									__( '%1$d (%2$s%%)', 'logscope' ),
-									s.count,
-									pct
-								) }
-							</span>
+							<div className="logscope-breakdown__head">
+								<span
+									className={ `logscope-kpi__dot logscope-kpi__dot--${ tone }` }
+									aria-hidden="true"
+								/>
+								<span className="logscope-breakdown__name">
+									{ severityLabel( s.severity ) }
+								</span>
+								<span className="logscope-breakdown__count">
+									{ s.count.toLocaleString() }
+								</span>
+								<span className="logscope-breakdown__pct">
+									{ pct >= 10
+										? `${ pct.toFixed( 0 ) }%`
+										: `${ pct.toFixed( 1 ) }%` }
+								</span>
+							</div>
+							<div className="logscope-breakdown__track">
+								<div
+									className={ `logscope-breakdown__fill logscope-breakdown__fill--${ tone }` }
+									style={ { width: `${ pct }%` } }
+								/>
+							</div>
 						</li>
 					);
 				} ) }

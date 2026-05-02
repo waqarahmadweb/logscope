@@ -8,54 +8,143 @@
  */
 
 :root {
-	--logscope-bg: #fff;
-	--logscope-bg-muted: #f6f7f7;
-	--logscope-bg-sunken: #f0f0f1;
-	--logscope-fg: #1e1e1e;
-	--logscope-fg-muted: #50575e;
-	--logscope-border: #dcdcde;
-	--logscope-border-strong: #8c8f94;
+	// Surface palette — warm off-white page, white data surface, soft tan
+	// for inactive pill tracks. Pastel tints back the severity badges.
+	--logscope-bg: #faf7f2;
+	--logscope-bg-muted: #ffffff;
+	--logscope-bg-sunken: #f3efe8;
+	--logscope-bg-track: #efeae0;
+	--logscope-fg: #1a1a1f;
+	--logscope-fg-muted: #6b6b78;
+	--logscope-fg-mute: #9a96a3;
+	--logscope-border: #ece7df;
+	--logscope-border-soft: #f3efe8;
+	--logscope-border-strong: #d8d2c3;
+	--logscope-row-hover: #faf7f2;
 	--logscope-accent: #2271b1;
 	--logscope-accent-fg: #fff;
 	--logscope-focus-ring: #2271b1;
-	--logscope-pill-fatal-bg: #fde7e9;
-	--logscope-pill-fatal-fg: #b32d2e;
-	--logscope-pill-warning-bg: #fcf0d4;
-	--logscope-pill-warning-fg: #8a6300;
-	--logscope-pill-notice-bg: #e5f0fa;
-	--logscope-pill-notice-fg: #1d4a78;
-	--logscope-pill-deprecated-bg: #f0e9f7;
-	--logscope-pill-deprecated-fg: #5b3a87;
-	--logscope-pill-unknown-bg: #f0f0f1;
-	--logscope-pill-unknown-fg: #50575e;
-	--logscope-skeleton-base: #e8e9eb;
-	--logscope-skeleton-shimmer: #f3f4f5;
+	// Severity dots — saturated, used for filter-pill leading dots and the
+	// 2px edge bar on each table row.
+	--logscope-dot-fatal: #d33545;
+	--logscope-dot-parse: #e8770b;
+	--logscope-dot-warning: #d39c0a;
+	--logscope-dot-notice: #2d6cdf;
+	--logscope-dot-deprecated: #6e3fb5;
+	--logscope-dot-strict: #199e6c;
+	--logscope-dot-unknown: #8a8a92;
+	// Severity badges — pastel tint behind dark-tinted text.
+	--logscope-pill-fatal-bg: #ffe1e3;
+	--logscope-pill-fatal-fg: #9b1c2a;
+	--logscope-pill-warning-bg: #fff3c2;
+	--logscope-pill-warning-fg: #785b00;
+	--logscope-pill-notice-bg: #d8eaff;
+	--logscope-pill-notice-fg: #0c4a8a;
+	--logscope-pill-deprecated-bg: #e6e0ff;
+	--logscope-pill-deprecated-fg: #43308f;
+	--logscope-pill-unknown-bg: #ece8e2;
+	--logscope-pill-unknown-fg: #5b5751;
+	--logscope-skeleton-base: #ece7df;
+	--logscope-skeleton-shimmer: #f6f3ec;
+	// Radii + type scale.
+	--logscope-radius-xs: 4px;
+	--logscope-radius-sm: 6px;
+	--logscope-radius-md: 8px;
+	--logscope-radius-lg: 12px;
+	--logscope-radius-pill: 999px;
+	--logscope-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular,
+		Menlo, Consolas, monospace;
+}
+
+// Explicit theme override block — used when the in-plugin theme toggle
+// has been clicked. Mirrors the @prefers-color-scheme palette but wins
+// over both the OS preference and the WP admin-color-* body classes
+// because the user picked it intentionally. The matching light-mode
+// override below pins the warm pastel palette for users on a dark OS
+// who still want light wp-admin.
+html[ data-logscope-theme='dark' ] {
+	--logscope-bg: #15161b;
+	--logscope-bg-muted: #1d1f25;
+	--logscope-bg-sunken: #0f1014;
+	--logscope-bg-track: #23252c;
+	--logscope-fg: #e8e6ea;
+	--logscope-fg-muted: #9a98a3;
+	--logscope-fg-mute: #6b6970;
+	--logscope-border: #2a2c33;
+	--logscope-border-soft: #23252c;
+	--logscope-border-strong: #3a3c44;
+	--logscope-row-hover: #23252c;
+	--logscope-accent: #72aee6;
+	--logscope-accent-fg: #14171a;
+	--logscope-focus-ring: #72aee6;
+	--logscope-pill-fatal-bg: #3d1418;
+	--logscope-pill-fatal-fg: #ffabaf;
+	--logscope-pill-warning-bg: #3d2c08;
+	--logscope-pill-warning-fg: #f6c777;
+	--logscope-pill-notice-bg: #142a45;
+	--logscope-pill-notice-fg: #a7c8ed;
+	--logscope-pill-deprecated-bg: #271938;
+	--logscope-pill-deprecated-fg: #c4a5e8;
+	--logscope-pill-unknown-bg: #23252c;
+	--logscope-pill-unknown-fg: #9a98a3;
+	--logscope-skeleton-base: #23252c;
+	--logscope-skeleton-shimmer: #2e3038;
+}
+
+html[ data-logscope-theme='light' ] {
+	--logscope-bg: #faf7f2;
+	--logscope-bg-muted: #ffffff;
+	--logscope-bg-sunken: #f3efe8;
+	--logscope-bg-track: #efeae0;
+	--logscope-fg: #1a1a1f;
+	--logscope-fg-muted: #6b6b78;
+	--logscope-fg-mute: #9a96a3;
+	--logscope-border: #ece7df;
+	--logscope-border-soft: #f3efe8;
+	--logscope-border-strong: #d8d2c3;
+	--logscope-row-hover: #faf7f2;
+	--logscope-pill-fatal-bg: #ffe1e3;
+	--logscope-pill-fatal-fg: #9b1c2a;
+	--logscope-pill-warning-bg: #fff3c2;
+	--logscope-pill-warning-fg: #785b00;
+	--logscope-pill-notice-bg: #d8eaff;
+	--logscope-pill-notice-fg: #0c4a8a;
+	--logscope-pill-deprecated-bg: #e6e0ff;
+	--logscope-pill-deprecated-fg: #43308f;
+	--logscope-pill-unknown-bg: #ece8e2;
+	--logscope-pill-unknown-fg: #5b5751;
+	--logscope-skeleton-base: #ece7df;
+	--logscope-skeleton-shimmer: #f6f3ec;
 }
 
 @media ( prefers-color-scheme: dark ) {
 	:root {
-		--logscope-bg: #1d2327;
-		--logscope-bg-muted: #23282d;
-		--logscope-bg-sunken: #14171a;
-		--logscope-fg: #f0f0f1;
-		--logscope-fg-muted: #a7aaad;
-		--logscope-border: #3c434a;
-		--logscope-border-strong: #50575e;
+		--logscope-bg: #faf7f2;
+		--logscope-bg-muted: #1d1f25;
+		--logscope-bg-sunken: #0f1014;
+		--logscope-bg-track: #23252c;
+		--logscope-fg: #e8e6ea;
+		--logscope-fg-muted: #9a98a3;
+		--logscope-fg-mute: #6b6970;
+		--logscope-border: #2a2c33;
+		--logscope-border-soft: #23252c;
+		--logscope-border-strong: #3a3c44;
+		--logscope-row-hover: #23252c;
 		--logscope-accent: #72aee6;
 		--logscope-accent-fg: #14171a;
 		--logscope-focus-ring: #72aee6;
-		--logscope-pill-fatal-bg: #4a1d1f;
+		--logscope-pill-fatal-bg: #3d1418;
 		--logscope-pill-fatal-fg: #ffabaf;
-		--logscope-pill-warning-bg: #463508;
+		--logscope-pill-warning-bg: #3d2c08;
 		--logscope-pill-warning-fg: #f6c777;
-		--logscope-pill-notice-bg: #1b3550;
+		--logscope-pill-notice-bg: #142a45;
 		--logscope-pill-notice-fg: #a7c8ed;
-		--logscope-pill-deprecated-bg: #312044;
+		--logscope-pill-deprecated-bg: #271938;
 		--logscope-pill-deprecated-fg: #c4a5e8;
-		--logscope-pill-unknown-bg: #23282d;
-		--logscope-pill-unknown-fg: #a7aaad;
-		--logscope-skeleton-base: #2c3338;
-		--logscope-skeleton-shimmer: #3c434a;
+		--logscope-pill-unknown-bg: #23252c;
+		--logscope-pill-unknown-fg: #9a98a3;
+		--logscope-skeleton-base: #23252c;
+		--logscope-skeleton-shimmer: #2e3038;
 	}
 }
 
@@ -64,151 +153,778 @@
 // `admin-color-modern` when the user picks the modern theme, but core's only
 // truly dark scheme is `admin-color-midnight`. Map both.
 body.admin-color-midnight {
-	--logscope-bg: #1d2327;
-	--logscope-bg-muted: #26292c;
-	--logscope-bg-sunken: #14171a;
-	--logscope-fg: #f0f0f1;
-	--logscope-fg-muted: #a7aaad;
-	--logscope-border: #3c434a;
-	--logscope-border-strong: #50575e;
+	--logscope-bg: #15161b;
+	--logscope-bg-muted: #1d1f25;
+	--logscope-bg-sunken: #0f1014;
+	--logscope-bg-track: #23252c;
+	--logscope-fg: #e8e6ea;
+	--logscope-fg-muted: #9a98a3;
+	--logscope-fg-mute: #6b6970;
+	--logscope-border: #2a2c33;
+	--logscope-border-soft: #23252c;
+	--logscope-border-strong: #3a3c44;
+	--logscope-row-hover: #23252c;
 	--logscope-accent: #e14d43;
 	--logscope-accent-fg: #fff;
 	--logscope-focus-ring: #e14d43;
-	--logscope-pill-fatal-bg: #4a1d1f;
+	--logscope-pill-fatal-bg: #3d1418;
 	--logscope-pill-fatal-fg: #ffabaf;
-	--logscope-pill-warning-bg: #463508;
+	--logscope-pill-warning-bg: #3d2c08;
 	--logscope-pill-warning-fg: #f6c777;
-	--logscope-pill-notice-bg: #1b3550;
+	--logscope-pill-notice-bg: #142a45;
 	--logscope-pill-notice-fg: #a7c8ed;
-	--logscope-pill-deprecated-bg: #312044;
+	--logscope-pill-deprecated-bg: #271938;
 	--logscope-pill-deprecated-fg: #c4a5e8;
-	--logscope-pill-unknown-bg: #23282d;
-	--logscope-pill-unknown-fg: #a7aaad;
-	--logscope-skeleton-base: #2c3338;
-	--logscope-skeleton-shimmer: #3c434a;
+	--logscope-pill-unknown-bg: #23252c;
+	--logscope-pill-unknown-fg: #9a98a3;
+	--logscope-skeleton-base: #23252c;
+	--logscope-skeleton-shimmer: #2e3038;
+}
+
+// The plugin's host page (.logscope-wrap) bleeds the warm pastel surface
+// across the entire wp-admin content column. The WP-default screen-
+// reader h1 stays in the DOM so a11y / SEO still find a heading;
+// .logscope-app then becomes the visual surface (with its own h1
+// inside the page header). The negative margins zero out wp-admin's
+// .wrap padding without fighting the rule shipped by core.
+.logscope-wrap {
+	margin: 0;
+	padding: 0;
+	background: var( --logscope-bg );
+	min-height: calc( 100vh - 32px ); // 32px = wp-admin top bar
+}
+
+// Paint the wp-admin column the same warm pastel so the .logscope-wrap
+// surface looks edge-to-edge without resorting to negative margins
+// (which caused a horizontal scrollbar). Scoped to the Logscope page
+// via the WP-generated body class so other admin screens stay default.
+body.tools_page_logscope {
+	#wpcontent,
+	#wpbody,
+	#wpbody-content {
+		background: var( --logscope-bg );
+	}
 }
 
 .logscope-app {
 	color: var( --logscope-fg );
 	font-size: 13px;
+	background: var( --logscope-bg );
+	padding: 15px 35px 10px 15px;
+
 
 	*:focus-visible {
 		outline: 2px solid var( --logscope-focus-ring );
 		outline-offset: 2px;
-		border-radius: 2px;
+		border-radius: 4px;
+	}
+}
+
+.logscope-page-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 24px;
+	margin-bottom: 22px;
+
+	&__title-block {
+		min-width: 0;
+	}
+
+	// Doubled class to outweigh WP admin's `.wrap h1` (specificity 0,1,1).
+	&__title#{&}__title {
+		font-size: 50px;
+		font-weight: 700;
+		letter-spacing: -0.03em;
+		line-height: 1.05;
+		margin: 0 0 4px;
+		color: var( --logscope-fg );
+	}
+
+	&__sub {
+		margin: 0;
+		color: var( --logscope-fg-muted );
+		font-size: 15px;
+	}
+
+	&__theme {
+		display: none;
+		appearance: none;
+		width: 36px;
+		height: 36px;
+		border-radius: var( --logscope-radius-pill );
+		border: 1px solid var( --logscope-border );
+		background: var( --logscope-bg-muted );
+		color: var( --logscope-fg-muted );
+		font-size: 16px;
+		line-height: 1;
+		cursor: pointer;
+		margin-top: 6px;
+		margin-right: 8px;
+		transition: background 0.1s, color 0.1s, border-color 0.1s;
+
+		&:hover {
+			background: var( --logscope-row-hover );
+			color: var( --logscope-fg );
+			border-color: var( --logscope-border-strong );
+		}
+	}
+
+	&__live {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 7px 13px;
+		border-radius: var( --logscope-radius-pill );
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		color: var( --logscope-fg-muted );
+		font-size: 13px;
+		white-space: nowrap;
+		margin-top: 6px;
+
+		strong {
+			color: var( --logscope-fg );
+			font-weight: 600;
+		}
+	}
+
+	&__live-dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var( --logscope-dot-strict );
+		box-shadow: 0 0 0 3px rgba( 25, 158, 108, 0.18 );
+		animation: logscope-pulse 2s ease-in-out infinite;
+	}
+
+	&__live-sep {
+		color: var( --logscope-border-strong );
+	}
+
+	&__live-fatal {
+		color: var( --logscope-pill-fatal-fg );
+		font-weight: 500;
+	}
+}
+
+@keyframes logscope-pulse {
+	50% {
+		box-shadow: 0 0 0 6px rgba( 25, 158, 108, 0 );
 	}
 }
 
 .logscope-tabs {
-	display: flex;
-	gap: 4px;
-	border-bottom: 1px solid var( --logscope-border );
-	margin-bottom: 16px;
+	display: inline-flex;
+	gap: 2px;
+	padding: 4px;
+	background: var( --logscope-bg-track );
+	border-radius: var( --logscope-radius-lg );
+	margin-bottom: 22px;
+	align-items: center;
 
 	&__tab {
 		appearance: none;
 		background: transparent;
 		border: 0;
-		border-bottom: 2px solid transparent;
+		border-radius: var( --logscope-radius-md );
 		color: var( --logscope-fg-muted );
 		cursor: pointer;
 		font-size: 14px;
 		font-weight: 500;
-		padding: 8px 12px;
-		margin-bottom: -1px;
+		padding: 9px 18px;
 
 		&:hover {
 			color: var( --logscope-fg );
 		}
 
 		&--active {
-			color: var( --logscope-accent );
-			border-bottom-color: var( --logscope-accent );
+			background: var( --logscope-bg-muted );
+			color: var( --logscope-fg );
+			font-weight: 600;
+			box-shadow: 0 1px 2px rgba( 0, 0, 0, 0.05 );
 		}
 	}
 
 	&__panel {
 		min-height: 200px;
 	}
+
+	&__shortcut-anchor {
+		margin-left: 8px;
+		padding: 0 14px;
+		color: var( --logscope-fg-muted );
+		font-size: 12.5px;
+		text-decoration: none;
+		cursor: pointer;
+		background: transparent;
+		border: 0;
+
+		&:hover {
+			color: var( --logscope-fg );
+		}
+	}
 }
 
 .logscope-logs {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+  gap: 15px;
+	.logscope-entry:last-child {
+		border-bottom: 0;
+	}
 }
 
 .logscope-filter-bar {
-	background: var( --logscope-bg-muted );
-	border: 1px solid var( --logscope-border );
-	border-radius: 4px;
-	padding: 12px;
 	display: flex;
-	flex-wrap: wrap;
-	gap: 12px 16px;
-	align-items: flex-end;
+	flex-direction: column;
+	gap: 8px;
 
-	&__severity {
-		border: 0;
-		padding: 0;
-		margin: 0;
+	&__toolbar {
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
+		padding: 8px 10px;
 		display: flex;
 		flex-wrap: wrap;
-		gap: 4px 12px;
+		gap: 6px;
 		align-items: center;
+	}
 
-		legend {
-			font-weight: 600;
-			padding: 0;
-			margin-right: 8px;
+	&__pill {
+		appearance: none;
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		padding: 5px 11px;
+		border-radius: var( --logscope-radius-pill );
+		font: inherit;
+		font-size: 12.5px;
+		font-weight: 500;
+		color: var( --logscope-fg );
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		cursor: pointer;
+		transition: background 0.1s, border-color 0.1s;
+
+		&:hover {
+			background: var( --logscope-bg );
+			border-color: var( --logscope-border-strong );
+		}
+
+		&--on {
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
+			border-color: var( --logscope-border-strong );
+		}
+
+		&--on:hover {
+			background: var( --logscope-bg-track );
+			border-color: var( --logscope-border-strong );
+		}
+
+		&--ghost {
+			color: var( --logscope-fg-muted );
+		}
+
+		&--active {
+			color: var( --logscope-fg );
+			background: var( --logscope-bg );
+			border-color: var( --logscope-border-strong );
 		}
 	}
 
-	&__severity-item {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		font-size: 12px;
+	&__dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		display: inline-block;
+		flex-shrink: 0;
+
+		&--fatal { background: var( --logscope-dot-fatal ); }
+		&--parse { background: var( --logscope-dot-parse ); }
+		&--warning { background: var( --logscope-dot-warning ); }
+		&--notice { background: var( --logscope-dot-notice ); }
+		&--deprecated { background: var( --logscope-dot-deprecated ); }
+		&--strict { background: var( --logscope-dot-strict ); }
+		&--unknown { background: var( --logscope-dot-unknown ); }
 	}
 
-	&__field {
+	&__sep {
+		width: 1px;
+		height: 20px;
+		background: var( --logscope-border );
+		margin: 0 4px;
+	}
+
+	&__search {
+		flex: 1;
+		min-width: 240px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-pill );
+		padding: 0 12px;
+		transition: border-color 0.1s;
+
+		&:focus-within {
+			border-color: var( --logscope-fg );
+		}
+
+		input {
+			flex: 1;
+			border: 0;
+			outline: 0;
+			background: transparent;
+			padding: 6px 0;
+			font: inherit;
+			font-family: var( --logscope-font-mono );
+			font-size: 12.5px;
+			color: var( --logscope-fg );
+
+			// Wrapper handles the focus state via :focus-within, so suppress
+			// the global .logscope-app *:focus-visible blue outline here.
+			&:focus,
+			&:focus-visible {
+				outline: none;
+				border-radius: 0;
+				box-shadow: none;
+			}
+
+			&::placeholder {
+				color: var( --logscope-fg-mute );
+			}
+
+			// Hide the WebKit search-cancel button so the kbd hint doesn't
+			// fight the X icon for the same corner of the input.
+			&::-webkit-search-cancel-button {
+				display: none;
+			}
+		}
+	}
+
+	&__search-icon {
+		font-size: 11px;
+		opacity: 0.55;
+	}
+
+	&__kbd {
+		font-family: var( --logscope-font-mono );
+		font-size: 11px;
+		padding: 1px 6px;
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-xs );
+		color: var( --logscope-fg-muted );
+		background: var( --logscope-bg );
+	}
+
+	&__menu-wrap {
+		position: relative;
+	}
+
+	&__menu {
+		position: absolute;
+		top: calc( 100% + 6px );
+		right: 0;
+		left: auto;
+		z-index: 30;
+		min-width: 220px;
+		max-width: min( 360px, calc( 100vw - 40px ) );
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
+		padding: 6px;
+		box-shadow: 0 12px 32px -12px rgba( 20, 15, 30, 0.18 );
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
-		font-size: 12px;
 
-		span {
+		&--date {
+			padding: 12px;
+			gap: 10px;
+
+			label {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+				font-size: 12px;
+				font-weight: 500;
+				color: var( --logscope-fg-muted );
+
+				input {
+					background: var( --logscope-bg );
+					color: var( --logscope-fg );
+					border: 1px solid var( --logscope-border );
+					border-radius: var( --logscope-radius-sm );
+					padding: 6px 8px;
+					font: inherit;
+					font-size: 13px;
+				}
+			}
+		}
+
+		&--source,
+		&--preset {
+			max-height: 280px;
+			overflow-y: auto;
+		}
+	}
+
+	&__menu-item {
+		appearance: none;
+		text-align: left;
+		background: transparent;
+		border: 0;
+		padding: 7px 10px;
+		border-radius: var( --logscope-radius-sm );
+		font: inherit;
+		font-size: 13px;
+		color: var( --logscope-fg );
+		cursor: pointer;
+		font-family: var( --logscope-font-mono );
+
+		&:hover {
+			background: var( --logscope-bg-sunken );
+		}
+
+		&--on {
+			background: var( --logscope-bg-sunken );
 			font-weight: 600;
 		}
 
-		input,
-		select {
-			background: var( --logscope-bg );
-			color: var( --logscope-fg );
-			border: 1px solid var( --logscope-border );
-			border-radius: 2px;
-			padding: 4px 6px;
-			min-height: 28px;
+		&--primary {
+			font-family: inherit;
+			font-weight: 500;
+			color: var( --logscope-accent );
 		}
 
-		&--regex input {
-			min-width: 200px;
+		&--flex {
+			flex: 1;
+		}
+	}
+
+	&__menu-empty {
+		padding: 12px 10px;
+		color: var( --logscope-fg-muted );
+		font-size: 12.5px;
+		font-style: italic;
+	}
+
+	&__menu-row {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	&__menu-delete {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		color: var( --logscope-fg-mute );
+		font-size: 16px;
+		line-height: 1;
+		width: 24px;
+		height: 24px;
+		border-radius: var( --logscope-radius-sm );
+		cursor: pointer;
+
+		&:hover {
+			background: var( --logscope-pill-fatal-bg );
+			color: var( --logscope-pill-fatal-fg );
+		}
+	}
+}
+
+.logscope-filter-summary {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding: 0 4px;
+	font-size: 12.5px;
+	color: var( --logscope-fg-muted );
+
+	strong {
+		color: var( --logscope-fg );
+		font-weight: 600;
+	}
+
+	&__sep {
+		color: var( --logscope-border-strong );
+	}
+
+	&__chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 3px 4px 3px 10px;
+		border-radius: var( --logscope-radius-pill );
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		font-size: 12px;
+		color: var( --logscope-fg );
+	}
+
+	&__chip-remove {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		color: var( --logscope-fg-muted );
+		font-size: 14px;
+		line-height: 1;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		cursor: pointer;
+
+		&:hover {
+			color: var( --logscope-fg );
+			background: var( --logscope-bg-sunken );
+		}
+	}
+
+	&__clear {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		color: var( --logscope-accent );
+		font: inherit;
+		font-size: 12.5px;
+		cursor: pointer;
+		padding: 0;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+}
+
+// Sticky dark bulk-action bar — surfaces only when ≥ 1 row is checked
+// in List view. Coexists with the toolbar's Mute / Export buttons (the
+// light buttons stay enabled for the same actions); the dark bar is
+// the persistent affordance that follows you down the page while you
+// keep working through the selection.
+.logscope-bulk-bar {
+	position: sticky;
+	top: 32px; // wp-admin top bar
+	z-index: 6;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background: var( --logscope-fg );
+	color: var( --logscope-bg-muted );
+	border-radius: var( --logscope-radius-md );
+	padding: 9px 14px;
+	margin-bottom: 10px;
+	box-shadow: 0 8px 24px -12px rgba( 20, 15, 30, 0.4 );
+	font-size: 13px;
+
+	&__count {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+
+		strong {
+			font-weight: 600;
+		}
+	}
+
+	&__check {
+		appearance: none;
+		-webkit-appearance: none;
+		width: 14px;
+		height: 14px;
+		border-radius: var( --logscope-radius-xs );
+		border: 1px solid rgba( 255, 255, 255, 0.45 );
+		background: transparent;
+		cursor: pointer;
+		margin: 0;
+		display: inline-block;
+		position: relative;
+
+		&:checked,
+		&:indeterminate {
+			background: var( --logscope-bg-muted );
+			border-color: var( --logscope-bg-muted );
+		}
+
+		&:checked::after {
+			content: '';
+			position: absolute;
+			inset: 1px 3px 3px 2px;
+			border-right: 2px solid var( --logscope-fg );
+			border-bottom: 2px solid var( --logscope-fg );
+			transform: rotate( 40deg );
+		}
+
+		&:indeterminate::after {
+			content: '';
+			position: absolute;
+			inset: 5px 2px;
+			background: var( --logscope-fg );
+			border-radius: 1px;
+		}
+	}
+
+	&__sep {
+		color: rgba( 255, 255, 255, 0.32 );
+	}
+
+	&__btn {
+		appearance: none;
+		font: inherit;
+		font-size: 12.5px;
+		font-weight: 500;
+		padding: 5px 11px;
+		border-radius: var( --logscope-radius-sm );
+		border: 1px solid rgba( 255, 255, 255, 0.18 );
+		background: transparent;
+		color: var( --logscope-bg-muted );
+		cursor: pointer;
+
+		&:hover {
+			background: rgba( 255, 255, 255, 0.08 );
+			border-color: rgba( 255, 255, 255, 0.28 );
+		}
+	}
+
+	&__cancel {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		font: inherit;
+		font-size: 12.5px;
+		color: rgba( 255, 255, 255, 0.72 );
+		cursor: pointer;
+		padding: 6px 10px;
+		border-radius: var( --logscope-radius-sm );
+
+		&:hover {
+			color: var( --logscope-bg-muted );
+			background: rgba( 255, 255, 255, 0.08 );
+		}
+	}
+}
+
+.logscope-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+
+	&__bulk {
+		margin-left: auto;
+		display: inline-flex;
+		gap: 8px;
+	}
+
+	&__bulk-btn {
+		appearance: none;
+		font: inherit;
+		font-size: 13px;
+		font-weight: 500;
+		padding: 8px 16px;
+		border-radius: var( --logscope-radius-md );
+		border: 1px solid var( --logscope-border );
+		background: var( --logscope-bg-muted );
+		color: var( --logscope-fg );
+		cursor: pointer;
+		transition: background 0.1s, border-color 0.1s;
+
+		&:hover:not( :disabled ) {
+			background: var( --logscope-row-hover );
+			border-color: var( --logscope-border-strong );
+		}
+
+		&--primary {
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
+			border-color: var( --logscope-fg );
+			font-weight: 600;
+
+			&:hover:not( :disabled ) {
+				background: var( --logscope-fg );
+				color: var( --logscope-bg-muted );
+				filter: brightness( 1.1 );
+			}
+		}
+
+		&:disabled {
+			opacity: 0.45;
+			cursor: not-allowed;
 		}
 	}
 }
 
 .logscope-mode-toggle {
-	display: flex;
-	gap: 4px;
-	flex-wrap: wrap;
+	display: inline-flex;
+	gap: 0;
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
+	padding: 4px;
+
+	// Override the WP Button defaults inside the seg control so the
+	// active variant uses the soft pastel sunken fill rather than the
+	// WP primary blue that fights the warm surface, and so hover/focus
+	// don't paint a blue outline.
+	.components-button {
+		border-radius: var( --logscope-radius-sm );
+		min-height: 26px;
+		padding: 0 20px;
+		font-size: 13px;
+		font-weight: 500;
+		color: var( --logscope-fg-muted );
+		background: transparent;
+		box-shadow: none;
+		border: 0;
+		outline: none;
+
+		&:not( :disabled ):hover {
+			color: var( --logscope-fg );
+			background: transparent;
+			box-shadow: none;
+			border: 0;
+			outline: none;
+		}
+
+		&:focus,
+		&:focus-visible,
+		&:active {
+			box-shadow: none;
+			outline: none;
+			border: 0;
+		}
+
+		&.is-primary {
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
+			font-weight: 600;
+
+			&:hover:not( :disabled ),
+			&:focus,
+			&:focus-visible,
+			&:active {
+				background: var( --logscope-bg-sunken );
+				color: var( --logscope-fg );
+				box-shadow: none;
+				outline: none;
+				filter: none;
+			}
+		}
+	}
 }
 
 .logscope-viewer {
-	background: var( --logscope-bg );
+	background: var( --logscope-bg-muted );
 	border: 1px solid var( --logscope-border );
-	border-radius: 4px;
+	border-radius: var( --logscope-radius-md );
 	overflow: hidden;
 	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
 
 	&--loading {
 		padding: 16px;
@@ -219,7 +935,7 @@ body.admin-color-midnight {
 	}
 
 	&__list {
-		background: var( --logscope-bg );
+		background: var( --logscope-bg-muted );
 	}
 
 	&__new-pill {
@@ -229,18 +945,31 @@ body.admin-color-midnight {
 		transform: translateX( -50% );
 		z-index: 5;
 		appearance: none;
-		background: var( --logscope-accent );
-		color: var( --logscope-accent-fg );
+		background: var( --logscope-fg );
+		color: var( --logscope-bg-muted );
 		border: 0;
-		border-radius: 999px;
-		padding: 4px 12px;
+		border-radius: var( --logscope-radius-pill );
+		padding: 5px 14px;
 		font-size: 12px;
 		font-weight: 600;
 		cursor: pointer;
-		box-shadow: 0 2px 6px rgba( 0, 0, 0, 0.2 );
+		box-shadow: 0 6px 16px -6px rgba( 20, 15, 30, 0.3 );
 
 		&:hover {
-			filter: brightness( 1.05 );
+			filter: brightness( 1.1 );
+		}
+	}
+
+	&__more {
+		padding: 10px 16px;
+		text-align: center;
+		font-size: 12px;
+		color: var( --logscope-fg-muted );
+		border-top: 1px solid var( --logscope-border );
+		background: var( --logscope-bg-muted );
+
+		&--end {
+			opacity: 0.7;
 		}
 	}
 }
@@ -272,66 +1001,201 @@ body.admin-color-midnight {
 	display: flex;
 	flex-direction: column;
 	border-bottom: 1px solid var( --logscope-border );
-	padding: 6px 12px;
+	border-left: 3px solid transparent;
+	padding: 15px 16px;
 	box-sizing: border-box;
-	font-family: SFMono-Regular, Menlo, Consolas, monospace;
-	font-size: 12px;
+	font-family: var( --logscope-font-mono );
+	font-size: 12.5px;
 	color: var( --logscope-fg );
+	background: var( --logscope-bg-muted );
+	cursor: pointer;
+	transition: background 0.08s;
+
+	&:hover {
+		background: var( --logscope-row-hover );
+
+		.logscope-entry__toggle {
+			opacity: 1;
+		}
+	}
 
 	&__head {
-		display: flex;
-		gap: 8px;
+		display: grid;
+		grid-template-columns: 22px auto auto 1fr minmax( 0, 320px ) auto auto;
+		gap: 12px;
 		align-items: center;
-		min-height: 36px;
+		min-height: 32px;
+	}
+
+	&__checkbox {
+		margin: 0;
+		width: 14px;
+		height: 14px;
+	}
+
+	&--selected {
+		background: var( --logscope-row-hover );
 	}
 
 	&__timestamp {
 		color: var( --logscope-fg-muted );
 		flex-shrink: 0;
 		white-space: nowrap;
+		font-size: 12px;
 	}
 
 	&__message {
-		flex: 1 1 auto;
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
+	.logscope-mark {
+		background: rgba( 251, 191, 36, 0.45 );
+		color: inherit;
+		padding: 0 2px;
+		border-radius: 2px;
+		font-weight: 500;
+	}
+
+	&__path {
+		color: var( --logscope-fg-muted );
+		font-size: 11.5px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		text-align: right;
+	}
+
 	&__toggle {
+		grid-column: 6;
 		appearance: none;
 		background: transparent;
-		border: 1px solid var( --logscope-border );
-		border-radius: 2px;
+		border: 1px solid transparent;
+		border-radius: var( --logscope-radius-sm );
 		color: var( --logscope-fg-muted );
 		cursor: pointer;
 		font: inherit;
+		font-family: var( --logscope-font-mono );
 		min-width: 28px;
-		min-height: 24px;
-		padding: 0 4px;
+		min-height: 26px;
+		padding: 0 6px;
+		opacity: 0;
+		transition: opacity 0.1s, background 0.1s;
 
 		&:hover {
 			background: var( --logscope-bg-muted );
 			color: var( --logscope-fg );
+			border-color: var( --logscope-border );
+		}
+
+		&[aria-expanded='true'] {
+			opacity: 1;
 		}
 	}
 
+	&__more {
+		grid-column: 7;
+		appearance: none;
+		background: transparent;
+		border: 1px solid transparent;
+		border-radius: var( --logscope-radius-sm );
+		color: var( --logscope-fg-muted );
+		cursor: pointer;
+		font: inherit;
+		font-family: var( --logscope-font-mono );
+		font-size: 16px;
+		line-height: 1;
+		min-width: 24px;
+		min-height: 26px;
+		padding: 0 4px;
+		opacity: 0;
+		transition: opacity 0.1s, background 0.1s;
+
+		&:hover,
+		&:focus-visible,
+		&[aria-expanded='true'] {
+			opacity: 1;
+			background: var( --logscope-bg-muted );
+			color: var( --logscope-fg );
+			border-color: var( --logscope-border );
+		}
+	}
+
+	&:hover &__more {
+		opacity: 0.6;
+	}
+
+	&--fatal { border-left-color: var( --logscope-dot-fatal ); }
+	&--warning { border-left-color: var( --logscope-dot-warning ); }
+	&--notice { border-left-color: var( --logscope-dot-notice ); }
+	&--deprecated { border-left-color: var( --logscope-dot-deprecated ); }
+
 	&--expanded {
-		background: var( --logscope-bg-muted );
+		background: var( --logscope-row-hover );
+	}
+
+	// Inline expanded body — full message + path, wrapped. Sits below the
+	// __head row when the user clicks the row to expand details. Height
+	// reserved by ROW_HEIGHT_DETAILS in EntryRow so the virtualizer keeps
+	// it inside the row's allotted height.
+	&__details {
+		margin-top: 10px;
+		padding: 10px 12px;
+		background: var( --logscope-bg );
+		border: 1px solid var( --logscope-border-soft );
+		border-radius: var( --logscope-radius-sm );
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		cursor: text;
+	}
+
+	&__details-message {
+		color: var( --logscope-fg );
+		font-size: 12.5px;
+		line-height: 1.5;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	&__details-path {
+		color: var( --logscope-fg-muted );
+		font-size: 11.5px;
+		word-break: break-all;
 	}
 }
 
 .logscope-pill {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
 	font-size: 11px;
 	font-weight: 600;
 	text-transform: uppercase;
-	letter-spacing: 0.02em;
-	padding: 2px 8px;
-	border-radius: 999px;
+	letter-spacing: 0.04em;
+	padding: 3px 9px;
+	border-radius: var( --logscope-radius-xs );
 	flex-shrink: 0;
 	background: var( --logscope-pill-unknown-bg );
 	color: var( --logscope-pill-unknown-fg );
+	font-family: 'Inter', system-ui, sans-serif;
+
+	&__dot {
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		display: inline-block;
+		background: currentColor;
+		opacity: 0.85;
+
+		&--fatal { background: var( --logscope-dot-fatal ); opacity: 1; }
+		&--warning { background: var( --logscope-dot-warning ); opacity: 1; }
+		&--notice { background: var( --logscope-dot-notice ); opacity: 1; }
+		&--deprecated { background: var( --logscope-dot-deprecated ); opacity: 1; }
+		&--unknown { background: var( --logscope-dot-unknown ); opacity: 1; }
+	}
 
 	&--fatal {
 		background: var( --logscope-pill-fatal-bg );
@@ -353,21 +1217,24 @@ body.admin-color-midnight {
 
 .logscope-trace {
 	list-style: none;
-	margin: 4px 0 8px;
-	padding: 8px 12px;
+	margin: 4px 12px 10px;
+	padding: 10px 14px;
 	background: var( --logscope-bg-sunken );
-	border-radius: 2px;
+	border: 1px solid var( --logscope-border-soft );
+	border-radius: var( --logscope-radius-sm );
+	font-family: var( --logscope-font-mono );
 
 	&__frame {
 		display: flex;
-		gap: 8px;
+		gap: 10px;
 		align-items: baseline;
-		padding: 2px 0;
-		font-size: 11px;
+		padding: 3px 0;
+		font-size: 11.5px;
+		line-height: 1.55;
 	}
 
 	&__index {
-		color: var( --logscope-fg-muted );
+		color: var( --logscope-fg-mute );
 		flex-shrink: 0;
 		width: 28px;
 	}
@@ -380,6 +1247,7 @@ body.admin-color-midnight {
 		color: var( --logscope-accent );
 		cursor: pointer;
 		font: inherit;
+		font-family: var( --logscope-font-mono );
 		text-decoration: underline dotted;
 
 		&:hover {
@@ -396,10 +1264,10 @@ body.admin-color-midnight {
 	&__copied {
 		display: inline-block;
 		margin-left: 6px;
-		padding: 0 6px;
+		padding: 1px 7px;
 		background: var( --logscope-pill-notice-bg );
 		color: var( --logscope-pill-notice-fg );
-		border-radius: 2px;
+		border-radius: var( --logscope-radius-xs );
 		font-size: 10px;
 		font-weight: 600;
 	}
@@ -416,61 +1284,130 @@ body.admin-color-midnight {
 	list-style: none;
 	margin: 0;
 	padding: 0;
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
+	overflow: hidden;
 
 	&__row {
-		border-bottom: 1px solid var( --logscope-border );
+		display: grid;
+		grid-template-columns: 28px 1fr 32px;
+		grid-template-areas: 'check summary mute';
+		align-items: center;
+		gap: 8px;
+		padding: 0 12px;
+		border-bottom: 1px solid var( --logscope-border-soft );
+		border-left: 3px solid transparent;
+		transition: background 0.08s;
 
 		&:last-child {
 			border-bottom: 0;
 		}
+
+		&:hover {
+			background: var( --logscope-row-hover );
+
+			.logscope-grouped__mute {
+				opacity: 1;
+			}
+		}
+
+		&--fatal { border-left-color: var( --logscope-dot-fatal ); }
+		&--warning { border-left-color: var( --logscope-dot-warning ); }
+		&--notice { border-left-color: var( --logscope-dot-notice ); }
+		&--deprecated { border-left-color: var( --logscope-dot-deprecated ); }
+
+		&--expanded {
+			background: var( --logscope-row-hover );
+		}
+	}
+
+	&__checkbox {
+		grid-area: check;
+		margin: 0;
 	}
 
 	&__summary {
+		grid-area: summary;
 		display: grid;
-		grid-template-columns: auto auto 1fr auto auto;
-		gap: 8px;
+		grid-template-columns: auto auto 1fr minmax( 0, 320px );
+		gap: 12px;
 		align-items: center;
 		width: 100%;
+		min-height: 40px;
 		appearance: none;
 		background: transparent;
 		border: 0;
-		padding: 8px 12px;
+		padding: 8px 0;
 		text-align: left;
 		cursor: pointer;
 		color: var( --logscope-fg );
 		font: inherit;
 
 		&:hover {
-			background: var( --logscope-bg-muted );
+			background: transparent; // hover handled by row
 		}
 	}
 
 	&__count {
 		color: var( --logscope-fg-muted );
-		font-weight: 600;
+		font-family: var( --logscope-font-mono );
+		font-size: 12px;
+		font-weight: 500;
 	}
 
 	&__message {
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		font-family: SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 12px;
+		font-family: var( --logscope-font-mono );
+		font-size: 12.5px;
 	}
 
 	&__file {
 		color: var( --logscope-fg-muted );
-		font-family: SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 11px;
+		font-family: var( --logscope-font-mono );
+		font-size: 11.5px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		text-align: right;
 	}
 
-	&__chevron {
+	&__mute {
+		grid-area: mute;
+		appearance: none;
+		background: transparent;
+		border: 1px solid transparent;
+		border-radius: var( --logscope-radius-sm );
+		width: 28px;
+		height: 28px;
+		padding: 0;
+		font-size: 14px;
+		line-height: 1;
+		cursor: pointer;
 		color: var( --logscope-fg-muted );
+		opacity: 0;
+		transition: opacity 0.12s, background 0.1s;
+
+		&:hover:not( :disabled ) {
+			background: var( --logscope-bg-muted );
+			border-color: var( --logscope-border );
+			color: var( --logscope-fg );
+		}
+
+		&:disabled {
+			cursor: not-allowed;
+		}
 	}
 
 	&__detail {
-		padding: 8px 16px 12px;
-		background: var( --logscope-bg-muted );
+		grid-column: 1 / -1;
+		grid-area: auto;
+		padding: 12px 16px 14px;
+		background: var( --logscope-bg-sunken );
+		border-top: 1px solid var( --logscope-border-soft );
 
 		dl {
 			display: grid;
@@ -482,31 +1419,237 @@ body.admin-color-midnight {
 		dt {
 			font-weight: 600;
 			color: var( --logscope-fg-muted );
+			font-size: 12px;
 		}
 
 		dd {
 			margin: 0;
+			font-family: var( --logscope-font-mono );
+			font-size: 12px;
 		}
 	}
 
 	&__sample {
 		margin: 0;
-		padding: 8px;
-		background: var( --logscope-bg-sunken );
-		border-radius: 2px;
+		padding: 10px 12px;
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border-soft );
+		border-radius: var( --logscope-radius-sm );
 		white-space: pre-wrap;
 		word-break: break-word;
-		font-size: 11px;
+		font-size: 11.5px;
+		font-family: var( --logscope-font-mono );
+		line-height: 1.55;
 	}
 }
 
 .logscope-settings-panel {
-	max-width: 640px;
+	max-width: 1100px;
 
-	&__stack {
+	&__layout {
+		display: grid;
+		grid-template-columns: 220px minmax( 0, 1fr );
+		gap: 24px;
+		align-items: start;
+
+		@media ( max-width: 880px ) {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	&__nav {
+		position: sticky;
+		top: 16px;
+		align-self: start;
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
+		padding: 8px;
+
+		@media ( max-width: 880px ) {
+			position: static;
+		}
+	}
+
+	&__nav-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 2px;
+	}
+
+	&__nav-link {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		width: 100%;
+		box-sizing: border-box;
+		text-align: left;
+		appearance: none;
+		border: 0;
+		background: transparent;
+		padding: 9px 12px;
+		border-radius: var( --logscope-radius-sm );
+		font-size: 13.5px;
+		font-weight: 500;
+		cursor: pointer;
+		text-decoration: none;
+
+		// Beat WP admin's `.wrap a { color }` and `a:focus { color }` rules
+		// across every link state — otherwise clicking a link makes the
+		// text colour collide with the highlighted background.
+		&,
+		&:link,
+		&:visited,
+		&:hover,
+		&:focus,
+		&:active {
+			color: var( --logscope-fg-muted );
+			text-decoration: none;
+			box-shadow: none;
+		}
+
+		&:hover {
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
+		}
+
+		&:focus,
+		&:focus-visible {
+			outline: none;
+			box-shadow: none;
+		}
+
+		&--on,
+		&--on:link,
+		&--on:visited,
+		&--on:hover,
+		&--on:focus,
+		&--on:active {
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
+		}
+	}
+
+	&__nav-icon {
+		display: inline-flex;
+		width: 16px;
+		justify-content: center;
+		font-size: 14px;
+		line-height: 1;
+		opacity: 0.9;
+	}
+
+	&__nav-sep {
+		height: 1px;
+		background: var( --logscope-border-soft );
+		margin: 8px 4px;
+	}
+
+	&__nav-actions {
+		padding: 4px 6px 6px;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+
+		.components-button {
+			justify-content: center;
+			width: 100%;
+		}
+
+		.components-button.is-primary,
+		.components-button.is-primary:not( :disabled ):not( [aria-disabled='true'] ) {
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
+			box-shadow: none;
+			border-radius: var( --logscope-radius-sm );
+
+			&:hover,
+			&:focus {
+				background: #000;
+				color: var( --logscope-bg-muted );
+				box-shadow: none;
+			}
+		}
+
+		.components-button.is-primary:disabled,
+		.components-button.is-primary[ aria-disabled='true' ] {
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg-mute );
+			box-shadow: none;
+		}
+
+		.components-button.is-tertiary {
+			color: var( --logscope-fg-muted );
+
+			&:hover {
+				color: var( --logscope-fg );
+				background: var( --logscope-bg-sunken );
+				box-shadow: none;
+			}
+		}
+	}
+
+	&__nav-dirty {
+		font-size: 11px;
+		color: var( --logscope-fg-mute );
+		text-align: center;
+		padding: 2px 0 4px;
+	}
+
+	&__pane {
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+		min-width: 0;
+	}
+
+	&__section {
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
+		padding: 22px 24px;
+		scroll-margin-top: 16px;
+	}
+
+	&__section-title {
+		margin: 0 0 4px;
+		font-size: 18px;
+		font-weight: 700;
+		color: var( --logscope-fg );
+	}
+
+	&__section-lead {
+		margin: 0 0 18px;
+		color: var( --logscope-fg-muted );
+		font-size: 13px;
+	}
+
+	&__field {
+		margin-bottom: 16px;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+
+	&__field-row {
+		display: flex;
+		gap: 10px;
+		align-items: flex-start;
+
+		.components-base-control {
+			flex: 1;
+			min-width: 0;
+		}
+
+		// Drop the button down to sit at input level (label + 4px gap above
+		// the input on the WP TextControl with __next40pxDefaultSize).
+		> .components-button {
+			margin-top: 24px;
+		}
 	}
 
 	&__actions,
@@ -526,6 +1669,243 @@ body.admin-color-midnight {
 		gap: 8px;
 		align-items: center;
 		color: var( --logscope-fg-muted );
+	}
+}
+
+// Child panels now slot into __section cards — strip their own card chrome.
+.logscope-settings-panel__section {
+	.logscope-monitoring-panel,
+	.logscope-display-panel,
+	.logscope-muted-panel {
+		border-top: 0;
+		margin-top: 0;
+		padding-top: 0;
+	}
+
+	.logscope-muted-panel > h3 {
+		margin: 0 0 4px;
+		font-size: 18px;
+		font-weight: 700;
+		color: var( --logscope-fg );
+	}
+
+	.logscope-muted-panel__hint {
+		margin: 0 0 18px;
+		color: var( --logscope-fg-muted );
+		font-size: 13px;
+	}
+}
+
+.logscope-monitoring-panel {
+	&__field {
+		margin-bottom: 18px;
+
+		&:last-of-type {
+			margin-bottom: 0;
+		}
+	}
+
+	&__channels-heading {
+		margin: 4px 0 12px;
+		font-size: 13px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var( --logscope-fg-muted );
+	}
+
+	&__status {
+		margin: 8px 0 0;
+		padding: 8px 12px;
+		background: var( --logscope-bg-sunken );
+		border-radius: var( --logscope-radius-sm );
+		font-size: 12.5px;
+		color: var( --logscope-fg-muted );
+	}
+
+	&__test-row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 12px;
+		flex-wrap: wrap;
+		margin-top: 8px;
+	}
+
+	&__results {
+		list-style: none;
+		margin: 12px 0 0;
+		padding: 0;
+
+		> li {
+			margin: 0;
+			padding: 0;
+
+			& + li {
+				margin-top: 6px;
+			}
+		}
+	}
+}
+
+.logscope-display-panel {
+	&__field {
+		margin-bottom: 18px;
+
+		&:last-of-type {
+			margin-bottom: 0;
+		}
+	}
+
+	&__legend {
+		margin-bottom: 4px;
+		font-size: 13px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__field-help {
+		margin: 4px 0 8px;
+		font-size: 12px;
+		color: var( --logscope-fg-muted );
+	}
+
+	&__checks {
+		display: grid;
+		grid-template-columns: repeat( auto-fit, minmax( 160px, 1fr ) );
+		gap: 4px 16px;
+	}
+}
+
+.logscope-debug-constants {
+	margin-top: 24px;
+	padding: 14px 16px;
+	background: var( --logscope-bg-sunken );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-sm );
+
+	&__heading {
+		margin: 0 0 4px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__lead {
+		margin: 0 0 12px;
+		font-size: 12.5px;
+		color: var( --logscope-fg-muted );
+	}
+
+	&__list {
+		list-style: none;
+		margin: 0 0 12px;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	&__row {
+		padding: 8px 10px;
+		border-radius: var( --logscope-radius-sm );
+		background: var( --logscope-bg );
+		border-left: 3px solid var( --logscope-border );
+
+		&--ok {
+			border-left-color: #29a383;
+		}
+
+		&--warn {
+			border-left-color: #f5a524;
+		}
+	}
+
+	&__row-head {
+		display: flex;
+		align-items: baseline;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	&__name {
+		font-family: var( --logscope-font-mono );
+		font-size: 12.5px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__state {
+		font-family: var( --logscope-font-mono );
+		font-size: 12px;
+		color: var( --logscope-fg );
+	}
+
+	&__rec {
+		font-size: 11px;
+		color: var( --logscope-fg-muted );
+		margin-left: auto;
+	}
+
+	&__tip {
+		margin: 4px 0 0;
+		font-size: 12px;
+		color: var( --logscope-fg-muted );
+	}
+}
+
+.logscope-settings-panel__nav-invalid {
+	margin-top: 6px;
+	font-size: 11.5px;
+	color: #e5484d;
+}
+
+.logscope-muted-panel {
+	&__list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	&__item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 10px 12px;
+		background: var( --logscope-bg-sunken );
+		border-radius: var( --logscope-radius-sm );
+	}
+
+	&__meta {
+		min-width: 0;
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	&__sig {
+		font-family: var( --logscope-font-mono );
+		font-size: 12px;
+		color: var( --logscope-fg );
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	&__reason {
+		font-size: 11px;
+		color: var( --logscope-fg-mute );
+	}
+
+	&__empty {
+		margin: 0;
+		color: var( --logscope-fg-muted );
+		font-size: 13px;
 	}
 }
 
@@ -614,288 +1994,457 @@ body.admin-color-midnight {
 		background: var( --logscope-bg-muted );
 		border: 1px solid var( --logscope-border );
 		border-radius: 2px;
-		font-family: SFMono-Regular, Menlo, Consolas, monospace;
+		font-family: var( --logscope-font-mono );
 		font-size: 11px;
 		min-width: 18px;
 		text-align: center;
 	}
 }
 
-.logscope-alerts-panel {
-	border-top: 1px solid var( --logscope-border );
-	margin-top: 24px;
-	padding-top: 16px;
-
-	&__heading {
-		margin: 0 0 4px 0;
-		font-size: 16px;
-		font-weight: 600;
-	}
-
-	&__intro {
-		margin: 0 0 12px 0;
-		color: var( --logscope-text-muted );
-		font-size: 13px;
-	}
-
-	&__section {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		margin-bottom: 16px;
-	}
-
-	&__test-row {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		gap: 12px;
-		flex-wrap: wrap;
-	}
-
-	&__test-hint {
-		color: var( --logscope-text-muted );
-		font-size: 12px;
-	}
-
-	&__results {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-
-		> li {
-			margin: 0;
-			padding: 0;
-			& + li {
-				margin-top: 6px;
-			}
-		}
-	}
-}
-
+// Severity tone palette — pulled into local vars so the new Stats
+// components can reference them without retyping the hex everywhere.
+$severity-fatal: #e5484d;
+$severity-parse: #f76b15;
+$severity-warning: #f5a524;
+$severity-notice: #3e63dd;
+$severity-deprecated: #8347b9;
+$severity-strict: #29a383;
+$severity-unknown: #889096;
 
 .logscope-stats {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
-	padding: 16px 0;
+	gap: 14px;
+	padding: 6px 0 0;
 
 	&__controls {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 16px;
+		gap: 12px 24px;
+		align-items: center;
+		padding: 12px 14px;
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
 	}
 
 	&__group {
-		display: flex;
+		display: inline-flex;
 		align-items: center;
-		gap: 6px;
-		border: 1px solid var( --logscope-border );
-		border-radius: 4px;
-		padding: 4px 10px;
-		margin: 0;
+		gap: 10px;
 	}
 
 	&__legend {
-		font-size: 12px;
-		color: var( --logscope-fg-muted );
-		margin: 0 6px 0 0;
-		padding: 0;
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var( --logscope-fg-mute );
+		font-weight: 600;
 	}
 
 	&__status {
 		color: var( --logscope-fg-muted );
 		margin: 0;
+		padding: 16px 4px;
 	}
 
 	&__summary {
-		font-size: 13px;
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+	}
+
+	&__hero-row {
+		display: grid;
+		grid-template-columns: minmax( 0, 1.7fr ) minmax( 0, 1fr );
+		gap: 14px;
+
+		@media ( max-width: 960px ) {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	&__panel {
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
+		padding: 18px 20px 14px;
+	}
+
+	&__panel--top {
+		padding: 18px 20px 8px;
+	}
+
+	&__panel-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-bottom: 12px;
+	}
+
+	&__panel-title {
+		margin: 0;
+		font-size: 14px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__panel-meta {
+		font-size: 11px;
+		font-weight: 500;
+		color: var( --logscope-fg-mute );
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
 	}
 }
 
-.logscope-stats__sparkline-grid {
-	display: grid;
-	grid-template-columns: repeat( auto-fill, minmax( 200px, 1fr ) );
-	gap: 12px;
-	margin-top: 16px;
+// Segmented toggle — shared between Range and Bucket controls.
+.logscope-seg {
+	display: inline-flex;
+	padding: 3px;
+	background: var( --logscope-bg-sunken );
+	border-radius: var( --logscope-radius-sm );
+	gap: 2px;
+
+	&__btn {
+		appearance: none;
+		border: 0;
+		background: transparent;
+		padding: 5px 12px;
+		border-radius: var( --logscope-radius-xs );
+		font: inherit;
+		font-size: 13px;
+		font-weight: 500;
+		color: var( --logscope-fg-muted );
+		cursor: pointer;
+		outline: none;
+
+		&:hover {
+			color: var( --logscope-fg );
+		}
+
+		&:focus,
+		&:focus-visible {
+			outline: none;
+			box-shadow: none;
+		}
+
+		&--on {
+			background: var( --logscope-bg-muted );
+			color: var( --logscope-fg );
+			font-weight: 600;
+			box-shadow: 0 1px 2px rgba( 20, 15, 30, 0.06 );
+		}
+	}
 }
 
-.logscope-stats__sparkline-cell {
+// KPI tiles row.
+.logscope-kpi-grid {
+	display: grid;
+	grid-template-columns: repeat( 6, minmax( 0, 1fr ) );
+	gap: 12px;
+
+	@media ( max-width: 1200px ) {
+		grid-template-columns: repeat( 3, minmax( 0, 1fr ) );
+	}
+	@media ( max-width: 640px ) {
+		grid-template-columns: repeat( 2, minmax( 0, 1fr ) );
+	}
+}
+
+.logscope-kpi {
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: 10px;
+	padding: 14px 16px 12px;
+	position: relative;
+	overflow: hidden;
+	min-height: 96px;
+
+	&__label {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		color: var( --logscope-fg-mute );
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	&__value {
+		font-size: 28px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.1;
+		margin-top: 6px;
+		color: var( --logscope-fg );
+	}
+
+	&__meta {
+		font-size: 11.5px;
+		color: var( --logscope-fg-muted );
+		margin-top: 4px;
+	}
+
+	&__dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		display: inline-block;
+		flex-shrink: 0;
+
+		&--fatal { background: $severity-fatal; }
+		&--parse { background: $severity-parse; }
+		&--warning { background: $severity-warning; }
+		&--notice { background: $severity-notice; }
+		&--deprecated { background: $severity-deprecated; }
+		&--strict { background: $severity-strict; }
+		&--unknown { background: $severity-unknown; }
+	}
+
+	&__spark {
+		position: absolute;
+		right: 12px;
+		bottom: 10px;
+		width: 80px;
+		height: 22px;
+		opacity: 0.65;
+
+		polyline { stroke-linecap: round; stroke-linejoin: round; }
+		&--fatal polyline { stroke: $severity-fatal; }
+		&--parse polyline { stroke: $severity-parse; }
+		&--warning polyline { stroke: $severity-warning; }
+		&--notice polyline { stroke: $severity-notice; }
+		&--deprecated polyline { stroke: $severity-deprecated; }
+		&--strict polyline { stroke: $severity-strict; }
+		&--unknown polyline { stroke: $severity-unknown; }
+	}
+
+	&--total {
+		background: linear-gradient( 135deg, #1a1a1f, #2a2a32 );
+		border-color: #1a1a1f;
+		color: #fff;
+
+		.logscope-kpi__label { color: rgba( 255, 255, 255, 0.65 ); }
+		.logscope-kpi__value { color: #fff; font-size: 32px; }
+		.logscope-kpi__meta { color: rgba( 255, 255, 255, 0.7 ); }
+	}
+
+	&--fatal .logscope-kpi__value { color: $severity-fatal; }
+	&--parse .logscope-kpi__value { color: $severity-parse; }
+}
+
+// Volume chart panel.
+.logscope-volume {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
-	margin: 0;
-	padding: 10px 12px;
-	border: 1px solid var( --logscope-border );
-	border-radius: 4px;
-	background: var( --logscope-bg-muted );
+	gap: 10px;
+
+	&__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	&__title {
+		margin: 0;
+		font-size: 14px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__legend {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		font-size: 12px;
+		color: var( --logscope-fg-muted );
+
+		li {
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+		}
+	}
+
+	&__chart {
+		height: 220px;
+		position: relative;
+
+		svg { display: block; width: 100%; height: 100%; }
+	}
+
+	&__axis {
+		display: flex;
+		justify-content: space-between;
+		font-size: 11px;
+		color: var( --logscope-fg-mute );
+		font-family: var( --logscope-font-mono );
+		padding: 4px 0 0;
+	}
 }
 
-.logscope-stats__sparkline-caption {
-	display: flex;
-	justify-content: space-between;
-	align-items: baseline;
-	font-size: 12px;
-	color: var( --logscope-fg-muted );
+// Severity mix panel.
+.logscope-breakdown {
+	&__title {
+		margin: 0 0 12px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	&__row {
+		display: flex;
+		flex-direction: column;
+		gap: 5px;
+	}
+
+	&__head {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 13px;
+	}
+
+	&__name {
+		flex: 1;
+		color: var( --logscope-fg );
+	}
+
+	&__count {
+		font-family: var( --logscope-font-mono );
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__pct {
+		color: var( --logscope-fg-mute );
+		font-size: 12px;
+		font-family: var( --logscope-font-mono );
+		min-width: 44px;
+		text-align: right;
+	}
+
+	&__track {
+		height: 6px;
+		background: var( --logscope-bg-sunken );
+		border-radius: 3px;
+		overflow: hidden;
+	}
+
+	&__fill {
+		height: 100%;
+
+		&--fatal { background: $severity-fatal; }
+		&--parse { background: $severity-parse; }
+		&--warning { background: $severity-warning; }
+		&--notice { background: $severity-notice; }
+		&--deprecated { background: $severity-deprecated; }
+		&--strict { background: $severity-strict; }
+		&--unknown { background: $severity-unknown; }
+	}
 }
 
-.logscope-stats__sparkline-total {
-	font-weight: 600;
-	color: var( --logscope-fg );
-}
-
-.logscope-sparkline {
-	width: 100%;
-	height: 32px;
-	display: block;
-	color: var( --logscope-fg-muted );
-
-	rect {
-		fill: currentColor;
-	}
-
-	&--fatal {
-		color: #d63638;
-	}
-
-	&--warning {
-		color: #dba617;
-	}
-
-	&--notice {
-		color: #2271b1;
-	}
-
-	&--deprecated {
-		color: #8c8f94;
-	}
-
-	&--unknown {
-		color: var( --logscope-border-strong );
-	}
-}
-
+// Top signatures table.
 .logscope-stats__top-table {
 	width: 100%;
 	border-collapse: collapse;
-	margin-top: 24px;
 	font-size: 13px;
-
-	th,
-	td {
-		border-bottom: 1px solid var( --logscope-border );
-		padding: 8px 10px;
-		text-align: left;
-		vertical-align: top;
-	}
+	table-layout: fixed;
 
 	th {
-		font-weight: 600;
-		color: var( --logscope-fg-muted );
-		background: var( --logscope-bg-muted );
+		font-weight: 500;
+		color: var( --logscope-fg-mute );
+		text-align: left;
+		padding: 6px 8px;
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		border-bottom: 1px solid var( --logscope-border );
 	}
+
+	td {
+		padding: 11px 8px;
+		border-bottom: 1px solid var( --logscope-border-soft );
+		vertical-align: middle;
+	}
+
+	tr:last-child td {
+		border-bottom: 0;
+	}
+
+	// Pills inside the sev column should never wrap onto a second line —
+	// the layout reserves a fixed column width for the badge so the
+	// message column can take the rest.
+	.logscope-pill {
+		white-space: nowrap;
+	}
+}
+
+.logscope-stats__top-row {
+	cursor: pointer;
+	transition: background 0.08s;
+
+	&:hover {
+		background: var( --logscope-row-hover );
+	}
+
+	&:focus-visible {
+		background: var( --logscope-row-hover );
+		outline: 2px solid var( --logscope-focus-ring );
+		outline-offset: -2px;
+	}
+}
+
+.logscope-stats__top-rank {
+	width: 36px;
+	color: var( --logscope-fg-mute );
+	font-family: var( --logscope-font-mono );
+}
+
+.logscope-stats__top-rank-num {
+	color: var( --logscope-fg-mute );
+	font-family: var( --logscope-font-mono );
+	font-size: 12px;
+}
+
+.logscope-stats__top-sev {
+	width: 130px;
 }
 
 .logscope-stats__top-table-msg {
-	max-width: 480px;
-	word-break: break-word;
-}
-
-.logscope-stats__top-table-count {
-	text-align: right;
-	font-variant-numeric: tabular-nums;
+	font-family: var( --logscope-font-mono );
+	font-size: 12.5px;
+	color: var( --logscope-fg );
+	overflow: hidden;
+	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.logscope-stats__breakdown {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-top: 8px;
-}
-
-.logscope-stats__breakdown-bar {
-	display: flex;
-	width: 100%;
-	height: 12px;
-	border-radius: 6px;
-	overflow: hidden;
-	border: 1px solid var( --logscope-border );
-	background: var( --logscope-bg-muted );
-}
-
-.logscope-stats__breakdown-segment {
-	display: block;
-	height: 100%;
-
-	&--fatal {
-		background: #d63638;
-	}
-
-	&--warning {
-		background: #dba617;
-	}
-
-	&--notice {
-		background: #2271b1;
-	}
-
-	&--deprecated {
-		background: #8c8f94;
-	}
-
-	&--unknown {
-		background: var( --logscope-border-strong );
-	}
-}
-
-.logscope-stats__breakdown-legend {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px 16px;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-	font-size: 12px;
-	color: var( --logscope-fg-muted );
-}
-
-.logscope-stats__breakdown-legend-item {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.logscope-stats__breakdown-legend-count {
-	color: var( --logscope-fg );
-	font-variant-numeric: tabular-nums;
-}
-
-.logscope-stats__breakdown-swatch {
-	display: inline-block;
-	width: 10px;
-	height: 10px;
-	border-radius: 2px;
-
-	&--fatal {
-		background: #d63638;
-	}
-
-	&--warning {
-		background: #dba617;
-	}
-
-	&--notice {
-		background: #2271b1;
-	}
-
-	&--deprecated {
-		background: #8c8f94;
-	}
-
-	&--unknown {
-		background: var( --logscope-border-strong );
-	}
+// Bumping specificity above the generic `th { text-align: left; }` rule
+// so the COUNT header right-aligns with the numeric cells below it.
+.logscope-stats__top-table th.logscope-stats__top-table-count,
+.logscope-stats__top-table td.logscope-stats__top-table-count {
+	text-align: right;
+	font-family: var( --logscope-font-mono );
+	font-weight: 600;
+	width: 80px;
 }
 
 .logscope-onboarding-banner {
@@ -924,12 +2473,45 @@ body.admin-color-midnight {
 .logscope-grouped__header {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 	gap: 12px;
-	padding: 8px 12px;
+	padding: 9px 14px;
 	background: var( --logscope-bg-muted );
 	border: 1px solid var( --logscope-border );
-	border-radius: 4px;
+	border-radius: var( --logscope-radius-md );
+	font-size: 13px;
+	color: var( --logscope-fg-muted );
+	transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+	// Selection-active variant — flips the strip into a dark sticky pill
+	// that hovers above the list while the user works through bulk
+	// actions, then reverts to the quiet "Select all" affordance once
+	// the selection is cleared.
+	&--active {
+		position: sticky;
+		top: 32px; // wp admin top bar
+		z-index: 5;
+		background: var( --logscope-fg );
+		color: var( --logscope-bg-muted );
+		border-color: var( --logscope-fg );
+		box-shadow: 0 8px 24px -12px rgba( 20, 15, 30, 0.4 );
+
+		.logscope-grouped__select-all input[ type='checkbox' ] {
+			accent-color: var( --logscope-bg-muted );
+		}
+
+		.components-button.is-secondary {
+			background: transparent;
+			border: 1px solid rgba( 255, 255, 255, 0.18 );
+			color: var( --logscope-bg-muted );
+			box-shadow: none;
+
+			&:hover:not( :disabled ) {
+				background: rgba( 255, 255, 255, 0.08 );
+				color: var( --logscope-bg-muted );
+				border-color: rgba( 255, 255, 255, 0.28 );
+			}
+		}
+	}
 }
 
 .logscope-grouped__select-all {
@@ -937,30 +2519,157 @@ body.admin-color-midnight {
 	align-items: center;
 	gap: 8px;
 	font-weight: 500;
+
+	span {
+		color: inherit;
+	}
+}
+
+.logscope-grouped__header-sep {
+	color: var( --logscope-border-strong );
+
+	.logscope-grouped__header--active & {
+		color: rgba( 255, 255, 255, 0.32 );
+	}
 }
 
 .logscope-grouped__bulk-actions {
 	display: inline-flex;
-	gap: 8px;
+	gap: 6px;
+	margin-left: auto;
 }
 
-.logscope-grouped__row {
+.logscope-grouped__cancel {
+	appearance: none;
+	background: transparent;
+	border: 0;
+	font: inherit;
+	font-size: 12.5px;
+	color: rgba( 255, 255, 255, 0.72 );
+	cursor: pointer;
+	padding: 6px 10px;
+	border-radius: var( --logscope-radius-sm );
+
+	&:hover {
+		color: var( --logscope-bg-muted );
+		background: rgba( 255, 255, 255, 0.08 );
+	}
+}
+
+.logscope-row-menu {
+	z-index: 9999;
+	min-width: 200px;
+	background: var( --logscope-bg );
+	color: var( --logscope-fg );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
+	box-shadow: 0 12px 32px -8px rgba( 20, 15, 30, 0.35 );
+	padding: 4px;
+	font-size: 12.5px;
+
+	&__item {
+		position: relative;
+		display: block;
+		width: 100%;
+		text-align: left;
+		appearance: none;
+		background: transparent;
+		border: 0;
+		border-radius: var( --logscope-radius-sm );
+		color: inherit;
+		cursor: pointer;
+		font: inherit;
+		padding: 7px 10px 7px 14px;
+		transition: background 0.12s ease, color 0.12s ease,
+			padding-left 0.12s ease;
+
+		&::before {
+			content: '';
+			position: absolute;
+			left: 4px;
+			top: 8px;
+			bottom: 8px;
+			width: 2px;
+			border-radius: 2px;
+			background: var( --logscope-fg );
+			opacity: 0;
+			transition: opacity 0.12s ease;
+		}
+
+		&:hover:not( :disabled ),
+		&:focus-visible:not( :disabled ) {
+			background: var( --logscope-row-hover );
+			color: var( --logscope-fg );
+			padding-left: 16px;
+			outline: none;
+
+			&::before {
+				opacity: 0.8;
+			}
+		}
+
+		&:active:not( :disabled ) {
+			background: var( --logscope-border );
+		}
+
+		&:disabled {
+			opacity: 0.4;
+			cursor: not-allowed;
+		}
+	}
+
+	&__sep {
+		height: 1px;
+		margin: 4px 2px;
+		background: var( --logscope-border );
+	}
+}
+
+.logscope-toolbar__divider {
+	display: inline-block;
+	width: 1px;
+	height: 22px;
+	margin: 0 4px;
+	background: var( --logscope-border );
+	vertical-align: middle;
+}
+
+.logscope-hidden-banner {
 	display: flex;
-	align-items: stretch;
-	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	padding: 6px 12px;
+	margin: 6px 0;
+	border: 1px dashed var( --logscope-border );
+	border-radius: var( --logscope-radius-sm );
+	background: var( --logscope-bg-muted );
+	color: var( --logscope-fg-muted );
+	font-size: 12px;
+
+	&__btn {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		color: var( --logscope-fg );
+		cursor: pointer;
+		font: inherit;
+		padding: 4px 8px;
+		border-radius: var( --logscope-radius-sm );
+		text-decoration: underline;
+
+		&:hover,
+		&:focus-visible {
+			background: var( --logscope-row-hover );
+			outline: none;
+		}
+	}
 }
 
-.logscope-grouped__checkbox {
-	align-self: center;
-	margin: 0 8px 0 12px;
-	flex: 0 0 auto;
-}
-
-.logscope-grouped__row .logscope-grouped__summary {
-	flex: 1 1 auto;
-	min-width: 0;
-}
-
-.logscope-grouped__row .logscope-grouped__detail {
-	flex: 1 0 100%;
+.logscope-confirm-modal {
+	&__actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+		margin-top: 16px;
+	}
 }
