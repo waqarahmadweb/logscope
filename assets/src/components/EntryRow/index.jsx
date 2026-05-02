@@ -18,11 +18,13 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useDispatch, useSelect } from '@wordpress/data';
+import { useState } from '@wordpress/element';
 
 import { STORE_KEY } from '../../store';
 import { severityLabel, severityTone } from '../../utils/severity';
 import entryKey from '../../utils/entryKey';
 import StackTracePanel from '../StackTracePanel';
+import RowActionsMenu from './RowActionsMenu';
 
 export { entryKey };
 
@@ -69,6 +71,7 @@ export default function EntryRow( { index, style, items } ) {
 	);
 	const { toggleTraceExpanded, toggleEntrySelected } =
 		useDispatch( STORE_KEY );
+	const [ menuPosition, setMenuPosition ] = useState( null );
 
 	if ( ! entry ) {
 		return <div style={ style } aria-hidden="true" />;
@@ -85,12 +88,27 @@ export default function EntryRow( { index, style, items } ) {
 		const t = e.target;
 		if (
 			t.closest(
-				'.logscope-entry__checkbox, .logscope-entry__toggle, a, button, input'
+				'.logscope-entry__checkbox, .logscope-entry__toggle, .logscope-entry__more, .logscope-row-menu, a, button, input'
 			)
 		) {
 			return;
 		}
 		toggleTraceExpanded( key );
+	};
+
+	const onRowContextMenu = ( e ) => {
+		// Open the same menu the ⋮ trigger opens, anchored at the
+		// cursor. Suppressing the native menu is the cost of giving
+		// users the in-app actions; if power users want the browser
+		// menu they can shift-right-click in most browsers.
+		e.preventDefault();
+		setMenuPosition( { x: e.clientX, y: e.clientY } );
+	};
+
+	const onMoreClick = ( e ) => {
+		e.stopPropagation();
+		const rect = e.currentTarget.getBoundingClientRect();
+		setMenuPosition( { x: rect.left, y: rect.bottom + 4 } );
 	};
 
 	return (
@@ -101,6 +119,7 @@ export default function EntryRow( { index, style, items } ) {
 			style={ style }
 			role="listitem"
 			onClick={ onRowClick }
+			onContextMenu={ onRowContextMenu }
 		>
 			<div className="logscope-entry__head">
 				<input
@@ -152,6 +171,17 @@ export default function EntryRow( { index, style, items } ) {
 						{ isExpanded ? '▾' : '⋯' }
 					</button>
 				) }
+				<button
+					type="button"
+					className="logscope-entry__more"
+					aria-haspopup="menu"
+					aria-expanded={ menuPosition !== null }
+					aria-label={ __( 'Row actions', 'logscope' ) }
+					title={ __( 'Row actions (right-click row)', 'logscope' ) }
+					onClick={ onMoreClick }
+				>
+					⋮
+				</button>
 			</div>
 			{ isExpanded && (
 				<div className="logscope-entry__details">
@@ -166,6 +196,13 @@ export default function EntryRow( { index, style, items } ) {
 				</div>
 			) }
 			{ isExpanded && hasTrace && <StackTracePanel frames={ frames } /> }
+			{ menuPosition && (
+				<RowActionsMenu
+					entry={ entry }
+					position={ menuPosition }
+					onClose={ () => setMenuPosition( null ) }
+				/>
+			) }
 		</div>
 	);
 }

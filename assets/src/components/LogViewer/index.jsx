@@ -131,6 +131,50 @@ export default function LogViewer() {
 		}
 	};
 
+	const onCopyRaw = async () => {
+		if ( selectedCount === 0 || ! navigator?.clipboard ) {
+			return;
+		}
+		// Raw lines can themselves span multiple lines (stack traces),
+		// so a single-newline join would be ambiguous. Two blank lines
+		// between entries gives a clean visual break when pasted.
+		const text = selectedEntries
+			.map( ( e ) => ( e.raw || '' ).trimEnd() )
+			.filter( Boolean )
+			.join( '\n\n' );
+		if ( ! text ) {
+			pushToast( {
+				message: __(
+					'Selected entries have no raw content.',
+					'logscope'
+				),
+				status: 'warning',
+			} );
+			return;
+		}
+		try {
+			await navigator.clipboard.writeText( text );
+			pushToast( {
+				message: sprintf(
+					/* translators: %d is the number of raw log lines copied. */
+					_n(
+						'Copied %d raw entry to clipboard.',
+						'Copied %d raw entries to clipboard.',
+						selectedEntries.length,
+						'logscope'
+					),
+					selectedEntries.length
+				),
+				status: 'success',
+			} );
+		} catch ( e ) {
+			pushToast( {
+				message: __( 'Could not copy to clipboard.', 'logscope' ),
+				status: 'error',
+			} );
+		}
+	};
+
 	const onExportSelected = () => {
 		if ( selectedCount === 0 ) {
 			return;
@@ -354,6 +398,13 @@ export default function LogViewer() {
 						onClick={ onCopyPaths }
 					>
 						📋 { __( 'Copy paths', 'logscope' ) }
+					</button>
+					<button
+						type="button"
+						className="logscope-bulk-bar__btn"
+						onClick={ onCopyRaw }
+					>
+						📝 { __( 'Copy raw', 'logscope' ) }
 					</button>
 					<button
 						type="button"
