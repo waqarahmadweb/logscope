@@ -2482,27 +2482,6 @@ $severity-unknown: #889096;
 	}
 }
 
-.logscope-grouped__row {
-	display: flex;
-	align-items: stretch;
-	flex-wrap: wrap;
-}
-
-.logscope-grouped__checkbox {
-	align-self: center;
-	margin: 0 8px 0 12px;
-	flex: 0 0 auto;
-}
-
-.logscope-grouped__row .logscope-grouped__summary {
-	flex: 1 1 auto;
-	min-width: 0;
-}
-
-.logscope-grouped__row .logscope-grouped__detail {
-	flex: 1 0 100%;
-}
-
 .logscope-row-menu {
 	z-index: 9999;
 	min-width: 200px;
