@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Logscope — Settings tab mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #1d2327;
+    color: #1a1a1f;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* WP admin frame (matches other mockups) */
+  .wp-frame { display: grid; grid-template-rows: 32px 1fr; grid-template-columns: 160px 1fr; min-height: 100vh; }
+  .wp-topbar { height: 32px; background: #1d2327; color: #f0f0f1; display: flex; align-items: center; padding: 0 16px; gap: 16px; font-size: 13px; grid-column: 1 / -1; }
+  .wp-sidebar { background: #1d2327; color: #c3c4c7; padding: 12px 0; font-size: 13px; }
+  .wp-sidebar .logo { padding: 8px 14px; font-weight: 700; color: #fff; font-size: 15px; }
+  .wp-sidebar ul { list-style: none; padding: 0; margin: 8px 0; }
+  .wp-sidebar li { padding: 8px 14px; border-left: 3px solid transparent; cursor: default; }
+  .wp-sidebar li.active { background: #2271b1; color: #fff; border-left-color: #fff; }
+  .wp-content { background: #faf7f2; padding: 0; overflow: hidden; }
+
+  /* style switcher */
+  .switcher { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 14px 32px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .switcher .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #646970; margin-right: 8px; font-weight: 600; }
+  .switcher button { border: 1px solid #dcdcde; background: #fff; padding: 8px 14px; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; color: #1d2327; transition: all 0.15s ease; }
+  .switcher button:hover { border-color: #2271b1; }
+  .switcher button.active { background: #1a1a1f; color: #fff; border-color: #1a1a1f; }
+  .switcher .note { margin-left: auto; font-size: 12px; color: #646970; }
+
+  .stage { display: none; }
+  .stage.active { display: block; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  /* shared pastel surface */
+  .pastel {
+    --bg: #faf7f2;
+    --surface: #ffffff;
+    --sunken: #f3efe8;
+    --ink: #1a1a1f;
+    --ink-soft: #6b6b78;
+    --ink-mute: #9a96a3;
+    --border: #ece7df;
+    --border-soft: #f3efe8;
+    --border-strong: #d8d2c3;
+    --accent: #2a2a32;
+    --row-hover: #faf7f2;
+    --fatal: #e5484d;
+    --strict: #29a383;
+    --fatal-bg: #ffe1e3; --fatal-fg: #9b1c2a;
+    --warn-bg: #fff3c2;  --warn-fg: #785b00;
+    --ok-bg: #d6f3e7;    --ok-fg: #1a6e4d;
+    background: var(--bg); min-height: 100%; padding: 24px 32px 80px; color: var(--ink);
+  }
+
+  /* page head */
+  .pastel .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
+  .pastel h1 { font-size: 44px; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 4px; line-height: 1.05; }
+  .pastel .sub { color: var(--ink-soft); font-size: 15px; }
+  .pastel .live { display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; border-radius: 999px; background: #fff; border: 1px solid var(--border); font-size: 13px; color: var(--ink-soft); white-space: nowrap; margin-top: 6px; }
+  .pastel .live strong { color: var(--ink); font-weight: 600; }
+  .pastel .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--strict); box-shadow: 0 0 0 3px rgba(41,163,131,0.18); }
+
+  /* tabs */
+  .pastel .tabs { display: flex; gap: 4px; padding: 4px; background: #efeae0; border-radius: 14px; width: fit-content; margin-bottom: 24px; }
+  .pastel .tabs button { border: 0; background: transparent; padding: 9px 18px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--ink-soft); }
+  .pastel .tabs button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-weight: 600; }
+
+  /* ─── shared form atoms (used by all options) ─── */
+  .field-label { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .field-help { font-size: 12.5px; color: var(--ink-soft); margin: 6px 0 0; line-height: 1.5; }
+  .input { display: block; width: 100%; font: inherit; font-size: 14px; padding: 10px 12px; background: #fff; border: 1px solid var(--border-strong); border-radius: 8px; color: var(--ink); outline: none; transition: border-color 0.12s ease; }
+  .input.mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .input:focus { border-color: var(--ink); }
+  .input.short { max-width: 180px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-strong); background: #fff; color: var(--ink); transition: all 0.12s ease; }
+  .btn:hover { background: var(--sunken); }
+  .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .btn.primary:hover { background: #000; }
+  .btn.tertiary { background: transparent; border-color: transparent; color: var(--ink-soft); }
+  .btn.tertiary:hover { color: var(--ink); background: var(--sunken); }
+  .btn.danger { color: var(--fatal-fg); border-color: var(--fatal-bg); background: #fff; }
+  .btn.danger:hover { background: var(--fatal-bg); }
+
+  /* toggle */
+  .toggle-row { display: flex; align-items: center; gap: 12px; }
+  .toggle { position: relative; width: 38px; height: 22px; background: var(--sunken); border-radius: 999px; border: 1px solid var(--border-strong); flex-shrink: 0; cursor: pointer; transition: background 0.15s; }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.18); transition: left 0.15s; }
+  .toggle.on { background: var(--strict); border-color: var(--strict); }
+  .toggle.on::after { left: 18px; }
+  .toggle-label { font-size: 14px; font-weight: 500; }
+
+  /* notices */
+  .notice { padding: 10px 14px; border-radius: 8px; font-size: 13px; line-height: 1.5; border-left: 3px solid; }
+  .notice.ok { background: var(--ok-bg); color: var(--ok-fg); border-left-color: var(--strict); }
+  .notice.warn { background: var(--warn-bg); color: var(--warn-fg); border-left-color: #f5a524; }
+  .notice.err { background: var(--fatal-bg); color: var(--fatal-fg); border-left-color: var(--fatal); }
+  .notice strong { font-weight: 700; }
+  .notice code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: rgba(255,255,255,0.5); padding: 1px 5px; border-radius: 3px; }
+
+  /* muted signatures list (shared) */
+  .muted-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  .muted-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--sunken); border-radius: 8px; }
+  .muted-list .sig { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .muted-list .reason { font-size: 11px; color: var(--ink-mute); margin-left: 8px; }
+
+  /* ════════════════════════════════════════════════════════════════════════════
+     OPTION A — Sectioned cards in a vertical stack
+     Each concern is a card with a heading + intro + fields. Sticky action bar
+     at the bottom. Reads top-to-bottom like a story; no navigation needed.
+     ════════════════════════════════════════════════════════════════════════════ */
+  .opt-a .stack { display: flex; flex-direction: column; gap: 16px; max-width: 880px; }
+  .opt-a .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; }
+  .opt-a .card-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border-soft); }
+  .opt-a .card-icon { width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px; background: var(--sunken); display: grid; place-items: center; font-size: 18px; }
+  .opt-a .card-head h2 { margin: 0; font-size: 16px; font-weight: 700; }
+  .opt-a .card-head p { margin: 3px 0 0; font-size: 13px; color: var(--ink-soft); }
+  .opt-a .field { margin-bottom: 16px; }
+  .opt-a .field:last-child { margin-bottom: 0; }
+  .opt-a .field-row { display: flex; align-items: flex-end; gap: 10px; }
+  .opt-a .field-row .input { flex: 1; }
+  .opt-a .sub-field { margin-top: 12px; padding-left: 14px; border-left: 2px solid var(--border-soft); }
+  .opt-a .meta-line { font-size: 12px; color: var(--ink-soft); margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; gap: 14px; align-items: center; }
+  .opt-a .meta-line .dot-ok { width: 7px; height: 7px; border-radius: 50%; background: var(--strict); }
+
+  .opt-a .actions { position: sticky; bottom: 0; background: linear-gradient(to top, var(--bg) 70%, rgba(250,247,242,0)); padding: 18px 0 8px; display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  .opt-a .actions .dirty-hint { font-size: 12px; color: var(--ink-mute); margin-left: auto; }
+
+  /* ════════════════════════════════════════════════════════════════════════════
+     OPTION B — Two-column with section sidenav
+     Anchor nav on the left, fields on the right. Scales when there are many
+     sections; settings feel "bookmarkable". Heavier UI but easier to scan.
+     ════════════════════════════════════════════════════════════════════════════ */
+  .opt-b .layout { display: grid; grid-template-columns: 220px 1fr; gap: 24px; max-width: 1100px; }
+  .opt-b .nav { position: sticky; top: 16px; align-self: start; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+  .opt-b .nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
+  .opt-b .nav a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 7px; text-decoration: none; color: var(--ink-soft); font-size: 13.5px; font-weight: 500; }
+  .opt-b .nav a:hover { background: var(--sunken); color: var(--ink); }
+  .opt-b .nav a.on { background: var(--ink); color: #fff; }
+  .opt-b .nav .ico { width: 14px; text-align: center; opacity: 0.85; }
+  .opt-b .nav-sep { height: 1px; background: var(--border-soft); margin: 6px 4px; }
+  .opt-b .nav .save-btn { margin: 6px; }
+
+  .opt-b .pane { display: flex; flex-direction: column; gap: 20px; }
+  .opt-b .section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px 26px; }
+  .opt-b .section h2 { margin: 0 0 4px; font-size: 18px; font-weight: 700; }
+  .opt-b .section .lead { margin: 0 0 20px; font-size: 13px; color: var(--ink-soft); }
+  .opt-b .section .field { margin-bottom: 18px; }
+  .opt-b .section .field:last-child { margin-bottom: 0; }
+  .opt-b .field-row { display: flex; gap: 10px; align-items: flex-end; }
+  .opt-b .field-row .input { flex: 1; }
+  .opt-b .section .sub { margin-top: 12px; padding: 14px; background: var(--sunken); border-radius: 8px; }
+  .opt-b .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ════════════════════════════════════════════════════════════════════════════
+     OPTION C — Compact single-column (lightweight, fastest to scan)
+     No card chrome around each section — just headings with rules. Save bar
+     pinned to top right. Best when you mostly tweak then save.
+     ════════════════════════════════════════════════════════════════════════════ */
+  .opt-c .wrap { max-width: 760px; }
+  .opt-c .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; position: sticky; top: 12px; z-index: 5; }
+  .opt-c .top-bar .left { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-soft); }
+  .opt-c .top-bar .badge { background: var(--warn-bg); color: var(--warn-fg); padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .opt-c .top-bar .actions { display: flex; gap: 8px; }
+  .opt-c h2 { margin: 28px 0 6px; font-size: 15px; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .opt-c h2 .ico { font-size: 13px; opacity: 0.6; }
+  .opt-c .lead { margin: 0 0 18px; font-size: 13px; color: var(--ink-soft); }
+  .opt-c .field { margin-bottom: 16px; }
+  .opt-c .field-row { display: flex; gap: 10px; align-items: flex-end; }
+  .opt-c .field-row .input { flex: 1; }
+  .opt-c .inline-row { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; padding: 10px 0; }
+  .opt-c .indent { padding-left: 16px; margin-top: 10px; border-left: 2px solid var(--border-soft); }
+  .opt-c .meta { font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
+
+  /* fake mini chart used in option A meta line */
+  .mini-spark { width: 60px; height: 18px; }
+</style>
+</head>
+<body>
+
+<div class="wp-frame">
+  <div class="wp-topbar"><span style="font-weight:600;">📊</span><span>My WordPress Site</span></div>
+  <div class="wp-sidebar">
+    <div class="logo">WP Admin</div>
+    <ul>
+      <li>Dashboard</li>
+      <li>Posts</li>
+      <li>Media</li>
+      <li>Pages</li>
+      <li class="active">Tools › Logscope</li>
+      <li>Settings</li>
+    </ul>
+  </div>
+
+  <div class="wp-content">
+    <div class="switcher">
+      <span class="label">Style</span>
+      <button class="active" data-target="opt-a">A · Sectioned cards</button>
+      <button data-target="opt-b">B · Sidenav + sections</button>
+      <button data-target="opt-c">C · Compact form</button>
+      <span class="note">Soft Pastel · Settings tab</span>
+    </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     OPTION A — Sectioned cards in a vertical stack
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="stage active" data-stage="opt-a">
+<div class="pastel opt-a">
+
+  <header class="page-head">
+    <div>
+      <h1>Logscope</h1>
+      <p class="sub">PHP error log viewer for WordPress.</p>
+    </div>
+    <div class="live"><span class="live-dot"></span><strong>3,241</strong> entries · <span style="color:var(--fatal-fg);">12 fatal</span></div>
+  </header>
+
+  <div class="tabs">
+    <button>Logs</button>
+    <button>Stats</button>
+    <button class="on">Settings</button>
+  </div>
+
+  <div class="stack">
+
+    <!-- Card 1 — Log file -->
+    <section class="card">
+      <div class="card-head">
+        <div class="card-icon">📄</div>
+        <div>
+          <h2>Log file</h2>
+          <p>Where Logscope reads PHP errors from, and how often the live tail polls.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Custom log path</label>
+        <div class="field-row">
+          <input class="input mono" value="/var/www/html/wp-content/debug.log" />
+          <button class="btn">Test path</button>
+        </div>
+        <p class="field-help">Absolute path to your debug log. Leave empty to use the default WordPress location.</p>
+        <div class="notice ok" style="margin-top:10px;"><strong>Path looks good.</strong> Resolved: <code>/var/www/html/wp-content/debug.log</code></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Tail interval (seconds)</label>
+        <input class="input short" value="2" />
+        <p class="field-help">How often the live tail polls for new entries. Minimum 1 second.</p>
+      </div>
+    </section>
+
+    <!-- Card 2 — Alerts -->
+    <section class="card">
+      <div class="card-head">
+        <div class="card-icon">🔔</div>
+        <div>
+          <h2>Alerts</h2>
+          <p>Get notified when new fatal errors hit your debug log. Deduped per signature so a recurring error won't flood your inbox.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="toggle-row"><div class="toggle on"></div><span class="toggle-label">Send alerts by email</span></div>
+        <div class="sub-field">
+          <label class="field-label">Recipient email address</label>
+          <input class="input" value="ops@example.com" />
+          <p class="field-help">Where alert emails are sent. Uses your site email transport (wp_mail), so SMTP plugins apply.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="toggle-row"><div class="toggle on"></div><span class="toggle-label">Send alerts to a webhook</span></div>
+        <div class="sub-field">
+          <label class="field-label">Webhook URL</label>
+          <input class="input mono" value="https://hooks.slack.com/services/T0/B0/abc" />
+          <p class="field-help">Receives a JSON POST per fatal. Use the <code>logscope/webhook_payload</code> filter to reshape for Slack, Discord, or Teams.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Dedup window (seconds)</label>
+        <input class="input short" value="600" />
+        <p class="field-help">Each backend silences a given signature for this many seconds after a successful send. Minimum 60.</p>
+      </div>
+
+      <div class="field">
+        <button class="btn">Send test alert</button>
+      </div>
+    </section>
+
+    <!-- Card 3 — Scheduled scan -->
+    <section class="card">
+      <div class="card-head">
+        <div class="card-icon">⏱</div>
+        <div>
+          <h2>Scheduled scan</h2>
+          <p>Periodically scan the log for new fatals and feed them to your alert backends. Off by default — enable when alerts are configured.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="toggle-row"><div class="toggle on"></div><span class="toggle-label">Enable scheduled scan</span></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Scan interval (minutes)</label>
+        <input class="input short" value="5" />
+        <p class="field-help">How often to scan. Minimum 1 minute, maximum 24 hours (1440).</p>
+      </div>
+
+      <div class="meta-line">
+        <span class="dot-ok"></span>
+        <span>Last scan: <strong>2 minutes ago</strong> · 1 fatal dispatched</span>
+      </div>
+    </section>
+
+    <!-- Card 4 — Muted signatures -->
+    <section class="card">
+      <div class="card-head">
+        <div class="card-icon">🔕</div>
+        <div>
+          <h2>Muted signatures <span style="color:var(--ink-mute); font-weight:500; font-size:13px;">(3)</span></h2>
+          <p>Muted signatures are hidden from the default Logs view. They still accumulate in the file — unmute to surface them again.</p>
+        </div>
+      </div>
+
+      <ul class="muted-list">
+        <li>
+          <span class="sig">notice|Trying to access array offset on null|/wp-content/plugins/foo/bar.php</span>
+          <span class="reason">noisy plugin warning</span>
+          <button class="btn danger">Unmute</button>
+        </li>
+        <li>
+          <span class="sig">deprecated|Function strftime() is deprecated|/wp-includes/load.php</span>
+          <button class="btn danger">Unmute</button>
+        </li>
+        <li>
+          <span class="sig">warning|Undefined array key "foo"|/wp-content/themes/baz/functions.php</span>
+          <button class="btn danger">Unmute</button>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Sticky save bar -->
+    <div class="actions">
+      <button class="btn primary">Save settings</button>
+      <button class="btn tertiary">Reset</button>
+      <span class="dirty-hint">2 unsaved changes</span>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     OPTION B — Two-column with section sidenav
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="stage" data-stage="opt-b">
+<div class="pastel opt-b">
+
+  <header class="page-head">
+    <div>
+      <h1>Logscope</h1>
+      <p class="sub">PHP error log viewer for WordPress.</p>
+    </div>
+    <div class="live"><span class="live-dot"></span><strong>3,241</strong> entries · <span style="color:var(--fatal-fg);">12 fatal</span></div>
+  </header>
+
+  <div class="tabs">
+    <button>Logs</button>
+    <button>Stats</button>
+    <button class="on">Settings</button>
+  </div>
+
+  <div class="layout">
+    <aside class="nav">
+      <ul>
+        <li><a class="on" href="#log-file"><span class="ico">📄</span>Log file</a></li>
+        <li><a href="#alerts"><span class="ico">🔔</span>Alerts</a></li>
+        <li><a href="#schedule"><span class="ico">⏱</span>Schedule</a></li>
+        <li><a href="#muted"><span class="ico">🔕</span>Muted signatures</a></li>
+      </ul>
+      <div class="nav-sep"></div>
+      <button class="btn primary save-btn" style="width: calc(100% - 12px);">Save settings</button>
+      <div style="font-size:11px; color:var(--ink-mute); padding: 0 12px 8px; text-align:center;">2 unsaved changes</div>
+    </aside>
+
+    <div class="pane">
+
+      <section class="section" id="log-file">
+        <h2>Log file</h2>
+        <p class="lead">Where Logscope reads PHP errors from, and how often the live tail polls.</p>
+
+        <div class="field">
+          <label class="field-label">Custom log path</label>
+          <div class="field-row">
+            <input class="input mono" value="/var/www/html/wp-content/debug.log" />
+            <button class="btn">Test path</button>
+          </div>
+          <p class="field-help">Absolute path to your debug log. Leave empty to use the default WordPress location.</p>
+          <div class="notice ok" style="margin-top:10px;"><strong>Path looks good.</strong> Resolved: <code>/var/www/html/wp-content/debug.log</code></div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Tail interval (seconds)</label>
+          <input class="input short" value="2" />
+          <p class="field-help">How often the live tail polls for new entries. Minimum 1 second.</p>
+        </div>
+      </section>
+
+      <section class="section" id="alerts">
+        <h2>Alerts</h2>
+        <p class="lead">Get notified when new fatal errors hit your debug log. Deduped per signature.</p>
+
+        <div class="grid-2">
+          <div class="field">
+            <div class="toggle-row" style="margin-bottom:10px;"><div class="toggle on"></div><span class="toggle-label">Email</span></div>
+            <input class="input" value="ops@example.com" placeholder="recipient@example.com" />
+            <p class="field-help">Uses wp_mail; SMTP plugins apply.</p>
+          </div>
+          <div class="field">
+            <div class="toggle-row" style="margin-bottom:10px;"><div class="toggle on"></div><span class="toggle-label">Webhook</span></div>
+            <input class="input mono" value="https://hooks.slack.com/services/T0/B0/abc" />
+            <p class="field-help">JSON POST per fatal. Reshape via filter.</p>
+          </div>
+        </div>
+
+        <div class="sub">
+          <label class="field-label">Dedup window (seconds)</label>
+          <input class="input short" value="600" />
+          <p class="field-help" style="margin-top:6px;">Each backend silences a given signature for this many seconds after a successful send. Minimum 60.</p>
+          <div style="margin-top:12px;"><button class="btn">Send test alert</button></div>
+        </div>
+      </section>
+
+      <section class="section" id="schedule">
+        <h2>Schedule</h2>
+        <p class="lead">Periodically scan the log for new fatals and feed them to alert backends.</p>
+
+        <div class="field">
+          <div class="toggle-row"><div class="toggle on"></div><span class="toggle-label">Enable scheduled scan</span></div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Scan interval (minutes)</label>
+          <input class="input short" value="5" />
+          <p class="field-help">Minimum 1 minute, maximum 1440 (24 hours).</p>
+        </div>
+
+        <div class="notice ok"><strong>Last scan: 2 minutes ago.</strong> 1 fatal dispatched.</div>
+      </section>
+
+      <section class="section" id="muted">
+        <h2>Muted signatures <span style="color:var(--ink-mute); font-weight:500; font-size:14px;">(3)</span></h2>
+        <p class="lead">Hidden from the default Logs view. They still accumulate in the file.</p>
+
+        <ul class="muted-list">
+          <li>
+            <span class="sig">notice|Trying to access array offset on null|/wp-content/plugins/foo/bar.php</span>
+            <span class="reason">noisy plugin warning</span>
+            <button class="btn danger">Unmute</button>
+          </li>
+          <li>
+            <span class="sig">deprecated|Function strftime() is deprecated|/wp-includes/load.php</span>
+            <button class="btn danger">Unmute</button>
+          </li>
+          <li>
+            <span class="sig">warning|Undefined array key "foo"|/wp-content/themes/baz/functions.php</span>
+            <button class="btn danger">Unmute</button>
+          </li>
+        </ul>
+      </section>
+
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     OPTION C — Compact single-column form (no card chrome)
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="stage" data-stage="opt-c">
+<div class="pastel opt-c">
+
+  <header class="page-head">
+    <div>
+      <h1>Logscope</h1>
+      <p class="sub">PHP error log viewer for WordPress.</p>
+    </div>
+    <div class="live"><span class="live-dot"></span><strong>3,241</strong> entries · <span style="color:var(--fatal-fg);">12 fatal</span></div>
+  </header>
+
+  <div class="tabs">
+    <button>Logs</button>
+    <button>Stats</button>
+    <button class="on">Settings</button>
+  </div>
+
+  <div class="wrap">
+
+    <div class="top-bar">
+      <div class="left">
+        <span class="badge">Unsaved</span>
+        <span>2 changes pending</span>
+      </div>
+      <div class="actions">
+        <button class="btn tertiary">Reset</button>
+        <button class="btn primary">Save settings</button>
+      </div>
+    </div>
+
+    <h2><span class="ico">📄</span>Log file</h2>
+    <p class="lead">Where Logscope reads PHP errors from, and how often the live tail polls.</p>
+
+    <div class="field">
+      <label class="field-label">Custom log path</label>
+      <div class="field-row">
+        <input class="input mono" value="/var/www/html/wp-content/debug.log" />
+        <button class="btn">Test</button>
+      </div>
+      <p class="field-help">Absolute path to your debug log. Leave empty for WP default.</p>
+      <div class="notice ok" style="margin-top:8px;"><strong>Path looks good.</strong> Resolved: <code>/var/www/html/wp-content/debug.log</code></div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Tail interval (seconds)</label>
+      <input class="input short" value="2" />
+      <p class="field-help">How often the live tail polls. Minimum 1 second.</p>
+    </div>
+
+    <h2><span class="ico">🔔</span>Alerts</h2>
+    <p class="lead">Notify on new fatals. Deduped per signature so a recurring error won't flood your inbox.</p>
+
+    <div class="inline-row">
+      <div class="toggle-row"><div class="toggle on"></div><span class="toggle-label">Email</span></div>
+      <div class="toggle-row"><div class="toggle on"></div><span class="toggle-label">Webhook</span></div>
+    </div>
+
+    <div class="indent">
+      <div class="field">
+        <label class="field-label">Email recipient</label>
+        <input class="input" value="ops@example.com" />
+      </div>
+      <div class="field">
+        <label class="field-label">Webhook URL</label>
+        <input class="input mono" value="https://hooks.slack.com/services/T0/B0/abc" />
+      </div>
+      <div class="field">
+        <label class="field-label">Dedup window (seconds)</label>
+        <input class="input short" value="600" />
+      </div>
+      <div class="field">
+        <button class="btn">Send test alert</button>
+      </div>
+    </div>
+
+    <h2><span class="ico">⏱</span>Scheduled scan</h2>
+    <p class="lead">Background polls feed fatals to alert backends.</p>
+
+    <div class="inline-row">
+      <div class="toggle-row"><div class="toggle on"></div><span class="toggle-label">Enable scheduled scan</span></div>
+      <span style="display:inline-flex; align-items:center; gap:8px;">
+        <label class="field-label" style="margin:0;">Every</label>
+        <input class="input short" style="width:90px;" value="5" />
+        <span style="font-size:13px; color:var(--ink-soft);">minutes</span>
+      </span>
+    </div>
+    <p class="meta">Last scan: <strong>2 minutes ago</strong> · 1 fatal dispatched.</p>
+
+    <h2><span class="ico">🔕</span>Muted signatures <span style="color:var(--ink-mute); font-weight:500; font-size:13px;">(3)</span></h2>
+    <p class="lead">Hidden from default Logs view. They still accumulate in the file.</p>
+
+    <ul class="muted-list">
+      <li>
+        <span class="sig">notice|Trying to access array offset on null|/wp-content/plugins/foo/bar.php</span>
+        <span class="reason">noisy plugin warning</span>
+        <button class="btn danger">Unmute</button>
+      </li>
+      <li>
+        <span class="sig">deprecated|Function strftime() is deprecated|/wp-includes/load.php</span>
+        <button class="btn danger">Unmute</button>
+      </li>
+      <li>
+        <span class="sig">warning|Undefined array key "foo"|/wp-content/themes/baz/functions.php</span>
+        <button class="btn danger">Unmute</button>
+      </li>
+    </ul>
+
+  </div>
+</div>
+</div>
+
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.switcher button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target;
+      document.querySelectorAll('.switcher button').forEach((b) => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.stage').forEach((s) => s.classList.toggle('active', s.dataset.stage === target));
+    });
+  });
+</script>
+
+</body>
+</html>

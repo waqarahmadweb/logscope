@@ -10,6 +10,8 @@
 	},
 	"scripts": {
 		"build": "wp-scripts build --webpack-src-dir=assets/src --output-path=assets/build",
+		"postbuild": "node -e \"if(require('fs').existsSync('.vscode/deploy.mjs')){process.exit(require('child_process').spawnSync(process.execPath,['.vscode/deploy.mjs'],{stdio:'inherit'}).status||0)}\"",
+		"deploy": "node .vscode/deploy.mjs",
 		"start": "wp-scripts start --webpack-src-dir=assets/src --output-path=assets/build",
 		"lint:js": "eslint assets/src eslint.config.mjs",
 		"format": "wp-scripts format assets/src",
@@ -31,6 +33,7 @@
 		"@wordpress/eslint-plugin": "^22.0.0",
 		"@wordpress/prettier-config": "^4.0.0",
 		"@wordpress/scripts": "^30.0.0",
+		"basic-ftp": "^5.0.5",
 		"eslint": "^8.57.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.4.0",

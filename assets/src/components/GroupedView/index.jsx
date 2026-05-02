@@ -125,7 +125,10 @@ export default function GroupedView() {
 	return (
 		<div className="logscope-grouped-wrapper">
 			<div
-				className="logscope-grouped__header"
+				className={
+					'logscope-grouped__header' +
+					( someSelected ? ' logscope-grouped__header--active' : '' )
+				}
 				role="region"
 				aria-label={ __( 'Bulk actions', 'logscope' ) }
 			>
@@ -163,22 +166,38 @@ export default function GroupedView() {
 							: __( 'Select all', 'logscope' ) }
 					</span>
 				</label>
-				<div className="logscope-grouped__bulk-actions">
-					<Button
-						variant="secondary"
-						disabled={ ! someSelected || isSavingMutes }
-						onClick={ onMuteSelected }
-					>
-						{ __( 'Mute selected', 'logscope' ) }
-					</Button>
-					<Button
-						variant="secondary"
-						disabled={ ! someSelected }
-						onClick={ onExportSelected }
-					>
-						{ __( 'Export selected', 'logscope' ) }
-					</Button>
-				</div>
+				{ someSelected && (
+					<>
+						<span
+							className="logscope-grouped__header-sep"
+							aria-hidden="true"
+						>
+							·
+						</span>
+						<div className="logscope-grouped__bulk-actions">
+							<Button
+								variant="secondary"
+								disabled={ isSavingMutes }
+								onClick={ onMuteSelected }
+							>
+								🔕 { __( 'Mute', 'logscope' ) }
+							</Button>
+							<Button
+								variant="secondary"
+								onClick={ onExportSelected }
+							>
+								⤓ { __( 'Export', 'logscope' ) }
+							</Button>
+						</div>
+						<button
+							type="button"
+							className="logscope-grouped__cancel"
+							onClick={ () => setSelected( new Set() ) }
+						>
+							{ __( 'Clear selection', 'logscope' ) }
+						</button>
+					</>
+				) }
 			</div>
 			<ul className="logscope-grouped" role="list">
 				{ groups.map( ( group ) => (
@@ -234,7 +253,9 @@ function GroupRow( { group, isSelected, onToggleSelected } ) {
 
 	return (
 		<li
-			className={ `logscope-grouped__row logscope-grouped__row--${ tone }` }
+			className={ `logscope-grouped__row logscope-grouped__row--${ tone }${
+				isExpanded ? ' logscope-grouped__row--expanded' : ''
+			}` }
 		>
 			<input
 				type="checkbox"
@@ -258,6 +279,12 @@ function GroupRow( { group, isSelected, onToggleSelected } ) {
 					className={ `logscope-pill logscope-pill--${ tone }` }
 					aria-label={ severityLabel( group.severity ) }
 				>
+					<span
+						className={
+							'logscope-pill__dot logscope-pill__dot--' + tone
+						}
+						aria-hidden="true"
+					/>
 					{ severityLabel( group.severity ) }
 				</span>
 				<span
@@ -279,20 +306,20 @@ function GroupRow( { group, isSelected, onToggleSelected } ) {
 					{ group.sample_message }
 				</span>
 				{ fileLine && (
-					<span className="logscope-grouped__file">{ fileLine }</span>
+					<span className="logscope-grouped__file" title={ fileLine }>
+						{ fileLine }
+					</span>
 				) }
-				<span className="logscope-grouped__chevron" aria-hidden="true">
-					{ isExpanded ? '▾' : '▸' }
-				</span>
 			</button>
 			<button
 				type="button"
 				className="logscope-grouped__mute"
 				onClick={ onMute }
 				disabled={ isSavingMutes }
+				title={ __( 'Mute this signature', 'logscope' ) }
 				aria-label={ __( 'Mute this signature', 'logscope' ) }
 			>
-				{ __( 'Mute', 'logscope' ) }
+				🔕
 			</button>
 			{ isExpanded && (
 				<div

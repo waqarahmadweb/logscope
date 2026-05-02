@@ -19,6 +19,13 @@ import {
 import { STORE_KEY } from '../../store';
 
 const DEDUP_WINDOW_MIN = 60;
+const ALERT_FIELD_KEYS = [
+	'alert_email_enabled',
+	'alert_email_to',
+	'alert_webhook_enabled',
+	'alert_webhook_url',
+	'alert_dedup_window',
+];
 
 function outcomeLabel( outcome ) {
 	switch ( outcome ) {
@@ -46,16 +53,22 @@ function outcomeStatus( outcome ) {
 }
 
 export default function AlertsPanel() {
-	const { draft, isSendingTestAlert, alertTestResults, alertTestError } =
-		useSelect( ( select ) => {
-			const store = select( STORE_KEY );
-			return {
-				draft: store.getSettingsDraft(),
-				isSendingTestAlert: store.isSendingTestAlert(),
-				alertTestResults: store.getAlertTestResults(),
-				alertTestError: store.getAlertTestError(),
-			};
-		}, [] );
+	const {
+		draft,
+		values,
+		isSendingTestAlert,
+		alertTestResults,
+		alertTestError,
+	} = useSelect( ( select ) => {
+		const store = select( STORE_KEY );
+		return {
+			draft: store.getSettingsDraft(),
+			values: store.getSettingsValues(),
+			isSendingTestAlert: store.isSendingTestAlert(),
+			alertTestResults: store.getAlertTestResults(),
+			alertTestError: store.getAlertTestError(),
+		};
+	}, [] );
 
 	const { setSettingsDraft, sendTestAlert, clearAlertTestResults } =
 		useDispatch( STORE_KEY );
@@ -68,9 +81,36 @@ export default function AlertsPanel() {
 	const webhookEnabled = Number( draft.alert_webhook_enabled ) === 1;
 	const anyEnabled = emailEnabled || webhookEnabled;
 
+	const alertDirty =
+		values &&
+		ALERT_FIELD_KEYS.some( ( key ) => {
+			const a = draft[ key ];
+			const b = values[ key ];
+			if (
+				key === 'alert_email_enabled' ||
+				key === 'alert_webhook_enabled' ||
+				key === 'alert_dedup_window'
+			) {
+				return Number( a ) !== Number( b );
+			}
+			return ( a || '' ).trim() !== ( b || '' ).trim();
+		} );
+
 	const handleSendTest = () => {
 		clearAlertTestResults();
-		sendTestAlert();
+		// Persist dirty alert fields first so the server-side test reads
+		// the toggle the user just flipped instead of stale values.
+		const pending = alertDirty
+			? {
+					alert_email_enabled: emailEnabled ? 1 : 0,
+					alert_email_to: draft.alert_email_to || '',
+					alert_webhook_enabled: webhookEnabled ? 1 : 0,
+					alert_webhook_url: draft.alert_webhook_url || '',
+					alert_dedup_window:
+						Number( draft.alert_dedup_window ) || DEDUP_WINDOW_MIN,
+			  }
+			: null;
+		sendTestAlert( pending );
 	};
 
 	return (
@@ -85,67 +125,72 @@ export default function AlertsPanel() {
 				) }
 			</p>
 
-			<section className="logscope-alerts-panel__section">
-				<ToggleControl
-					label={ __( 'Send alerts by email', 'logscope' ) }
-					checked={ emailEnabled }
-					onChange={ ( next ) =>
-						setSettingsDraft( {
-							alert_email_enabled: next ? 1 : 0,
-						} )
-					}
-					__nextHasNoMarginBottom
-				/>
-				{ emailEnabled && (
-					<TextControl
-						label={ __( 'Recipient email address', 'logscope' ) }
-						type="email"
-						value={ draft.alert_email_to || '' }
+			<div className="logscope-alerts-panel__row">
+				<section className="logscope-alerts-panel__section">
+					<ToggleControl
+						label={ __( 'Send alerts by email', 'logscope' ) }
+						checked={ emailEnabled }
 						onChange={ ( next ) =>
-							setSettingsDraft( { alert_email_to: next } )
+							setSettingsDraft( {
+								alert_email_enabled: next ? 1 : 0,
+							} )
 						}
-						help={ __(
-							'Where alert emails are sent. Uses your site email transport (wp_mail), so SMTP plugins apply.',
-							'logscope'
-						) }
-						autoComplete="off"
-						spellCheck={ false }
-						__next40pxDefaultSize
 						__nextHasNoMarginBottom
 					/>
-				) }
-			</section>
+					{ emailEnabled && (
+						<TextControl
+							label={ __(
+								'Recipient email address',
+								'logscope'
+							) }
+							type="email"
+							value={ draft.alert_email_to || '' }
+							onChange={ ( next ) =>
+								setSettingsDraft( { alert_email_to: next } )
+							}
+							help={ __(
+								'Where alert emails are sent. Uses your site email transport (wp_mail), so SMTP plugins apply.',
+								'logscope'
+							) }
+							autoComplete="off"
+							spellCheck={ false }
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+						/>
+					) }
+				</section>
 
-			<section className="logscope-alerts-panel__section">
-				<ToggleControl
-					label={ __( 'Send alerts to a webhook', 'logscope' ) }
-					checked={ webhookEnabled }
-					onChange={ ( next ) =>
-						setSettingsDraft( {
-							alert_webhook_enabled: next ? 1 : 0,
-						} )
-					}
-					__nextHasNoMarginBottom
-				/>
-				{ webhookEnabled && (
-					<TextControl
-						label={ __( 'Webhook URL', 'logscope' ) }
-						type="url"
-						value={ draft.alert_webhook_url || '' }
+				<section className="logscope-alerts-panel__section">
+					<ToggleControl
+						label={ __( 'Send alerts to a webhook', 'logscope' ) }
+						checked={ webhookEnabled }
 						onChange={ ( next ) =>
-							setSettingsDraft( { alert_webhook_url: next } )
+							setSettingsDraft( {
+								alert_webhook_enabled: next ? 1 : 0,
+							} )
 						}
-						help={ __(
-							'Receives a JSON POST per fatal. Must start with https:// (or http://). Use the logscope/webhook_payload filter to reshape for Slack, Discord, or Teams.',
-							'logscope'
-						) }
-						autoComplete="off"
-						spellCheck={ false }
-						__next40pxDefaultSize
 						__nextHasNoMarginBottom
 					/>
-				) }
-			</section>
+					{ webhookEnabled && (
+						<TextControl
+							label={ __( 'Webhook URL', 'logscope' ) }
+							type="url"
+							value={ draft.alert_webhook_url || '' }
+							onChange={ ( next ) =>
+								setSettingsDraft( { alert_webhook_url: next } )
+							}
+							help={ __(
+								'Receives a JSON POST per fatal. Must start with https:// (or http://). Use the logscope/webhook_payload filter to reshape for Slack, Discord, or Teams.',
+								'logscope'
+							) }
+							autoComplete="off"
+							spellCheck={ false }
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+						/>
+					) }
+				</section>
+			</div>
 
 			<section className="logscope-alerts-panel__section">
 				<TextControl
@@ -181,7 +226,7 @@ export default function AlertsPanel() {
 					{ ! anyEnabled && (
 						<span className="logscope-alerts-panel__test-hint">
 							{ __(
-								'Enable email or webhook above first, then save.',
+								'Enable email or webhook above first.',
 								'logscope'
 							) }
 						</span>

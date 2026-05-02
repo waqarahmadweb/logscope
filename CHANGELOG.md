@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+-   Search highlighting in the log viewer (Phase 17.5) — when the FilterBar regex matches, occurrences inside each row's message are wrapped in `<mark class="logscope-mark">` so a hit is visible without scrolling the row to spot it. The match runs case-insensitively in the client (a `try/catch` around `RegExp` keeps a half-typed pattern from unmounting the row), with a 1000-iteration safety cap and a zero-width-match guard so pathological inputs cannot stall the render loop. The highlight is also applied in the expanded details panel so the same call-out follows you when a row is opened.
+
+### Changed
+
+-   Bulk mute now works inline from the list view (Phase 17.5) — the toolbar's `Mute (N)` button (and a new `🔕 Mute` action in the selection bulk bar) used to punt the user to Grouped view with a "go select the matching signatures over there" toast. They now collapse the selection to its distinct mute signatures and call the existing `bulkMuteSignatures` thunk directly, then refetch so the muted classes drop out of view immediately. To make this possible without recomputing the server's normalised-shape hash in JS (which would drift), `LogsController::shape_entry` now exposes the row's `signature` (computed via `LogGrouper::signature`) on every entry payload, so the client just reads it off `entry.signature`.
+
+### Fixed
+
+-   Settings save no longer 400s with `Unknown setting(s): _locale.` — `SettingsController::handle_post()` now strips underscore-prefixed params (`_locale`, `_wpnonce`, `_method`, etc.) before the unknown-setting gate. WordPress core appends those to admin REST requests for user-locale switching and nonce handling; the controller was treating them as candidate setting keys and rejecting the save. New integration test asserts a body containing `_locale` + a real setting succeeds.
+-   "Send test alert" now persists dirty alert toggles before dispatching, so flipping email-on and clicking the button works without a separate Save round-trip. Previously the test endpoint read dispatcher state from the persisted store and returned `Enable at least one alert backend (email or webhook) before sending a test alert.` even though the toggle was visibly on. The button hint also drops the now-stale ", then save" tail.
+
 ## [0.15.0] - 2026-04-30
 
 Closes Phase 17.1–17.4 of the [roadmap](ROADMAP.md): the pre-1.0 release infrastructure for the wp.org cut. No runtime changes — this release lands the `readme.txt` the WordPress.org plugin directory will render, the `.wordpress-org/` asset spec the maintainer will fill in with banner / icon / screenshot binaries, and the GitHub release workflow that builds the distribution zip on every `v*.*.*` tag push. The actual v1.0.0 cut is gated on Phase 17.5 (pre-1.0 changes, scope TBD), 17.7 (full security review), and the maintainer's go-ahead — none of which fire automatically from this release.

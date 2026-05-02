@@ -123,6 +123,33 @@ export const client = {
 	getDiagnostics() {
 		return apiFetch( { path: logscopePath( '/diagnostics' ) } );
 	},
+	clearLogs() {
+		// Soft-delete: server renames debug.log → debug.log.cleared-<ts>
+		// rather than truncating, so the cleared file remains
+		// recoverable from disk by an admin with FTP/SSH access.
+		return apiFetch( {
+			path: logscopePath( '/logs?confirm=true' ),
+			method: 'DELETE',
+		} );
+	},
+	/**
+	 * Fully-qualified browser URL for the raw download endpoint. The
+	 * download is initiated by an `<a href download>` rather than
+	 * apiFetch — letting the browser handle the attachment headers and
+	 * stream means we don't have to buffer a potentially-huge file in
+	 * JS memory just to hand it to a Blob.
+	 */
+	downloadLogsUrl() {
+		const root = bootstrap.restRoot || '/wp-json/';
+		const sep = root.endsWith( '/' ) ? '' : '/';
+		// Cache-busting query so the browser does not serve a previous
+		// response after a Clear → write cycle. Nonce is required
+		// because the route is gated by the `logscope_manage` cap.
+		const nonce = bootstrap.nonce
+			? '&_wpnonce=' + encodeURIComponent( bootstrap.nonce )
+			: '';
+		return root + sep + 'logscope/v1/logs/download?_=' + Date.now() + nonce;
+	},
 };
 
 export { bootstrap };

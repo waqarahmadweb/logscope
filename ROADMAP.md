@@ -707,7 +707,21 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
 
 Open-ended placeholder for the work that has to land before the wp.org cut. Fill in concrete sub-steps as decisions are made (one box per behavioural commit, one bump step at the end of each shippable bundle). Each pre-1.0 change release is a regular `0.x.0` bump — local git tag only, nothing leaves the repo.
 
--   [ ] **17.5** Pre-1.0 changes — _(open: list features / fixes / refactors here as they're decided)_
+-   [ ] **17.5** Pre-1.0 changes
+
+    -   [ ] **17.5a** UI redesign — soft-pastel admin look with Linear-style data density
+        -   New design tokens (warm pastel surface palette, tightened type scale, 6–8px radii)
+        -   Page header with title + subtitle + live counter pill (`● 142 today · 5 fatal`)
+        -   Pill-on-tan-track tabs (Logs / Stats / Settings) with shortcuts anchor
+        -   FilterBar collapsed to a single horizontal toolbar: severity pills with colored dots, regex search with 🔍 + `/` kbd hint, ghost dropdown pills for date / source / preset
+        -   New filter-summary line (`Showing N of M · ⊙Fatal × · Clear filters`)
+        -   Log table redesign: bordered card, 2px severity edge bar, pastel sev badges, mono message + right-aligned mono path, hover-reveal `⋯`
+        -   GroupedView sticky bulk-action bar styled as dark pill (`☑ N selected · Mute · Export · Clear selection`)
+        -   StackTracePanel restyled to match the new card surface
+        -   Source-of-truth mockup at [docs/ui-mockups.html](docs/ui-mockups.html)
+        -   Search highlighting — when the regex search has a match, highlight the matched text inline in the message
+        -   Bulk mute from list view — Mute (N) acts inline by computing each row's signature client-side and calling the existing mute API per signature, instead of punting to Grouped
+        -   **Commits**: split per component (tokens → header → filters → summary → table → bulk bar → trace panel → docs)
 
 -   [ ] **17.6** 🏷️ **Release v0.x.0** — Pre-1.0 changes
     -   Final `0.x.0` bump that closes step 17.5. Increment from the last shipped version. If 17.5 grows multiple bump points, split it and number `17.6a`, `17.6b`, … as needed.
