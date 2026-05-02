@@ -1390,12 +1390,212 @@ body.tools_page_logscope {
 }
 
 .logscope-settings-panel {
-	max-width: 640px;
+	max-width: 1100px;
 
-	&__stack {
+	&__layout {
+		display: grid;
+		grid-template-columns: 220px minmax( 0, 1fr );
+		gap: 24px;
+		align-items: start;
+
+		@media ( max-width: 880px ) {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	&__nav {
+		position: sticky;
+		top: 16px;
+		align-self: start;
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
+		padding: 8px;
+
+		@media ( max-width: 880px ) {
+			position: static;
+		}
+	}
+
+	&__nav-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 2px;
+	}
+
+	&__nav-link {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		width: 100%;
+		box-sizing: border-box;
+		text-align: left;
+		appearance: none;
+		border: 0;
+		background: transparent;
+		padding: 9px 12px;
+		border-radius: var( --logscope-radius-sm );
+		font-size: 13.5px;
+		font-weight: 500;
+		cursor: pointer;
+		text-decoration: none;
+
+		// Beat WP admin's `.wrap a { color }` and `a:focus { color }` rules
+		// across every link state — otherwise clicking a link makes the
+		// text colour collide with the highlighted background.
+		&,
+		&:link,
+		&:visited,
+		&:hover,
+		&:focus,
+		&:active {
+			color: var( --logscope-fg-muted );
+			text-decoration: none;
+			box-shadow: none;
+		}
+
+		&:hover {
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
+		}
+
+		&:focus,
+		&:focus-visible {
+			outline: none;
+			box-shadow: none;
+		}
+
+		&--on,
+		&--on:link,
+		&--on:visited,
+		&--on:hover,
+		&--on:focus,
+		&--on:active {
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
+		}
+	}
+
+	&__nav-icon {
+		display: inline-flex;
+		width: 16px;
+		justify-content: center;
+		font-size: 14px;
+		line-height: 1;
+		opacity: 0.9;
+	}
+
+	&__nav-sep {
+		height: 1px;
+		background: var( --logscope-border-soft );
+		margin: 8px 4px;
+	}
+
+	&__nav-actions {
+		padding: 4px 6px 6px;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+
+		.components-button {
+			justify-content: center;
+			width: 100%;
+		}
+
+		.components-button.is-primary,
+		.components-button.is-primary:not( :disabled ):not( [aria-disabled='true'] ) {
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
+			box-shadow: none;
+			border-radius: var( --logscope-radius-sm );
+
+			&:hover,
+			&:focus {
+				background: #000;
+				color: var( --logscope-bg-muted );
+				box-shadow: none;
+			}
+		}
+
+		.components-button.is-primary:disabled,
+		.components-button.is-primary[ aria-disabled='true' ] {
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg-mute );
+			box-shadow: none;
+		}
+
+		.components-button.is-tertiary {
+			color: var( --logscope-fg-muted );
+
+			&:hover {
+				color: var( --logscope-fg );
+				background: var( --logscope-bg-sunken );
+				box-shadow: none;
+			}
+		}
+	}
+
+	&__nav-dirty {
+		font-size: 11px;
+		color: var( --logscope-fg-mute );
+		text-align: center;
+		padding: 2px 0 4px;
+	}
+
+	&__pane {
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+		min-width: 0;
+	}
+
+	&__section {
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
+		padding: 22px 24px;
+		scroll-margin-top: 16px;
+	}
+
+	&__section-title {
+		margin: 0 0 4px;
+		font-size: 18px;
+		font-weight: 700;
+		color: var( --logscope-fg );
+	}
+
+	&__section-lead {
+		margin: 0 0 18px;
+		color: var( --logscope-fg-muted );
+		font-size: 13px;
+	}
+
+	&__field {
+		margin-bottom: 16px;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+
+	&__field-row {
+		display: flex;
+		gap: 10px;
+		align-items: flex-start;
+
+		.components-base-control {
+			flex: 1;
+			min-width: 0;
+		}
+
+		// Drop the button down to sit at input level (label + 4px gap above
+		// the input on the WP TextControl with __next40pxDefaultSize).
+		> .components-button {
+			margin-top: 24px;
+		}
 	}
 
 	&__actions,
@@ -1415,6 +1615,101 @@ body.tools_page_logscope {
 		gap: 8px;
 		align-items: center;
 		color: var( --logscope-fg-muted );
+	}
+}
+
+// Child panels now slot into __section cards — strip their own card chrome.
+.logscope-settings-panel__section {
+	.logscope-alerts-panel,
+	.logscope-cron-panel,
+	.logscope-muted-panel {
+		border-top: 0;
+		margin-top: 0;
+		padding-top: 0;
+	}
+
+	.logscope-alerts-panel__heading,
+	.logscope-cron-panel__heading,
+	.logscope-muted-panel > h3 {
+		margin: 0 0 4px;
+		font-size: 18px;
+		font-weight: 700;
+		color: var( --logscope-fg );
+	}
+
+	.logscope-alerts-panel__intro,
+	.logscope-cron-panel__intro,
+	.logscope-muted-panel__hint {
+		margin: 0 0 18px;
+		color: var( --logscope-fg-muted );
+		font-size: 13px;
+	}
+
+	.logscope-alerts-panel__section,
+	.logscope-cron-panel__section {
+		margin-bottom: 16px;
+
+		&:last-of-type {
+			margin-bottom: 0;
+		}
+	}
+}
+
+.logscope-cron-panel__status {
+	margin-top: 16px;
+	padding: 10px 12px;
+	background: var( --logscope-bg-sunken );
+	border-radius: var( --logscope-radius-sm );
+	font-size: 12.5px;
+	color: var( --logscope-fg-muted );
+}
+
+.logscope-muted-panel {
+	&__list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	&__item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 10px 12px;
+		background: var( --logscope-bg-sunken );
+		border-radius: var( --logscope-radius-sm );
+	}
+
+	&__meta {
+		min-width: 0;
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	&__sig {
+		font-family: var( --logscope-font-mono );
+		font-size: 12px;
+		color: var( --logscope-fg );
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	&__reason {
+		font-size: 11px;
+		color: var( --logscope-fg-mute );
+	}
+
+	&__empty {
+		margin: 0;
+		color: var( --logscope-fg-muted );
+		font-size: 13px;
 	}
 }
 
@@ -1558,6 +1853,21 @@ body.tools_page_logscope {
 			& + li {
 				margin-top: 6px;
 			}
+		}
+	}
+
+	&__row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
+		margin-bottom: 16px;
+
+		@media ( max-width: 720px ) {
+			grid-template-columns: 1fr;
+		}
+
+		> .logscope-alerts-panel__section {
+			margin-bottom: 0;
 		}
 	}
 }

@@ -85,67 +85,72 @@ export default function AlertsPanel() {
 				) }
 			</p>
 
-			<section className="logscope-alerts-panel__section">
-				<ToggleControl
-					label={ __( 'Send alerts by email', 'logscope' ) }
-					checked={ emailEnabled }
-					onChange={ ( next ) =>
-						setSettingsDraft( {
-							alert_email_enabled: next ? 1 : 0,
-						} )
-					}
-					__nextHasNoMarginBottom
-				/>
-				{ emailEnabled && (
-					<TextControl
-						label={ __( 'Recipient email address', 'logscope' ) }
-						type="email"
-						value={ draft.alert_email_to || '' }
+			<div className="logscope-alerts-panel__row">
+				<section className="logscope-alerts-panel__section">
+					<ToggleControl
+						label={ __( 'Send alerts by email', 'logscope' ) }
+						checked={ emailEnabled }
 						onChange={ ( next ) =>
-							setSettingsDraft( { alert_email_to: next } )
+							setSettingsDraft( {
+								alert_email_enabled: next ? 1 : 0,
+							} )
 						}
-						help={ __(
-							'Where alert emails are sent. Uses your site email transport (wp_mail), so SMTP plugins apply.',
-							'logscope'
-						) }
-						autoComplete="off"
-						spellCheck={ false }
-						__next40pxDefaultSize
 						__nextHasNoMarginBottom
 					/>
-				) }
-			</section>
+					{ emailEnabled && (
+						<TextControl
+							label={ __(
+								'Recipient email address',
+								'logscope'
+							) }
+							type="email"
+							value={ draft.alert_email_to || '' }
+							onChange={ ( next ) =>
+								setSettingsDraft( { alert_email_to: next } )
+							}
+							help={ __(
+								'Where alert emails are sent. Uses your site email transport (wp_mail), so SMTP plugins apply.',
+								'logscope'
+							) }
+							autoComplete="off"
+							spellCheck={ false }
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+						/>
+					) }
+				</section>
 
-			<section className="logscope-alerts-panel__section">
-				<ToggleControl
-					label={ __( 'Send alerts to a webhook', 'logscope' ) }
-					checked={ webhookEnabled }
-					onChange={ ( next ) =>
-						setSettingsDraft( {
-							alert_webhook_enabled: next ? 1 : 0,
-						} )
-					}
-					__nextHasNoMarginBottom
-				/>
-				{ webhookEnabled && (
-					<TextControl
-						label={ __( 'Webhook URL', 'logscope' ) }
-						type="url"
-						value={ draft.alert_webhook_url || '' }
+				<section className="logscope-alerts-panel__section">
+					<ToggleControl
+						label={ __( 'Send alerts to a webhook', 'logscope' ) }
+						checked={ webhookEnabled }
 						onChange={ ( next ) =>
-							setSettingsDraft( { alert_webhook_url: next } )
+							setSettingsDraft( {
+								alert_webhook_enabled: next ? 1 : 0,
+							} )
 						}
-						help={ __(
-							'Receives a JSON POST per fatal. Must start with https:// (or http://). Use the logscope/webhook_payload filter to reshape for Slack, Discord, or Teams.',
-							'logscope'
-						) }
-						autoComplete="off"
-						spellCheck={ false }
-						__next40pxDefaultSize
 						__nextHasNoMarginBottom
 					/>
-				) }
-			</section>
+					{ webhookEnabled && (
+						<TextControl
+							label={ __( 'Webhook URL', 'logscope' ) }
+							type="url"
+							value={ draft.alert_webhook_url || '' }
+							onChange={ ( next ) =>
+								setSettingsDraft( { alert_webhook_url: next } )
+							}
+							help={ __(
+								'Receives a JSON POST per fatal. Must start with https:// (or http://). Use the logscope/webhook_payload filter to reshape for Slack, Discord, or Teams.',
+								'logscope'
+							) }
+							autoComplete="off"
+							spellCheck={ false }
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+						/>
+					) }
+				</section>
+			</div>
 
 			<section className="logscope-alerts-panel__section">
 				<TextControl
