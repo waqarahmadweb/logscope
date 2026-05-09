@@ -715,39 +715,39 @@ Goal: shipping pipeline ready before any feature work that gates v1.0.0.
 
 Goal: replace the default `@wordpress/components` look with the soft-pastel / Linear-density design from [docs/ui-mockups.html](docs/ui-mockups.html). One commit per component so the visual diff is reviewable.
 
--   [ ] **18.1** Design tokens
+-   [x] **18.1** Design tokens
 
     -   Warm pastel surface palette, tightened type scale, 6–8px radii.
     -   Variable-driven so dark mode + `admin-color-midnight` keep parity.
-    -   **Commit**: `feat(ui): design tokens for pastel/dense look`
+    -   **Shipped in**: commit `2dc5056` (via the merged 17.5a redesign branch, before Phase 17 was split out — see 2026-05-04 restructure note).
 
--   [ ] **18.2** Page header with live counter pill
+-   [x] **18.2** Page header with live counter pill
 
-    -   Title + subtitle + counter pill (`● 142 today · 5 fatal`). Counter reads from the same transient `LogStats` uses.
-    -   **Commit**: `feat(ui): page header with live counter pill`
+    -   Title + subtitle + counter pill. Counter shows the matched-filter `entries` total and `fatal` count among loaded entries; reading the daily-transient figure originally specced in this step would have meant a second snapshot fetch on every Logs tab paint, and the live filter-aware figure proved more useful in practice.
+    -   **Shipped in**: commit `c537b23`.
 
--   [ ] **18.3** Pill-on-tan-track tabs
+-   [x] **18.3** Pill-on-tan-track tabs
 
     -   Logs / Stats / Settings as pills on a tan track, shortcuts anchor on the right.
-    -   **Commit**: `feat(ui): pill tabs with shortcuts anchor`
+    -   **Shipped in**: commit `2dc5056`.
 
--   [ ] **18.4** FilterBar redesign
+-   [x] **18.4** FilterBar redesign
 
-    -   Single horizontal toolbar: severity pills with colored dots, regex search with 🔍 + `/` kbd hint, ghost dropdown pills for date / source / preset.
-    -   New filter-summary line below: `Showing N of M · ⊙Fatal × · Clear filters`.
-    -   **Commit**: `feat(ui): horizontal filter bar with summary`
+    -   Single horizontal toolbar: severity pills with colored dots, regex search with `/` kbd hint, ghost dropdown pills for date / source / preset.
+    -   Filter-summary line below: `Showing N of M · ⊙Fatal × · Clear filters`.
+    -   **Shipped in**: commits `8510ba0` + `b12aa41`.
 
--   [ ] **18.5** Log table redesign
+-   [x] **18.5** Log table redesign
 
-    -   Bordered card, 2px severity edge bar, pastel severity badges, mono message + right-aligned mono path, hover-reveal `⋯` action menu.
-    -   Search highlighting — when the regex search has a match, highlight the matched text inline in the message.
-    -   **Commit**: `feat(ui): log table redesign + search highlighting`
+    -   Bordered card, severity edge bar, pastel severity badges, mono message + right-aligned mono path, hover-reveal `⋯` action menu.
+    -   Search highlighting — regex matches highlighted inline via `<mark class="logscope-mark">` in both the row and the expanded details pane.
+    -   **Shipped in**: commits `01ccfca`, `146b62a`, `aa3af25`, `c71e8b3`.
 
--   [ ] **18.6** GroupedView bulk-action bar
+-   [x] **18.6** GroupedView bulk-action bar
 
-    -   Sticky dark-pill bulk action bar: `☑ N selected · Mute · Export · Clear selection`.
-    -   Bulk mute from list view — `Mute (N)` acts inline by computing each row's signature client-side and calling the existing mute API per signature, instead of punting to Grouped.
-    -   **Commit**: `feat(ui): grouped bulk-action bar + bulk mute from list`
+    -   Sticky dark-pill bulk action bar with selection counter, mute, export, and clear-selection actions.
+    -   Bulk mute from list view — `Mute (N)` acts inline by collapsing the selection to its distinct signatures and calling `bulkMuteSignatures` directly (signature is now exposed on every entry payload by `LogsController::shape_entry`).
+    -   **Shipped in**: commits `2ddd94b` + `971e76d` + `c71e8b3`.
 
 -   [ ] **18.7** StackTracePanel restyle + visual hierarchy
 
