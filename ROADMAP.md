@@ -795,8 +795,10 @@ Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscod
     -   **AC**: Site Health → Status shows the Logscope test; manual fixture with a fresh fatal flips it red.
     -   **Commit**: `feat(admin): Site Health test for recent fatals`
 
--   [ ] **19.4** 🏷️ **Release v0.17.0** — Pre-1.0 feature parity
+-   [x] **19.4** 🏷️ **Release v0.17.0** — Pre-1.0 feature parity
     -   **Commit**: `chore(release): v0.17.0`
+
+> Phase 19 complete on 2026-05-09.
 
 ---
 
