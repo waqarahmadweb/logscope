@@ -768,7 +768,7 @@ Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscod
 
 > The fourth P0 (one-click `WP_DEBUG` toggle) is **deferred to v1.1.0 / Phase 22.1** because it edits `wp-config.php` and warrants its own security-review pass on a post-1.0 release line.
 
--   [ ] **19.1** Admin bar status indicator
+-   [x] **19.1** Admin bar status indicator
 
     -   Hook `admin_bar_menu` (priority 90) to add a node when `logscope_manage` cap holds.
     -   Two states: green dot when `WP_DEBUG_LOG` is on, gray when off.

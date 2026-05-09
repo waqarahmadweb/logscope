@@ -15,6 +15,7 @@ import {
 	Notice,
 	RadioControl,
 	TextControl,
+	ToggleControl,
 } from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
@@ -27,6 +28,7 @@ export const DISPLAY_FIELD_KEYS = [
 	'default_per_page',
 	'default_severity_filter',
 	'timestamp_tz',
+	'admin_bar_enabled',
 ];
 
 /**
@@ -184,6 +186,24 @@ export default function DisplayPanel() {
 						</Notice>
 					</div>
 				) }
+			</div>
+
+			<div className="logscope-display-panel__field">
+				<ToggleControl
+					label={ __(
+						'Show admin-bar status indicator',
+						'logscope'
+					) }
+					help={ __(
+						'Adds a Logscope item to the WordPress admin bar with a green or grey dot reflecting whether WP_DEBUG_LOG is on, plus a count badge of today’s log entries. Click it to jump to the Logscope page.',
+						'logscope'
+					) }
+					checked={ Number( draft.admin_bar_enabled ) === 1 }
+					onChange={ ( on ) =>
+						setSettingsDraft( { admin_bar_enabled: on ? 1 : 0 } )
+					}
+					__nextHasNoMarginBottom
+				/>
 			</div>
 		</div>
 	);
