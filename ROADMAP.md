@@ -17,30 +17,38 @@
 
 ## Version line at a glance
 
-| Version   | Closes               | Theme                                                         | Public? |
-| --------- | -------------------- | ------------------------------------------------------------- | ------- |
-| 0.1.0     | Phase 0 ✅           | Scaffold                                                      | no      |
-| 0.2.0     | Phase 1              | Tooling & developer loop                                      | no      |
-| 0.3.0     | Phase 2              | Plugin bootstrap + lifecycle                                  | no      |
-| 0.4.0     | Phase 3              | Log reading & parsing foundation                              | no      |
-| 0.5.0     | Phases 4 + 5         | REST API + settings backend                                   | no      |
-| 0.6.0     | Phase 6              | Admin page + React viewer shell                               | no      |
-| 0.7.0     | Phase 7              | Filters, grouping, trace, tail                                | no      |
-| 0.8.0     | Phase 8              | Settings UI + custom log path                                 | no      |
-| 0.9.0     | Phase 11             | Polish, a11y, i18n (.pot)                                     | no      |
-| 0.10.0    | Phase 12             | Alerts (email + webhook + dedup)                              | no      |
-| 0.11.0    | Phase 13             | Scheduled fatal scanner (cron)                                | no      |
-| 0.12.0    | Phase 14             | Retention, mute, filter presets                               | no      |
-| 0.13.0    | Phase 15             | Stats dashboard                                               | no      |
-| 0.14.0    | Phase 16             | Onboarding, diagnostics, bulk actions                         | no      |
-| 0.15.0    | Phase 17.1–17.4      | wp.org release infrastructure                                 | no      |
-| 0.x.0     | Phase 17.5–17.6      | Pre-1.0 changes (TBD scope)                                   | no      |
-| **1.0.0** | **Phase 17.7–17.11** | **🚀 wp.org submission**                                      | **YES** |
-| 1.1.0+    | Post-1.0             | Live streaming, multisite, source preview, request context, … | YES     |
+| Version   | Closes       | Theme                                                             | Public? |
+| --------- | ------------ | ----------------------------------------------------------------- | ------- |
+| 0.1.0     | Phase 0 ✅   | Scaffold                                                          | no      |
+| 0.2.0     | Phase 1      | Tooling & developer loop                                          | no      |
+| 0.3.0     | Phase 2      | Plugin bootstrap + lifecycle                                      | no      |
+| 0.4.0     | Phase 3      | Log reading & parsing foundation                                  | no      |
+| 0.5.0     | Phases 4 + 5 | REST API + settings backend                                       | no      |
+| 0.6.0     | Phase 6      | Admin page + React viewer shell                                   | no      |
+| 0.7.0     | Phase 7      | Filters, grouping, trace, tail                                    | no      |
+| 0.8.0     | Phase 8      | Settings UI + custom log path                                     | no      |
+| 0.9.0     | Phase 11     | Polish, a11y, i18n (.pot)                                         | no      |
+| 0.10.0    | Phase 12     | Alerts (email + webhook + dedup)                                  | no      |
+| 0.11.0    | Phase 13     | Scheduled fatal scanner (cron)                                    | no      |
+| 0.12.0    | Phase 14     | Retention, mute, filter presets                                   | no      |
+| 0.13.0    | Phase 15     | Stats dashboard                                                   | no      |
+| 0.14.0    | Phase 16     | Onboarding, diagnostics, bulk actions                             | no      |
+| 0.15.0    | Phase 17     | wp.org release infrastructure                                     | no      |
+| 0.16.0    | Phase 18     | Pre-1.0 UI redesign (soft-pastel, Linear-density)                 | no      |
+| 0.17.0    | Phase 19     | Pre-1.0 feature parity (admin bar, dashboard widget, Site Health) | no      |
+| 0.18.0    | Phase 20     | Security gate                                                     | no      |
+| **1.0.0** | **Phase 21** | **🚀 v1.0.0 cut + wp.org submission**                             | **YES** |
+| 1.1.0     | Phase 22.1   | One-click WP_DEBUG toggle (auto-edit wp-config)                   | YES     |
+| 1.2.0     | Phase 22.2   | Slack & Discord webhook formatters                                | YES     |
+| 1.3.0     | Phase 22.3   | Live streaming (SSE / WebSocket)                                  | YES     |
+| 1.4.0     | Phase 22.4   | Multisite aggregation                                             | YES     |
+| 1.5.0+    | Phase 22.5   | Source preview, WP-CLI, request context, Loki/Elastic, …          | YES     |
 
 Pre-1.0 bumps are git tags only — nothing leaves the repo. **The wp.org release line is v1.0.0 and only v1.0.0.**
 
 > **2026-04-30 restructure:** Phases 12–16 were added to flesh out the plugin before the wp.org cut. The original "Phase 12 = release infrastructure → cut v1.0.0" became Phase 17. Alerts and cron were pulled forward from post-1.0 (v1.1.0 / v1.2.0) into Phases 12 / 13 so the submission lands with a usable feature set rather than a viewer-only MVP.
+>
+> **2026-05-04 restructure:** Phase 17 was split. Release infrastructure stays in Phase 17 (already shipped as v0.15.0). The UI redesign that was Phase 17.5 is now Phase 18 (v0.16.0). Phase 19 (v0.17.0) was inserted to close the three feature-parity gaps surfaced in the [competitor analysis](../.vscode/02-feature-gap-analysis.md): admin bar indicator, dashboard widget, Site Health integration. The security gate is now Phase 20 (v0.18.0). The v1.0.0 cut moves to its own dedicated **Phase 21**. Post-1.0 work was reordered per the same gap analysis: one-click `WP_DEBUG` toggle pulled forward to v1.1.0, Slack/Discord formatters to v1.2.0, live streaming to v1.3.0, multisite to v1.4.0.
 
 ---
 
@@ -679,11 +687,9 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
 
 ---
 
-## Phase 17 — 🚀 wp.org release line (v1.0.0)
+## Phase 17 — Pre-1.0 release infrastructure (v0.15.0) ✅
 
-**This is the only phase where code leaves the repo for public distribution.** Phase 17 deliberately stretches: prep infrastructure ships first under `v0.15.0`, then any pre-1.0 changes ship under their own `v0.x.0` bumps, and the `v1.0.0` cut is gated on a concrete "we're done" decision rather than a date. Do not skip or reorder steps within each subsection.
-
-### Pre-1.0 release infrastructure
+Goal: shipping pipeline ready before any feature work that gates v1.0.0.
 
 -   [x] **17.1** `readme.txt` (wp.org format — Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI, Description, Installation, FAQ, Changelog, Screenshots, Privacy)
 
@@ -701,96 +707,236 @@ Goal: A first-time user opening the plugin with `WP_DEBUG_LOG` off shouldn't see
 -   [x] **17.4** 🏷️ **Release v0.15.0** — Pre-1.0 release infrastructure
     -   **Commit**: `chore(release): v0.15.0`
 
-> Phase 17 (release infra) ready as of 2026-04-30; v1.0.0 cut deferred for verification.
+> Phase 17 complete on 2026-04-30. Final binary banner/icon/screenshot assets to be re-captured during Phase 21.1 with the v1.0 UI.
 
-### Pre-1.0 changes
+---
 
-Open-ended placeholder for the work that has to land before the wp.org cut. Fill in concrete sub-steps as decisions are made (one box per behavioural commit, one bump step at the end of each shippable bundle). Each pre-1.0 change release is a regular `0.x.0` bump — local git tag only, nothing leaves the repo.
+## Phase 18 — Pre-1.0 UI redesign (v0.16.0)
 
--   [ ] **17.5** Pre-1.0 changes
+Goal: replace the default `@wordpress/components` look with the soft-pastel / Linear-density design from [docs/ui-mockups.html](docs/ui-mockups.html). One commit per component so the visual diff is reviewable.
 
-    -   [ ] **17.5a** UI redesign — soft-pastel admin look with Linear-style data density
-        -   New design tokens (warm pastel surface palette, tightened type scale, 6–8px radii)
-        -   Page header with title + subtitle + live counter pill (`● 142 today · 5 fatal`)
-        -   Pill-on-tan-track tabs (Logs / Stats / Settings) with shortcuts anchor
-        -   FilterBar collapsed to a single horizontal toolbar: severity pills with colored dots, regex search with 🔍 + `/` kbd hint, ghost dropdown pills for date / source / preset
-        -   New filter-summary line (`Showing N of M · ⊙Fatal × · Clear filters`)
-        -   Log table redesign: bordered card, 2px severity edge bar, pastel sev badges, mono message + right-aligned mono path, hover-reveal `⋯`
-        -   GroupedView sticky bulk-action bar styled as dark pill (`☑ N selected · Mute · Export · Clear selection`)
-        -   StackTracePanel restyled to match the new card surface
-        -   Source-of-truth mockup at [docs/ui-mockups.html](docs/ui-mockups.html)
-        -   Search highlighting — when the regex search has a match, highlight the matched text inline in the message
-        -   Bulk mute from list view — Mute (N) acts inline by computing each row's signature client-side and calling the existing mute API per signature, instead of punting to Grouped
-        -   **Commits**: split per component (tokens → header → filters → summary → table → bulk bar → trace panel → docs)
+-   [ ] **18.1** Design tokens
 
--   [ ] **17.6** 🏷️ **Release v0.x.0** — Pre-1.0 changes
-    -   Final `0.x.0` bump that closes step 17.5. Increment from the last shipped version. If 17.5 grows multiple bump points, split it and number `17.6a`, `17.6b`, … as needed.
-    -   **Commit**: `chore(release): v0.x.0`
+    -   Warm pastel surface palette, tightened type scale, 6–8px radii.
+    -   Variable-driven so dark mode + `admin-color-midnight` keep parity.
+    -   **Commit**: `feat(ui): design tokens for pastel/dense look`
 
-### 🔒 Security gate
+-   [ ] **18.2** Page header with live counter pill
 
--   [ ] **17.7** 🔒 Full `security-review` skill pass across:
+    -   Title + subtitle + counter pill (`● 142 today · 5 fatal`). Counter reads from the same transient `LogStats` uses.
+    -   **Commit**: `feat(ui): page header with live counter pill`
+
+-   [ ] **18.3** Pill-on-tan-track tabs
+
+    -   Logs / Stats / Settings as pills on a tan track, shortcuts anchor on the right.
+    -   **Commit**: `feat(ui): pill tabs with shortcuts anchor`
+
+-   [ ] **18.4** FilterBar redesign
+
+    -   Single horizontal toolbar: severity pills with colored dots, regex search with 🔍 + `/` kbd hint, ghost dropdown pills for date / source / preset.
+    -   New filter-summary line below: `Showing N of M · ⊙Fatal × · Clear filters`.
+    -   **Commit**: `feat(ui): horizontal filter bar with summary`
+
+-   [ ] **18.5** Log table redesign
+
+    -   Bordered card, 2px severity edge bar, pastel severity badges, mono message + right-aligned mono path, hover-reveal `⋯` action menu.
+    -   Search highlighting — when the regex search has a match, highlight the matched text inline in the message.
+    -   **Commit**: `feat(ui): log table redesign + search highlighting`
+
+-   [ ] **18.6** GroupedView bulk-action bar
+
+    -   Sticky dark-pill bulk action bar: `☑ N selected · Mute · Export · Clear selection`.
+    -   Bulk mute from list view — `Mute (N)` acts inline by computing each row's signature client-side and calling the existing mute API per signature, instead of punting to Grouped.
+    -   **Commit**: `feat(ui): grouped bulk-action bar + bulk mute from list`
+
+-   [ ] **18.7** StackTracePanel restyle + visual hierarchy
+
+    -   Match the new card surface; add visual call-stack hierarchy (indented frames, file/line aligned columns, plugin/theme/core color coding for frame source).
+    -   Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P1-3.
+    -   **Commit**: `feat(ui): stack trace visual hierarchy`
+
+-   [ ] **18.8** 🏷️ **Release v0.16.0** — Pre-1.0 UI redesign
+    -   **Commit**: `chore(release): v0.16.0`
+
+---
+
+## Phase 19 — Pre-1.0 feature parity (v0.17.0)
+
+Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscode/02-feature-gap-analysis.md) so a side-by-side feature table against Debug Log Manager and BestWebSoft shows Logscope strictly ahead at the v1.0.0 cut.
+
+> The fourth P0 (one-click `WP_DEBUG` toggle) is **deferred to v1.1.0 / Phase 22.1** because it edits `wp-config.php` and warrants its own security-review pass on a post-1.0 release line.
+
+-   [ ] **19.1** Admin bar status indicator
+
+    -   Hook `admin_bar_menu` (priority 90) to add a node when `logscope_manage` cap holds.
+    -   Two states: green dot when `WP_DEBUG_LOG` is on, gray when off.
+    -   Optional badge with today's error count, read from a 60s-cached transient (same caching layer as `LogStats`).
+    -   Click → `Tools → Logscope`.
+    -   Settings toggle to hide it for users who find it noisy.
+    -   **AC**: Bar item visible to admin on any wp-admin screen; hidden from subscribers; toggle in Settings turns it off.
+    -   **Commit**: `feat(admin): admin bar status indicator with error count`
+
+-   [ ] **19.2** Dashboard widget showing latest errors
+
+    -   `wp_add_dashboard_widget('logscope_recent_errors', …)` gated by `logscope_manage`.
+    -   Latest 5 errors with severity pill + truncated message + relative time.
+    -   "View all" link to `Tools → Logscope`.
+    -   Reuses `LogRepository::get_recent($limit)` — no new backend.
+    -   **AC**: Widget renders on wp-admin Dashboard for users with the cap; hidden for users without.
+    -   **Commit**: `feat(admin): dashboard widget for recent errors`
+
+-   [ ] **19.3** Site Health integration
+
+    -   Custom Site Health test via `site_status_tests` filter.
+    -   Test turns red when fatals occurred in the last 24h, amber when only warnings, green when clean.
+    -   Test description links to `Tools → Logscope` filtered to the relevant severity + date range.
+    -   **AC**: Site Health → Status shows the Logscope test; manual fixture with a fresh fatal flips it red.
+    -   **Commit**: `feat(admin): Site Health test for recent fatals`
+
+-   [ ] **19.4** 🏷️ **Release v0.17.0** — Pre-1.0 feature parity
+    -   **Commit**: `chore(release): v0.17.0`
+
+---
+
+## Phase 20 — 🔒 Security gate (v0.18.0)
+
+Goal: every security-sensitive surface re-reviewed under one pass before the public release.
+
+-   [ ] **20.1** 🔒 Full `security-review` skill pass across:
+
     -   `PathGuard` (traversal, symlink escape, allowlist)
     -   REST auth (every route has cap + nonce; abstract base enforces it)
     -   Uninstall cleanup (`uninstall.php` deletes every `logscope_*` option + transient + user-meta + scheduled cron)
     -   Log clear soft-delete + log rotation (no arbitrary rename targets)
     -   Webhook handling (URL allowlist, no SSRF, payload escaping)
     -   Output escaping on anything read from disk and returned via REST
-    -   **AC**: Every finding from the skill is resolved (fixed or documented as non-issue). No outstanding `HIGH` or `MEDIUM` items.
-    -   **Commit(s)**: one per fix, as needed
+    -   New surfaces from Phase 19 — admin bar node, dashboard widget, Site Health test
+    -   **AC**: Every finding from the skill is resolved (fixed or documented as non-issue). No outstanding HIGH or MEDIUM items.
+    -   **Commit(s)**: one per fix, as needed.
 
-### Cut v1.0.0
+-   [ ] **20.2** Pre-submission checklist (from [Report 1 — WordPress Submission Guide](../.vscode/01-wordpress-submission-guide.md) §7)
 
--   [ ] **17.8** Bump version to **1.0.0**
+    -   Plugin Check tool clean
+    -   `readme.txt` validated against the wp.org validator
+    -   Banner + icon final assets in `.wordpress-org/`
+    -   7 screenshots re-captured on the v1.0 UI
+    -   `.gitattributes export-ignore` covers every dev file
+    -   Activation smoke test on PHP 8.0, 8.1, 8.2, 8.3 — no notices, no warnings
+    -   Zip < 10 MB
+    -   **Commit(s)**: one per fix, as needed.
+
+-   [ ] **20.3** 🏷️ **Release v0.18.0** — Security gate
+    -   **Commit**: `chore(release): v0.18.0`
+
+---
+
+## Phase 21 — 🚀 v1.0.0 cut & wp.org submission
+
+**This is the only phase where code leaves the repo for public distribution.** No new features land here — only the cut, submit, and post-launch admin work.
+
+-   [ ] **21.1** Bump version to **1.0.0**
 
     -   [logscope.php](logscope.php) header `Version: 1.0.0`
     -   [readme.txt](readme.txt) `Stable tag: 1.0.0`, `Tested up to:` = current stable WP
     -   [CHANGELOG.md](CHANGELOG.md) — move `[Unreleased]` under `[1.0.0] - YYYY-MM-DD`
+    -   [README.md](README.md) status line: `Status: v1.0.0 — public release`
     -   **Commit**: `chore(release): v1.0.0`
 
--   [ ] **17.9** Tag `v1.0.0`, push tag, let the release workflow build the zip
+-   [ ] **21.2** Tag `v1.0.0`, push tag, let the release workflow build the zip
 
-    -   **AC**: GitHub release page shows the zip asset.
+    -   **AC**: GitHub release page shows the zip asset; zip contains no `vendor/dev` paths, no `node_modules/`, no `tests/`, no `.github/`, no `.vscode/`.
 
--   [ ] **17.10** **Submit plugin to wp.org plugin directory**
+-   [ ] **21.3** Submit plugin to wp.org plugin directory
 
     -   Upload the zip via <https://wordpress.org/plugins/developers/add/>.
-    -   After reviewer approval, push to the wp.org SVN `trunk/` + tag `tags/1.0.0/`.
+    -   Wait on manual reviewer feedback (1–14 days typical).
+    -   Address any reviewer feedback in patch commits; resubmit if requested.
+    -   **AC**: Reviewer approves the plugin.
+
+-   [ ] **21.4** Push to wp.org SVN
+
+    -   `svn co https://plugins.svn.wordpress.org/logscope/ logscope-svn`
+    -   Copy plugin files into `trunk/`, assets into `assets/`.
+    -   `svn cp trunk tags/1.0.0`, `svn ci`.
     -   **AC**: Plugin page live at `https://wordpress.org/plugins/logscope/`; "Install Now" works on a clean WP site.
 
--   [ ] **17.11** Post-release note at top of this file: `> v1.0.0 shipped to wp.org on YYYY-MM-DD.` Close out v1.0 open issues on GitHub.
+-   [ ] **21.5** Launch announcements
+
+    -   Drive the queue from [Report 3 — Social Promotion Guide](../.vscode/03-social-promotion-guide.md) §6.
+    -   LinkedIn launch post (Template A) on day 0.
+    -   Twitter launch thread (Template B) ~2h after LinkedIn.
+    -   Reddit posts (`r/ProWordPress`, `r/SideProject`) on day 1.
+    -   **AC**: All four posts live; links logged in Report 3 §7.
+
+-   [ ] **21.6** Post-release admin
+
+    -   Note at top of this file: `> v1.0.0 shipped to wp.org on YYYY-MM-DD.`
+    -   Close out v1.0 open issues on GitHub.
+    -   Roll [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` for the v1.1 cycle.
 
 ---
 
-## Post-1.0 — keep-adding cadence
+## Phase 22 — Post-1.0 (wp.org release line)
 
-Each version below is a single coherent release. Flow for every one:
+Each version is a single coherent release. Flow for every one:
 
 1. Branch → implement → PR → merge to `main`.
-2. Run `security-review` skill if the release touches REST, file I/O, or external HTTP.
-3. Bump version, update `CHANGELOG.md`, tag, push.
+2. Run `security-review` skill if the release touches REST, file I/O, external HTTP, or `wp-config.php`.
+3. Bump version, update [CHANGELOG.md](CHANGELOG.md), tag, push.
 4. Push to wp.org SVN (`trunk/` + `tags/X.Y.Z/`), update `Stable tag:` in `trunk/readme.txt`.
+5. Feature-update social post per [Report 3](../.vscode/03-social-promotion-guide.md) Template D.
 
-### v1.1.0 — Live streaming
+Order below comes from [Report 2 — Feature Gap Analysis](../.vscode/02-feature-gap-analysis.md): the deferred P0 ships first, then the P1s in impact order.
 
--   SSE or WebSocket replacement for tail-mode polling. Feature-flag in settings, polling stays as fallback. Ship only after measuring on a real WP host — some shared hosts kill long-running PHP.
+### 22.1 — v1.1.0 · One-click WP_DEBUG toggle (auto-edit wp-config.php)
 
-### v1.2.0 — Multisite aggregation
+🔒 Security-sensitive — file mutation outside `wp-content/`. Run `security-review` before merging.
 
--   Network admin screen, per-site switch, network-wide capability mapping. Revisit `PathGuard` allowlist semantics for network content dirs.
+-   Reuse `WPConfigTransformer` (the class Debug Log Manager and Debug Log – Manager Tool both ship — battle-tested).
+-   Confirmation modal: "This will edit your `wp-config.php`. A backup will be made. Continue?"
+-   Always back up to `wp-config.php.logscope-backup-<UTC-timestamp>` before any edit.
+-   Show the backup path on success; surface a "Restore backup" link in Settings.
+-   Detect and refuse if `wp-config.php` has unusual structure (multi-line `define`s inside conditional blocks, no recognizable anchor).
+-   New REST routes `POST /diagnostics/enable-debug-log` and `POST /diagnostics/disable-debug-log`.
+-   Onboarding banner from Phase 16.3 grows a primary action button: "Enable now" (in addition to the existing "I'll do it manually" instructions).
+-   **AC**: Toggling enables/disables the constant on a fresh install; corrupted `wp-config.php` is rejected with a clear error; the backup file is recoverable by hand.
+-   Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P0-3.
 
-### v1.3.0 — Auto-edit `wp-config.php` for `WP_DEBUG_LOG`
+### 22.2 — v1.2.0 · Slack & Discord webhook formatters
 
--   Onboarding flow that offers to flip the constant for the admin (deferred from Phase 16). Gated behind a confirmation step + a backup of `wp-config.php` to `wp-config.php.logscope-backup-<ts>` before any edit.
+-   New `SlackAlerter` and `DiscordAlerter` classes implementing the existing `AlertDispatcherInterface`.
+-   Pre-built Block Kit (Slack) / embed (Discord) payloads.
+-   Auto-detect: if the webhook URL is `hooks.slack.com` or `discord.com/api/webhooks`, route to the right formatter; otherwise fall through to the existing generic webhook.
+-   Settings UI: dropdown "Webhook style: Generic / Slack / Discord", with a preview snippet for each.
+-   "Send test alert" returns a per-style outcome.
+-   **AC**: Alert fires from a fixture fatal; Slack channel renders it with severity color + `file:line` link; Discord channel renders it with embed thumbnail + fields.
+-   Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P1-2.
 
-### v1.4.0+ — Candidates (un-ordered, pick by demand)
+### 22.3 — v1.3.0 · Live streaming (SSE / WebSocket)
 
--   Source code preview inline (click stack frame, see file at line N — security-sensitive, reuses PathGuard)
--   Request context capture (URL/method/user at error time, requires MU-style hook)
--   First-class Slack & Discord webhook formatters (bundled, not just filter-based)
--   Opt-in integrations with Loki / Elastic (external HTTP, gated behind explicit user config)
--   Filter preset import / export across users
--   Per-site export / import of all settings as a JSON profile
+-   SSE or WebSocket replacement for tail-mode polling. Decision based on hosting compatibility — SSE is simpler and works through more PHP-FPM setups.
+-   Feature-flag in settings; polling stays as the fallback.
+-   Ship only after measuring on a real WP host — some shared hosts kill long-running PHP.
+-   **AC**: Tail mode receives new entries within 1s of append on a representative shared host; falls back to polling cleanly when SSE is unsupported.
+-   Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P1-1.
+
+### 22.4 — v1.4.0 · Multisite aggregation
+
+-   Network admin screen, per-site switch, network-wide capability mapping.
+-   Revisit `PathGuard` allowlist semantics for network content directories.
+-   **AC**: Network admin sees a unified errors view across all sites; per-site cap check still enforced.
+
+### 22.5 — v1.5.0+ candidates (pick by demand)
+
+These are unordered. Promote any of them to a numbered minor release when user feedback or install metrics justify it.
+
+-   **Source code preview inline** — click a stack frame, see the file at line N (security-sensitive, reuses `PathGuard`). Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P2-3.
+-   **Native WP-CLI commands** — `wp logscope tail`, `wp logscope stats`, `wp logscope mute <signature>`. Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P2-6.
+-   **Log archive download** from Settings → Retention (download archived `.log` files produced by the rotator). Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P2-2.
+-   **Request context capture** — URL / method / authenticated user at error time, captured via an MU-style hook.
+-   **Loki / Elastic integrations** — external HTTP, gated behind explicit user config.
+-   **Filter preset import / export** across users (Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P2-7).
+-   **Per-site export / import** of all settings as a JSON profile.
 
 ---
 
@@ -799,5 +945,5 @@ Each version below is a single coherent release. Flow for every one:
 -   **One commit per checked box** is the ideal. If a step grows beyond that, split the step.
 -   Update `CHANGELOG.md` `[Unreleased]` as you go — don't leave it for release day. The version-bump steps are almost free when `[Unreleased]` is already filled in.
 -   When a phase completes, write a brief note here: `> Phase N complete on YYYY-MM-DD` — motivating and useful later.
--   **Pre-1.0 tags are git-only.** Do not push any tag to wp.org SVN until step 12.7. After that, every `v1.x.y` tag gets an SVN push.
+-   **Pre-1.0 tags are git-only.** Do not push any tag to wp.org SVN until step 21.4. After that, every `v1.x.y` tag gets an SVN push.
 -   If a step unblocks rethinking an earlier decision, edit this file. **This roadmap is living.**
