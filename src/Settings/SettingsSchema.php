@@ -154,10 +154,10 @@ class SettingsSchema {
 			'alert_dedup_window'         => array(
 				'option_key' => 'logscope_alert_dedup_window',
 				'type'       => 'integer',
-				'default'    => 300,
+				'default'    => 1800,
 				'sanitizer'  => static function ( $value ): int {
 					if ( ! is_numeric( $value ) ) {
-						return 300;
+						return 1800;
 					}
 					$coerced = (int) $value;
 
@@ -228,6 +228,76 @@ class SettingsSchema {
 						return 1024;
 					}
 					return $coerced;
+				},
+			),
+			'default_per_page'           => array(
+				'option_key' => 'logscope_default_per_page',
+				'type'       => 'integer',
+				'default'    => 50,
+				'sanitizer'  => static function ( $value ): int {
+					if ( ! is_numeric( $value ) ) {
+						return 50;
+					}
+					$coerced = (int) $value;
+
+					// 10 floor / 500 ceiling: below 10 the user is paging
+					// constantly; above 500 the React virtualised list still
+					// renders, but the JSON payload bloats and the perceived
+					// fetch latency suffers.
+					if ( $coerced < 10 ) {
+						return 10;
+					}
+					if ( $coerced > 500 ) {
+						return 500;
+					}
+					return $coerced;
+				},
+			),
+			'default_severity_filter'    => array(
+				'option_key' => 'logscope_default_severity_filter',
+				'type'       => 'string',
+				'default'    => '',
+				'sanitizer'  => static function ( $value ): string {
+					// Stored as a CSV of severity tokens so the schema's closed
+					// type vocabulary (string|integer) doesn't have to grow an
+					// `array` branch. Empty string means "no preset filter".
+					if ( ! is_string( $value ) ) {
+						return '';
+					}
+					$value = str_replace( "\0", '', $value );
+					$canonical = array( 'fatal', 'parse', 'warning', 'notice', 'deprecated', 'strict', 'unknown' );
+					$incoming  = array_filter(
+						array_map( 'trim', explode( ',', $value ) ),
+						static function ( string $t ) use ( $canonical ): bool {
+							return in_array( $t, $canonical, true );
+						}
+					);
+					// Dedupe + reorder by canonical severity order so the
+					// stored value is stable regardless of how the UI
+					// submitted it. Iterating the canonical list (rather
+					// than the incoming) is what produces the reorder.
+					$incoming_set = array_flip( $incoming );
+					$ordered      = array_values(
+						array_filter(
+							$canonical,
+							static function ( string $t ) use ( $incoming_set ): bool {
+								return isset( $incoming_set[ $t ] );
+							}
+						)
+					);
+					return implode( ',', $ordered );
+				},
+			),
+			'timestamp_tz'               => array(
+				'option_key' => 'logscope_timestamp_tz',
+				'type'       => 'string',
+				'default'    => 'site',
+				'sanitizer'  => static function ( $value ): string {
+					if ( ! is_string( $value ) ) {
+						return 'site';
+					}
+					$value = strtolower( trim( $value ) );
+					return 'utc' === $value ? 'utc' : 'site';
 				},
 			),
 			'retention_max_archives'     => array(
@@ -378,7 +448,18 @@ class SettingsSchema {
 		$type = $this->field( $key )['type'];
 
 		if ( 'integer' === $type ) {
-			return is_int( $value );
+			// Accept numeric strings too: WordPress stores wp_options.option_value
+			// as LONGTEXT, so get_option() returns "5" for a value written as 5.
+			// Without this, every integer field would fail the type check on
+			// reload and silently revert to the schema default.
+			if ( is_int( $value ) ) {
+				return true;
+			}
+			if ( is_string( $value ) && '' !== $value ) {
+				$trimmed = trim( $value );
+				return '' !== $trimmed && (string) (int) $trimmed === $trimmed;
+			}
+			return false;
 		}
 
 		// Only 'string' remains; the type vocabulary is closed by

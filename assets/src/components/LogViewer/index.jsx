@@ -39,8 +39,11 @@ import { ListSkeleton } from '../Skeleton';
 
 const LIST_HEIGHT = 600;
 
-function buildQueryParams( filters, viewMode, page = 1 ) {
+function buildQueryParams( filters, viewMode, page = 1, perPage = null ) {
 	const params = { page, ...buildFilterParams( filters ) };
+	if ( perPage ) {
+		params.per_page = perPage;
+	}
 	if ( viewMode === 'grouped' ) {
 		params.grouped = true;
 	}
@@ -69,6 +72,7 @@ export default function LogViewer() {
 		selectedCount,
 		hiddenEntries,
 		hiddenCount,
+		perPage,
 	} = useSelect( ( select ) => {
 		const store = select( STORE_KEY );
 		return {
@@ -84,6 +88,7 @@ export default function LogViewer() {
 			selectedCount: store.getSelectedEntryCount(),
 			hiddenEntries: store.getHiddenEntries(),
 			hiddenCount: store.getHiddenEntryCount(),
+			perPage: store.getLogsPerPage(),
 		};
 	}, [] );
 	const {
@@ -246,7 +251,7 @@ export default function LogViewer() {
 		await bulkMuteSignatures( sigs, '' );
 		// Refetch so the muted signatures' rows drop out of the list
 		// immediately. Mirrors the grouped view's post-mute behaviour.
-		fetchLogs( buildQueryParams( filters, viewMode ) );
+		fetchLogs( buildQueryParams( filters, viewMode, 1, perPage ) );
 		clearEntrySelection();
 	};
 
@@ -290,8 +295,8 @@ export default function LogViewer() {
 	useUrlQuerySync( viewMode, filters );
 
 	useEffect( () => {
-		fetchLogs( buildQueryParams( filters, viewMode ) );
-	}, [ fetchLogs, viewMode, filters ] );
+		fetchLogs( buildQueryParams( filters, viewMode, 1, perPage ) );
+	}, [ fetchLogs, viewMode, filters, perPage ] );
 
 	// Diagnostics powers the onboarding banner and the reason-aware
 	// empty state. Fetched once on mount — the snapshot is cheap
@@ -740,6 +745,7 @@ function ListScrollPane( { items, isLoading } ) {
 		filters,
 		viewMode,
 		isTailing,
+		perPage,
 	} = useSelect( ( select ) => {
 		const store = select( STORE_KEY );
 		return {
@@ -752,6 +758,7 @@ function ListScrollPane( { items, isLoading } ) {
 			filters: store.getFilters(),
 			viewMode: store.getViewMode(),
 			isTailing: store.isTailActive(),
+			perPage: store.getLogsPerPage(),
 		};
 	}, [] );
 	const { setScrollOffset, clearTailNewCount, fetchNextLogsPage } =
@@ -767,6 +774,7 @@ function ListScrollPane( { items, isLoading } ) {
 		viewMode,
 		isTailing,
 		isLoading,
+		perPage,
 	} );
 	useEffect( () => {
 		stateRef.current = {
@@ -776,8 +784,9 @@ function ListScrollPane( { items, isLoading } ) {
 			viewMode,
 			isTailing,
 			isLoading,
+			perPage,
 		};
-	}, [ hasMore, page, filters, viewMode, isTailing, isLoading ] );
+	}, [ hasMore, page, filters, viewMode, isTailing, isLoading, perPage ] );
 
 	useEffect( () => {
 		const element = listRef.current?.element;
@@ -813,7 +822,12 @@ function ListScrollPane( { items, isLoading } ) {
 				items.length - INFINITE_SCROLL_PREFETCH_ROWS
 			) {
 				fetchNextLogsPage(
-					buildQueryParams( s.filters, s.viewMode, s.page + 1 )
+					buildQueryParams(
+						s.filters,
+						s.viewMode,
+						s.page + 1,
+						s.perPage
+					)
 				);
 			}
 		},

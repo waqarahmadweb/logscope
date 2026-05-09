@@ -16,16 +16,31 @@ export function readInitialQueryState() {
 		return null;
 	}
 	const params = new URLSearchParams( window.location.search );
-	if ( ! KEYS.some( ( k ) => params.has( k ) ) ) {
+	const bootstrap = window.LogscopeAdmin || {};
+	const defaultSeverity = Array.isArray( bootstrap.defaultSeverityFilter )
+		? bootstrap.defaultSeverityFilter
+		: [];
+
+	// If neither the URL nor the admin defaults carry filter state, leave
+	// the store at its built-in defaults — returning null tells the store
+	// initialiser to skip the merge.
+	const hasUrlState = KEYS.some( ( k ) => params.has( k ) );
+	if ( ! hasUrlState && defaultSeverity.length === 0 ) {
 		return null;
 	}
+
+	// URL > admin default > nothing. The admin-configured severity preset
+	// only seeds the initial render; a user-set ?severity= overrides it,
+	// and clearing the filter (which removes the URL key) should not snap
+	// back to the preset on the next render.
 	const severityRaw = params.get( 'severity' );
+	const severity = severityRaw
+		? severityRaw.split( ',' ).filter( Boolean )
+		: defaultSeverity;
 	return {
 		viewMode: params.get( 'view' ) === 'grouped' ? 'grouped' : 'list',
 		filters: {
-			severity: severityRaw
-				? severityRaw.split( ',' ).filter( Boolean )
-				: [],
+			severity,
 			from: params.get( 'from' ) || '',
 			to: params.get( 'to' ) || '',
 			q: params.get( 'q' ) || '',

@@ -32,6 +32,9 @@ final class SettingsSchemaTest extends TestCase {
 				'cron_scan_interval_minutes',
 				'retention_enabled',
 				'retention_max_size_mb',
+				'default_per_page',
+				'default_severity_filter',
+				'timestamp_tz',
 				'retention_max_archives',
 			),
 			$schema->keys()
@@ -146,7 +149,14 @@ final class SettingsSchemaTest extends TestCase {
 		$schema = new SettingsSchema();
 
 		$this->assertTrue( $schema->matches_type( 'tail_interval', 5 ) );
-		$this->assertFalse( $schema->matches_type( 'tail_interval', '5' ) );
+		// Numeric strings pass: get_option() returns LONGTEXT-stored ints
+		// as strings, and Settings::get() casts them back. Rejecting them
+		// here would silently revert every integer setting on reload.
+		$this->assertTrue( $schema->matches_type( 'tail_interval', '5' ) );
+		$this->assertTrue( $schema->matches_type( 'tail_interval', '0' ) );
+		$this->assertFalse( $schema->matches_type( 'tail_interval', '5.5' ) );
+		$this->assertFalse( $schema->matches_type( 'tail_interval', 'oops' ) );
+		$this->assertFalse( $schema->matches_type( 'tail_interval', '' ) );
 		$this->assertFalse( $schema->matches_type( 'tail_interval', null ) );
 	}
 
@@ -208,7 +218,7 @@ final class SettingsSchemaTest extends TestCase {
 		$this->assertSame( 60, $schema->sanitize( 'alert_dedup_window', 5 ) );
 		$this->assertSame( 60, $schema->sanitize( 'alert_dedup_window', '0' ) );
 		$this->assertSame( 600, $schema->sanitize( 'alert_dedup_window', 600 ) );
-		$this->assertSame( 300, $schema->sanitize( 'alert_dedup_window', 'oops' ) );
+		$this->assertSame( 1800, $schema->sanitize( 'alert_dedup_window', 'oops' ) );
 	}
 
 	public function test_cron_scan_enabled_coerces_truthy_inputs(): void {
@@ -259,5 +269,50 @@ final class SettingsSchemaTest extends TestCase {
 		$this->assertSame( 5, $schema->sanitize( 'retention_max_archives', 5 ) );
 		$this->assertSame( 50, $schema->sanitize( 'retention_max_archives', 9999 ) );
 		$this->assertSame( 5, $schema->sanitize( 'retention_max_archives', 'oops' ) );
+	}
+
+	public function test_default_per_page_clamps_to_supported_range(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 10, $schema->sanitize( 'default_per_page', 0 ) );
+		$this->assertSame( 10, $schema->sanitize( 'default_per_page', 5 ) );
+		$this->assertSame( 50, $schema->sanitize( 'default_per_page', 50 ) );
+		$this->assertSame( 500, $schema->sanitize( 'default_per_page', 9999 ) );
+		$this->assertSame( 50, $schema->sanitize( 'default_per_page', 'oops' ) );
+	}
+
+	public function test_default_severity_filter_keeps_known_tokens_drops_unknown(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame(
+			'fatal,parse',
+			$schema->sanitize( 'default_severity_filter', 'fatal,parse' )
+		);
+		// Unknown tokens drop; trims whitespace; dedupes.
+		$this->assertSame(
+			'fatal,warning',
+			$schema->sanitize(
+				'default_severity_filter',
+				'  fatal , bogus , warning , fatal '
+			)
+		);
+		// Stored value is canonical (severity order), not click order.
+		$this->assertSame(
+			'fatal,warning',
+			$schema->sanitize( 'default_severity_filter', 'warning,fatal' )
+		);
+		$this->assertSame( '', $schema->sanitize( 'default_severity_filter', '' ) );
+		$this->assertSame( '', $schema->sanitize( 'default_severity_filter', null ) );
+	}
+
+	public function test_timestamp_tz_accepts_only_site_or_utc(): void {
+		$schema = new SettingsSchema();
+
+		$this->assertSame( 'site', $schema->sanitize( 'timestamp_tz', 'site' ) );
+		$this->assertSame( 'utc', $schema->sanitize( 'timestamp_tz', 'utc' ) );
+		$this->assertSame( 'utc', $schema->sanitize( 'timestamp_tz', 'UTC' ) );
+		$this->assertSame( 'site', $schema->sanitize( 'timestamp_tz', 'gmt' ) );
+		$this->assertSame( 'site', $schema->sanitize( 'timestamp_tz', '' ) );
+		$this->assertSame( 'site', $schema->sanitize( 'timestamp_tz', null ) );
 	}
 }

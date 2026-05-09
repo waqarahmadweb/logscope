@@ -73,6 +73,14 @@ final class Settings {
 			return $default;
 		}
 
+		// WordPress stores wp_options.option_value as LONGTEXT, so an int
+		// written via update_option() comes back as a numeric string. The
+		// schema's matches_type accepts that shape; cast it back here so
+		// callers (and the REST response) see the declared scalar type.
+		if ( 'integer' === $this->schema->field( $key )['type'] && ! is_int( $stored ) ) {
+			return (int) $stored;
+		}
+
 		return $stored;
 	}
 

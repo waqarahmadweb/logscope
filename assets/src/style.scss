@@ -1674,16 +1674,14 @@ body.tools_page_logscope {
 
 // Child panels now slot into __section cards — strip their own card chrome.
 .logscope-settings-panel__section {
-	.logscope-alerts-panel,
-	.logscope-cron-panel,
+	.logscope-monitoring-panel,
+	.logscope-display-panel,
 	.logscope-muted-panel {
 		border-top: 0;
 		margin-top: 0;
 		padding-top: 0;
 	}
 
-	.logscope-alerts-panel__heading,
-	.logscope-cron-panel__heading,
 	.logscope-muted-panel > h3 {
 		margin: 0 0 4px;
 		font-size: 18px;
@@ -1691,31 +1689,175 @@ body.tools_page_logscope {
 		color: var( --logscope-fg );
 	}
 
-	.logscope-alerts-panel__intro,
-	.logscope-cron-panel__intro,
 	.logscope-muted-panel__hint {
 		margin: 0 0 18px;
 		color: var( --logscope-fg-muted );
 		font-size: 13px;
 	}
+}
 
-	.logscope-alerts-panel__section,
-	.logscope-cron-panel__section {
-		margin-bottom: 16px;
+.logscope-monitoring-panel {
+	&__field {
+		margin-bottom: 18px;
 
 		&:last-of-type {
 			margin-bottom: 0;
 		}
 	}
+
+	&__channels-heading {
+		margin: 4px 0 12px;
+		font-size: 13px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var( --logscope-fg-muted );
+	}
+
+	&__status {
+		margin: 8px 0 0;
+		padding: 8px 12px;
+		background: var( --logscope-bg-sunken );
+		border-radius: var( --logscope-radius-sm );
+		font-size: 12.5px;
+		color: var( --logscope-fg-muted );
+	}
+
+	&__test-row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 12px;
+		flex-wrap: wrap;
+		margin-top: 8px;
+	}
+
+	&__results {
+		list-style: none;
+		margin: 12px 0 0;
+		padding: 0;
+
+		> li {
+			margin: 0;
+			padding: 0;
+
+			& + li {
+				margin-top: 6px;
+			}
+		}
+	}
 }
 
-.logscope-cron-panel__status {
-	margin-top: 16px;
-	padding: 10px 12px;
+.logscope-display-panel {
+	&__field {
+		margin-bottom: 18px;
+
+		&:last-of-type {
+			margin-bottom: 0;
+		}
+	}
+
+	&__legend {
+		margin-bottom: 4px;
+		font-size: 13px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__field-help {
+		margin: 4px 0 8px;
+		font-size: 12px;
+		color: var( --logscope-fg-muted );
+	}
+
+	&__checks {
+		display: grid;
+		grid-template-columns: repeat( auto-fit, minmax( 160px, 1fr ) );
+		gap: 4px 16px;
+	}
+}
+
+.logscope-debug-constants {
+	margin-top: 24px;
+	padding: 14px 16px;
 	background: var( --logscope-bg-sunken );
+	border: 1px solid var( --logscope-border );
 	border-radius: var( --logscope-radius-sm );
-	font-size: 12.5px;
-	color: var( --logscope-fg-muted );
+
+	&__heading {
+		margin: 0 0 4px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__lead {
+		margin: 0 0 12px;
+		font-size: 12.5px;
+		color: var( --logscope-fg-muted );
+	}
+
+	&__list {
+		list-style: none;
+		margin: 0 0 12px;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	&__row {
+		padding: 8px 10px;
+		border-radius: var( --logscope-radius-sm );
+		background: var( --logscope-bg );
+		border-left: 3px solid var( --logscope-border );
+
+		&--ok {
+			border-left-color: #29a383;
+		}
+
+		&--warn {
+			border-left-color: #f5a524;
+		}
+	}
+
+	&__row-head {
+		display: flex;
+		align-items: baseline;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	&__name {
+		font-family: var( --logscope-font-mono );
+		font-size: 12.5px;
+		font-weight: 600;
+		color: var( --logscope-fg );
+	}
+
+	&__state {
+		font-family: var( --logscope-font-mono );
+		font-size: 12px;
+		color: var( --logscope-fg );
+	}
+
+	&__rec {
+		font-size: 11px;
+		color: var( --logscope-fg-muted );
+		margin-left: auto;
+	}
+
+	&__tip {
+		margin: 4px 0 0;
+		font-size: 12px;
+		color: var( --logscope-fg-muted );
+	}
+}
+
+.logscope-settings-panel__nav-invalid {
+	margin-top: 6px;
+	font-size: 11.5px;
+	color: #e5484d;
 }
 
 .logscope-muted-panel {
@@ -1858,74 +2000,6 @@ body.tools_page_logscope {
 		text-align: center;
 	}
 }
-
-.logscope-alerts-panel {
-	border-top: 1px solid var( --logscope-border );
-	margin-top: 24px;
-	padding-top: 16px;
-
-	&__heading {
-		margin: 0 0 4px 0;
-		font-size: 16px;
-		font-weight: 600;
-	}
-
-	&__intro {
-		margin: 0 0 12px 0;
-		color: var( --logscope-text-muted );
-		font-size: 13px;
-	}
-
-	&__section {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		margin-bottom: 16px;
-	}
-
-	&__test-row {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		gap: 12px;
-		flex-wrap: wrap;
-	}
-
-	&__test-hint {
-		color: var( --logscope-text-muted );
-		font-size: 12px;
-	}
-
-	&__results {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-
-		> li {
-			margin: 0;
-			padding: 0;
-			& + li {
-				margin-top: 6px;
-			}
-		}
-	}
-
-	&__row {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 16px;
-		margin-bottom: 16px;
-
-		@media ( max-width: 720px ) {
-			grid-template-columns: 1fr;
-		}
-
-		> .logscope-alerts-panel__section {
-			margin-bottom: 0;
-		}
-	}
-}
-
 
 // Severity tone palette — pulled into local vars so the new Stats
 // components can reference them without retyping the hex everywhere.

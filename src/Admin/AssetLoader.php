@@ -167,13 +167,74 @@ final class AssetLoader {
 	 * @return array<string, mixed>
 	 */
 	public function localized_payload(): array {
+		$default_severity_csv = (string) $this->settings->get( 'default_severity_filter' );
+		$default_severity     = '' === $default_severity_csv
+			? array()
+			: array_values( array_filter( array_map( 'trim', explode( ',', $default_severity_csv ) ) ) );
+
 		return array(
-			'restUrl'      => esc_url_raw( rest_url( RestController::REST_NAMESPACE . '/' ) ),
-			'restRoot'     => esc_url_raw( rest_url() ),
-			'nonce'        => wp_create_nonce( 'wp_rest' ),
-			'canManage'    => Capabilities::has_manage_cap(),
-			'tailInterval' => (int) $this->settings->get( 'tail_interval' ),
-			'cronStatus'   => self::cron_status_payload(),
+			'restUrl'               => esc_url_raw( rest_url( RestController::REST_NAMESPACE . '/' ) ),
+			'restRoot'              => esc_url_raw( rest_url() ),
+			'nonce'                 => wp_create_nonce( 'wp_rest' ),
+			'canManage'             => Capabilities::has_manage_cap(),
+			'tailInterval'          => (int) $this->settings->get( 'tail_interval' ),
+			'defaultPerPage'        => (int) $this->settings->get( 'default_per_page' ),
+			'defaultSeverityFilter' => $default_severity,
+			'timestampTz'           => (string) $this->settings->get( 'timestamp_tz' ),
+			'siteTimezone'          => self::site_timezone_string(),
+			'cronStatus'            => self::cron_status_payload(),
+			'debugConstants'        => self::debug_constants_payload(),
+		);
+	}
+
+	/**
+	 * Returns the WordPress site's timezone identifier (e.g. `America/New_York`).
+	 * Falls back to `UTC` when the site is configured with a UTC offset rather
+	 * than a named zone — Intl.DateTimeFormat in the React client cannot consume
+	 * raw offsets, and UTC is a safe default that at least surfaces a
+	 * deterministic time rather than the user's browser clock.
+	 *
+	 * @return string IANA timezone identifier.
+	 */
+	private static function site_timezone_string(): string {
+		if ( function_exists( 'wp_timezone_string' ) ) {
+			$tz = (string) wp_timezone_string();
+			// wp_timezone_string() returns "+05:30" style offsets when no
+			// named zone is set; Intl.DateTimeFormat rejects those.
+			if ( '' !== $tz && ( '+' !== $tz[0] && '-' !== $tz[0] ) ) {
+				return $tz;
+			}
+		}
+		return 'UTC';
+	}
+
+	/**
+	 * Surfaces the current state of the WP debug constants so the Settings
+	 * UI can render a read-only diagnostic card without firing a separate
+	 * REST request on page load. Intentionally not editable from the panel
+	 * — flipping these requires a wp-config.php edit, which is out of scope
+	 * here. The card just tells the admin where they stand and what each
+	 * constant means.
+	 *
+	 * @return array{wp_debug:bool, wp_debug_log:bool, wp_debug_display:bool}
+	 */
+	private static function debug_constants_payload(): array {
+		$wp_debug = defined( 'WP_DEBUG' ) && (bool) constant( 'WP_DEBUG' );
+
+		$wp_debug_log = false;
+		if ( defined( 'WP_DEBUG_LOG' ) ) {
+			$value = constant( 'WP_DEBUG_LOG' );
+			if ( true === $value || ( is_string( $value ) && '' !== $value ) ) {
+				$wp_debug_log = true;
+			}
+		}
+
+		$wp_debug_display = defined( 'WP_DEBUG_DISPLAY' ) && (bool) constant( 'WP_DEBUG_DISPLAY' );
+
+		return array(
+			'wp_debug'         => $wp_debug,
+			'wp_debug_log'     => $wp_debug_log,
+			'wp_debug_display' => $wp_debug_display,
 		);
 	}
 

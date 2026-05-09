@@ -20,6 +20,22 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 $logscope_options = array(
 	'logscope_log_path',
 	'logscope_tail_interval',
+	'logscope_alert_email_enabled',
+	'logscope_alert_email_to',
+	'logscope_alert_webhook_enabled',
+	'logscope_alert_webhook_url',
+	'logscope_alert_dedup_window',
+	'logscope_cron_scan_enabled',
+	'logscope_cron_scan_interval_minutes',
+	'logscope_retention_enabled',
+	'logscope_retention_max_size_mb',
+	'logscope_retention_max_archives',
+	'logscope_default_per_page',
+	'logscope_default_severity_filter',
+	'logscope_timestamp_tz',
+	'logscope_last_scanned_byte',
+	'logscope_last_scanned_at',
+	'logscope_last_scanned_dispatched',
 	'logscope_db_version',
 );
 

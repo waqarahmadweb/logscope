@@ -23,6 +23,7 @@ import { useState } from '@wordpress/element';
 import { STORE_KEY } from '../../store';
 import { severityLabel, severityTone } from '../../utils/severity';
 import entryKey from '../../utils/entryKey';
+import { formatEntryTimestamp } from '../../utils/formatTimestamp';
 import highlightMatches from '../../utils/highlightMatches';
 import StackTracePanel from '../StackTracePanel';
 import RowActionsMenu from './RowActionsMenu';
@@ -148,7 +149,7 @@ export default function EntryRow( { index, style, items } ) {
 					className="logscope-entry__timestamp"
 					dateTime={ entry.timestamp || '' }
 				>
-					{ entry.timestamp || '' }
+					{ formatEntryTimestamp( entry.timestamp || '' ) }
 				</time>
 				<span className="logscope-entry__message">
 					{ highlightMatches( entry.message || '', searchPattern ) }

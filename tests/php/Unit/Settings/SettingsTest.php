@@ -28,8 +28,23 @@ final class SettingsTest extends TestCase {
 		$this->assertSame( 5, $settings->get( 'tail_interval' ) );
 	}
 
+	public function test_get_coerces_numeric_string_for_integer_field(): void {
+		// wp_options.option_value is LONGTEXT, so a value written as int 5
+		// comes back from get_option() as the string "5". Without coercion
+		// the type check would reject it and the field would silently revert
+		// to the schema default on every reload.
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_tail_interval', 3 )
+			->andReturn( '5' );
+
+		$settings = new Settings( new SettingsSchema() );
+
+		$this->assertSame( 5, $settings->get( 'tail_interval' ) );
+	}
+
 	public function test_get_returns_default_when_stored_value_is_wrong_type(): void {
-		// Older versions of the plugin may have stored a string here.
+		// Older versions of the plugin may have stored a non-numeric string.
 		Functions\expect( 'get_option' )
 			->once()
 			->with( 'logscope_tail_interval', 3 )
@@ -96,15 +111,18 @@ final class SettingsTest extends TestCase {
 			->with( 'logscope_log_path', '' )
 			->andReturn( '/var/log/debug.log' );
 
+		// Mirror real WP behaviour: integer-typed options come back from
+		// get_option() as numeric strings because wp_options.option_value
+		// is LONGTEXT. Settings::get() coerces them back to int.
 		Functions\expect( 'get_option' )
 			->once()
 			->with( 'logscope_tail_interval', 3 )
-			->andReturn( 7 );
+			->andReturn( '7' );
 
 		Functions\expect( 'get_option' )
 			->once()
 			->with( 'logscope_alert_email_enabled', 0 )
-			->andReturn( 0 );
+			->andReturn( '0' );
 
 		Functions\expect( 'get_option' )
 			->once()
@@ -123,8 +141,8 @@ final class SettingsTest extends TestCase {
 
 		Functions\expect( 'get_option' )
 			->once()
-			->with( 'logscope_alert_dedup_window', 300 )
-			->andReturn( 300 );
+			->with( 'logscope_alert_dedup_window', 1800 )
+			->andReturn( 1800 );
 
 		Functions\expect( 'get_option' )
 			->once()
@@ -151,6 +169,21 @@ final class SettingsTest extends TestCase {
 			->with( 'logscope_retention_max_archives', 5 )
 			->andReturn( 5 );
 
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_default_per_page', 50 )
+			->andReturn( 50 );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_default_severity_filter', '' )
+			->andReturn( '' );
+
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_timestamp_tz', 'site' )
+			->andReturn( 'site' );
+
 		$settings = new Settings( new SettingsSchema() );
 
 		$this->assertSame(
@@ -161,11 +194,14 @@ final class SettingsTest extends TestCase {
 				'alert_email_to'             => '',
 				'alert_webhook_enabled'      => 0,
 				'alert_webhook_url'          => '',
-				'alert_dedup_window'         => 300,
+				'alert_dedup_window'         => 1800,
 				'cron_scan_enabled'          => 0,
 				'cron_scan_interval_minutes' => 5,
 				'retention_enabled'          => 0,
 				'retention_max_size_mb'      => 50,
+				'default_per_page'           => 50,
+				'default_severity_filter'    => '',
+				'timestamp_tz'               => 'site',
 				'retention_max_archives'     => 5,
 			),
 			$settings->all()
