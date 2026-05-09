@@ -12,6 +12,7 @@ namespace Logscope;
 use Closure;
 use Logscope\Admin\AdminBar;
 use Logscope\Admin\AssetLoader;
+use Logscope\Admin\DashboardWidget;
 use Logscope\Admin\Menu;
 use Logscope\Admin\PageRenderer;
 use Logscope\Alerts\AlertCoordinator;
@@ -270,6 +271,16 @@ final class Plugin {
 		);
 
 		$this->register(
+			'admin.dashboard_widget',
+			static function ( Plugin $plugin ): DashboardWidget {
+				$repo = $plugin->get( 'log_repository' );
+				assert( $repo instanceof LogRepository );
+
+				return new DashboardWidget( $repo );
+			}
+		);
+
+		$this->register(
 			'admin.asset_loader',
 			static function ( Plugin $plugin ): AssetLoader {
 				$menu = $plugin->get( 'admin.menu' );
@@ -489,6 +500,7 @@ final class Plugin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'admin_bar_menu', array( $this, 'register_admin_bar' ), AdminBar::HOOK_PRIORITY );
 		add_action( 'wp_before_admin_bar_render', array( $this, 'print_admin_bar_styles' ) );
+		add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
 		add_action( 'logscope_scan_fatals', array( $this, 'run_cron_scan' ) );
 		add_action( CronScheduler::HOOK_ROTATE, array( $this, 'run_cron_rotate' ) );
 		add_filter( 'cron_schedules', array( __CLASS__, 'register_cron_schedule' ) );
@@ -685,6 +697,24 @@ final class Plugin {
 			$admin_bar->print_styles();
 		} catch ( Throwable $e ) {
 			self::log_route_registration_failure( 'admin_bar_styles', $e );
+		}
+	}
+
+	/**
+	 * `wp_dashboard_setup` callback. Resolves the {@see DashboardWidget}
+	 * and lets it register its meta-box. Wrapped in `try/catch` for the
+	 * same reason the admin-bar callbacks are — a misconfigured log path
+	 * must not abort dashboard setup for everything else on the screen.
+	 *
+	 * @return void
+	 */
+	public function register_dashboard_widget(): void {
+		try {
+			$widget = $this->get( 'admin.dashboard_widget' );
+			assert( $widget instanceof DashboardWidget );
+			$widget->register();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'dashboard_widget', $e );
 		}
 	}
 

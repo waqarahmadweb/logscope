@@ -778,7 +778,7 @@ Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscod
     -   **AC**: Bar item visible to admin on any wp-admin screen; hidden from subscribers; toggle in Settings turns it off.
     -   **Commit**: `feat(admin): admin bar status indicator with error count`
 
--   [ ] **19.2** Dashboard widget showing latest errors
+-   [x] **19.2** Dashboard widget showing latest errors
 
     -   `wp_add_dashboard_widget('logscope_recent_errors', …)` gated by `logscope_manage`.
     -   Latest 5 errors with severity pill + truncated message + relative time.

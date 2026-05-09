@@ -181,6 +181,34 @@ final class LogRepository {
 	}
 
 	/**
+	 * Returns the most recent entries in newest-first order, capped at
+	 * `$limit`. Used by surfaces that want a small "latest activity"
+	 * peek without paging — the dashboard widget being the first
+	 * caller. Reuses {@see self::load_entries()} so the same trailing-
+	 * byte budget the rest of the repository observes applies here too;
+	 * muting is intentionally **not** applied because a "what just hit
+	 * the log" view should reflect the literal recent activity (the
+	 * Logs tab is where mute filtering belongs).
+	 *
+	 * @param int $limit Maximum number of entries to return; values < 1 collapse to 0.
+	 * @return Entry[]
+	 */
+	public function get_recent( int $limit ): array {
+		if ( $limit < 1 ) {
+			return array();
+		}
+
+		$size    = $this->source->exists() ? $this->source->size() : 0;
+		$entries = $this->load_entries( null, $size );
+		if ( array() === $entries ) {
+			return array();
+		}
+
+		$entries = array_reverse( $entries );
+		return array_slice( $entries, 0, $limit );
+	}
+
+	/**
 	 * Returns the distinct source slugs present in the current log
 	 * (post-filter), useful for populating the source-filter dropdown.
 	 * Wraps `query()` indirectly to stay consistent with the same
