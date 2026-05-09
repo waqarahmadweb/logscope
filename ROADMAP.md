@@ -755,8 +755,10 @@ Goal: replace the default `@wordpress/components` look with the soft-pastel / Li
     -   Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P1-3.
     -   **Commit**: `feat(ui): stack trace visual hierarchy`
 
--   [ ] **18.8** 🏷️ **Release v0.16.0** — Pre-1.0 UI redesign
+-   [x] **18.8** 🏷️ **Release v0.16.0** — Pre-1.0 UI redesign
     -   **Commit**: `chore(release): v0.16.0`
+
+> Phase 18 complete on 2026-05-09.
 
 ---
 
