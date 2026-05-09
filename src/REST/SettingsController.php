@@ -126,6 +126,16 @@ final class SettingsController extends RestController {
 	public function handle_post( WP_REST_Request $request ) {
 		$body = (array) $request->get_params();
 
+		// WP core appends internal params like `_locale`, `_wpnonce`, and
+		// `_method` to admin REST requests. They are not settings — strip
+		// any underscore-prefixed key before the unknown-setting gate so a
+		// legitimate save isn't rejected with a 400.
+		foreach ( array_keys( $body ) as $key ) {
+			if ( is_string( $key ) && '' !== $key && '_' === $key[0] ) {
+				unset( $body[ $key ] );
+			}
+		}
+
 		$schema  = $this->settings->schema();
 		$unknown = array();
 		foreach ( array_keys( $body ) as $key ) {

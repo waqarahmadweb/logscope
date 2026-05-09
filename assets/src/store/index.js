@@ -54,6 +54,21 @@ const DEFAULT_STATE = {
 	filters: { ...DEFAULT_FILTERS, ...( initialQuery?.filters || {} ) },
 	expandedGroups: {},
 	expandedTraces: {},
+	// List-view per-entry selection. Stored as a plain object (entryKey →
+	// true) rather than a Set so the reducer stays serialisable and the
+	// equality checks stay shallow. Pruned on every LOGS_RECEIVED so a
+	// row that disappeared because the user changed filters does not
+	// linger as a phantom selection. Grouped-view selection is local to
+	// the GroupedView component because a different domain (signatures)
+	// keys it; cross-mode selection is intentionally not supported.
+	selectedEntries: {},
+	// Session-only hide list. Keyed by content signature (timestamp +
+	// raw) rather than `_clientId` so the same entry stays hidden
+	// across re-fetches (a fresh fetch stamps a new id but the content
+	// is the same). Cleared on full reload — this is intentionally not
+	// persisted; admins who want long-lived hiding should mute the
+	// signature instead, which Logscope honours server-side.
+	hiddenEntries: {},
 	scrollOffsets: { list: 0, grouped: 0 },
 	tail: {
 		active: false,
@@ -118,6 +133,24 @@ const DEFAULT_STATE = {
 const TOAST_DEFAULT_TTL_MS = 5000;
 let toastSeq = 0;
 
+// Monotonically-increasing id stamped onto every log entry as it
+// enters the store. Selection/expansion key off this so duplicate log
+// lines (identical content + timestamp) do not collide into a single
+// row, which they would under any content-based hash. The counter is
+// process-local and never reused, so prepended tail entries and
+// appended infinite-scroll pages each get a fresh keyspace.
+let entrySeq = 0;
+function stampEntry( entry ) {
+	if ( ! entry || typeof entry !== 'object' ) {
+		return entry;
+	}
+	entrySeq += 1;
+	return { ...entry, _clientId: entrySeq };
+}
+function stampEntries( items ) {
+	return ( items || [] ).map( stampEntry );
+}
+
 const actions = {
 	setActiveTab( tab ) {
 		return { type: 'SET_ACTIVE_TAB', tab };
@@ -136,6 +169,15 @@ const actions = {
 	},
 	toggleTraceExpanded( key ) {
 		return { type: 'TOGGLE_TRACE_EXPANDED', key };
+	},
+	toggleEntrySelected( key ) {
+		return { type: 'TOGGLE_ENTRY_SELECTED', key };
+	},
+	clearEntrySelection() {
+		return { type: 'CLEAR_ENTRY_SELECTION' };
+	},
+	selectAllEntries( keys ) {
+		return { type: 'SELECT_ALL_ENTRIES', keys };
 	},
 	setScrollOffset( mode, offset ) {
 		return { type: 'SET_SCROLL_OFFSET', mode, offset };
@@ -161,6 +203,9 @@ const actions = {
 	receiveLogs( payload ) {
 		return { type: 'LOGS_RECEIVED', payload };
 	},
+	appendLogs( payload ) {
+		return { type: 'LOGS_APPENDED', payload };
+	},
 	failLogs( error ) {
 		return { type: 'LOGS_FAILED', error };
 	},
@@ -177,6 +222,28 @@ const actions = {
 			yield actions.pushToast( {
 				message:
 					error?.message || __( 'Could not load logs.', 'logscope' ),
+				status: 'error',
+			} );
+		}
+	},
+	*fetchNextLogsPage( params = {} ) {
+		// Infinite-scroll loader. Mirrors fetchLogs but appends to the
+		// existing list rather than replacing it. The scroll handler in
+		// LogViewer is responsible for not re-firing while a request is
+		// already in flight or after the loaded set covers `total`.
+		yield actions.startLoadingLogs();
+		try {
+			const response = yield {
+				type: 'API_FETCH_LOGS',
+				params,
+			};
+			yield actions.appendLogs( response );
+		} catch ( error ) {
+			yield actions.failLogs( error?.message || 'Unknown error' );
+			yield actions.pushToast( {
+				message:
+					error?.message ||
+					__( 'Could not load more logs.', 'logscope' ),
 				status: 'error',
 			} );
 		}
@@ -229,7 +296,35 @@ const actions = {
 	clearAlertTestResults() {
 		return { type: 'ALERT_TEST_CLEARED' };
 	},
-	*sendTestAlert() {
+	*sendTestAlert( pendingSettings = null ) {
+		// If the caller passes a settings body, persist it before the test.
+		// The test endpoint reads dispatcher state from the persisted store,
+		// so an unsaved draft would be ignored — saving first lets "toggle
+		// email on, click Send test alert" work without a separate Save click.
+		if ( pendingSettings && Object.keys( pendingSettings ).length > 0 ) {
+			try {
+				const saved = yield {
+					type: 'API_SAVE_SETTINGS',
+					body: pendingSettings,
+				};
+				yield actions.settingsSaved( saved );
+			} catch ( error ) {
+				yield actions.failAlertTest(
+					error?.message ||
+						__( 'Could not save settings before test.', 'logscope' )
+				);
+				yield actions.pushToast( {
+					message:
+						error?.message ||
+						__(
+							'Could not save settings before test.',
+							'logscope'
+						),
+					status: 'error',
+				} );
+				return;
+			}
+		}
 		yield actions.startSendingTestAlert();
 		try {
 			const payload = yield { type: 'API_TEST_ALERT' };
@@ -566,6 +661,40 @@ const actions = {
 			);
 		}
 	},
+	*clearAllLogs() {
+		// Server soft-deletes by renaming the active log; on success we
+		// refetch /logs (now empty) and /diagnostics (file_size now 0,
+		// exists now false) so every consumer of those slices sees the
+		// new reality without a manual reload.
+		try {
+			const payload = yield { type: 'API_CLEAR_LOGS' };
+			yield actions.fetchLogs( { page: 1 } );
+			yield actions.fetchDiagnostics();
+			yield actions.pushToast( {
+				message: payload?.archived_as
+					? sprintf(
+							/* translators: %s is the archive filename. */
+							__( 'Log cleared. Archived as %s.', 'logscope' ),
+							payload.archived_as
+					  )
+					: __( 'Log cleared.', 'logscope' ),
+				status: 'success',
+			} );
+		} catch ( error ) {
+			yield actions.pushToast( {
+				message:
+					error?.message ||
+					__( 'Could not clear the log.', 'logscope' ),
+				status: 'error',
+			} );
+		}
+	},
+	hideEntries( sigs ) {
+		return { type: 'HIDE_ENTRIES', sigs };
+	},
+	unhideAll() {
+		return { type: 'UNHIDE_ALL' };
+	},
 	pushToast( { message, status = 'info', ttlMs = TOAST_DEFAULT_TTL_MS } ) {
 		// Sequence + timestamp keeps ids unique even within the same ms tick.
 		toastSeq += 1;
@@ -628,6 +757,42 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 			}
 			return { ...state, expandedTraces: next };
 		}
+		case 'TOGGLE_ENTRY_SELECTED': {
+			const next = { ...state.selectedEntries };
+			if ( next[ action.key ] ) {
+				delete next[ action.key ];
+			} else {
+				next[ action.key ] = true;
+			}
+			return { ...state, selectedEntries: next };
+		}
+		case 'CLEAR_ENTRY_SELECTION':
+			return { ...state, selectedEntries: {} };
+		case 'SELECT_ALL_ENTRIES': {
+			const next = {};
+			( action.keys || [] ).forEach( ( k ) => {
+				next[ k ] = true;
+			} );
+			return { ...state, selectedEntries: next };
+		}
+		case 'HIDE_ENTRIES': {
+			const next = { ...state.hiddenEntries };
+			( action.sigs || [] ).forEach( ( sig ) => {
+				if ( sig ) {
+					next[ sig ] = true;
+				}
+			} );
+			// Clear selection for any rows that just disappeared from
+			// the visible set — leaving them in `selectedEntries` would
+			// keep the bulk bar's count stuck above the visible total.
+			return {
+				...state,
+				hiddenEntries: next,
+				selectedEntries: {},
+			};
+		}
+		case 'UNHIDE_ALL':
+			return { ...state, hiddenEntries: {} };
 		case 'TAIL_SET_ACTIVE':
 			return {
 				...state,
@@ -638,7 +803,7 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				},
 			};
 		case 'TAIL_APPEND_ENTRIES': {
-			const incoming = action.entries || [];
+			const incoming = stampEntries( action.entries || [] );
 			// Rotation: server detected the file shrunk, so the response
 			// is a fresh baseline, not a delta. Replace the list, drop
 			// the new-since-you-looked counter, prune expanded-trace
@@ -688,7 +853,7 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				logs: { ...state.logs, isLoading: true, error: null },
 			};
 		case 'LOGS_RECEIVED': {
-			const items = action.payload.items || [];
+			const items = stampEntries( action.payload.items || [] );
 			// A re-fetch replaces the list outright, so any expanded-
 			// trace keys whose entries are no longer present become
 			// dead weight that would grow without bound across a long
@@ -708,9 +873,20 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					expandedTraces[ key ] = true;
 				}
 			} );
+			// Same prune for the per-entry selection — a row that was
+			// checked but is no longer in the response (different filter
+			// applied, page flipped) cannot be acted on, so dropping it
+			// from the set keeps the count honest.
+			const selectedEntries = {};
+			Object.keys( state.selectedEntries ).forEach( ( key ) => {
+				if ( liveKeys[ key ] ) {
+					selectedEntries[ key ] = true;
+				}
+			} );
 			return {
 				...state,
 				expandedTraces,
+				selectedEntries,
 				logs: {
 					...state.logs,
 					isLoading: false,
@@ -726,6 +902,24 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					// you last looked" count from a previous tail loop is
 					// stale by definition.
 					newCount: 0,
+				},
+			};
+		}
+		case 'LOGS_APPENDED': {
+			// Infinite-scroll page append. Existing items + their
+			// expanded/selected state stay put; the appended rows get
+			// fresh `_clientId`s from stampEntries so keys remain
+			// collision-free even across many pages.
+			const appended = stampEntries( action.payload.items || [] );
+			return {
+				...state,
+				logs: {
+					...state.logs,
+					isLoading: false,
+					items: [ ...state.logs.items, ...appended ],
+					total: action.payload.total || state.logs.total,
+					page: action.payload.page || state.logs.page,
+					perPage: action.payload.per_page || state.logs.perPage,
 				},
 			};
 		}
@@ -1096,12 +1290,23 @@ const selectors = {
 		Boolean( state.expandedGroups[ signature ] ),
 	isTraceExpanded: ( state, key ) => Boolean( state.expandedTraces[ key ] ),
 	getExpandedTraces: ( state ) => state.expandedTraces,
+	isEntrySelected: ( state, key ) => Boolean( state.selectedEntries[ key ] ),
+	getSelectedEntryKeys: ( state ) => Object.keys( state.selectedEntries ),
+	getSelectedEntryCount: ( state ) =>
+		Object.keys( state.selectedEntries ).length,
+	getHiddenEntries: ( state ) => state.hiddenEntries,
+	getHiddenEntryCount: ( state ) => Object.keys( state.hiddenEntries ).length,
 	getScrollOffset: ( state, mode ) => state.scrollOffsets[ mode ] || 0,
 	isTailActive: ( state ) => state.tail.active,
 	getTailLastByte: ( state ) => state.tail.lastByte,
 	getTailNewCount: ( state ) => state.tail.newCount,
 	getLogs: ( state ) => state.logs.items,
 	getLogsTotal: ( state ) => state.logs.total,
+	getLogsPage: ( state ) => state.logs.page,
+	getLogsPerPage: ( state ) => state.logs.perPage,
+	hasMoreLogs: ( state ) =>
+		state.logs.items.length > 0 &&
+		state.logs.items.length < state.logs.total,
 	isLoadingLogs: ( state ) => state.logs.isLoading,
 	getLogsError: ( state ) => state.logs.error,
 	getSettingsValues: ( state ) => state.settings.values,
@@ -1188,6 +1393,9 @@ const controls = {
 	},
 	API_FETCH_DIAGNOSTICS() {
 		return client.getDiagnostics();
+	},
+	API_CLEAR_LOGS() {
+		return client.clearLogs();
 	},
 };
 

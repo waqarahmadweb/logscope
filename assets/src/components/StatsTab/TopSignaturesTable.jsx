@@ -14,7 +14,6 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useDispatch } from '@wordpress/data';
-import { Button } from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
 import { severityLabel, severityTone } from '../../utils/severity';
@@ -35,7 +34,11 @@ export default function TopSignaturesTable( { rows } ) {
 	const { setFilters, setActiveTab } = useDispatch( STORE_KEY );
 
 	if ( ! Array.isArray( rows ) || rows.length === 0 ) {
-		return null;
+		return (
+			<p className="logscope-stats__status" role="status">
+				{ __( 'No signatures in this range.', 'logscope' ) }
+			</p>
+		);
 	}
 
 	const handleSelect = ( row ) => {
@@ -61,45 +64,64 @@ export default function TopSignaturesTable( { rows } ) {
 			</caption>
 			<thead>
 				<tr>
-					<th scope="col">{ __( 'Severity', 'logscope' ) }</th>
-					<th scope="col">{ __( 'Message', 'logscope' ) }</th>
+					<th scope="col" className="logscope-stats__top-rank">
+						{ '#' }
+					</th>
+					<th scope="col" className="logscope-stats__top-sev">
+						{ __( 'Severity', 'logscope' ) }
+					</th>
+					<th scope="col">{ __( 'Sample', 'logscope' ) }</th>
 					<th scope="col" className="logscope-stats__top-table-count">
 						{ __( 'Count', 'logscope' ) }
-					</th>
-					<th scope="col" className="screen-reader-text">
-						{ __( 'Actions', 'logscope' ) }
 					</th>
 				</tr>
 			</thead>
 			<tbody>
-				{ rows.map( ( row ) => (
-					<tr key={ row.signature }>
-						<td>
-							<span
-								className={
-									'logscope-pill logscope-pill--' +
-									severityTone( row.severity )
+				{ rows.map( ( row, idx ) => {
+					const tone = severityTone( row.severity );
+					return (
+						<tr
+							key={ row.signature }
+							className="logscope-stats__top-row"
+							onClick={ () => handleSelect( row ) }
+							onKeyDown={ ( e ) => {
+								if ( e.key === 'Enter' || e.key === ' ' ) {
+									e.preventDefault();
+									handleSelect( row );
 								}
-							>
-								{ severityLabel( row.severity ) }
-							</span>
-						</td>
-						<td className="logscope-stats__top-table-msg">
-							{ row.sample }
-						</td>
-						<td className="logscope-stats__top-table-count">
-							{ row.count }
-						</td>
-						<td>
-							<Button
-								variant="link"
-								onClick={ () => handleSelect( row ) }
-							>
-								{ __( 'View in Logs', 'logscope' ) }
-							</Button>
-						</td>
-					</tr>
-				) ) }
+							} }
+							tabIndex={ 0 }
+							role="button"
+							aria-label={ __(
+								'View matching entries in Logs',
+								'logscope'
+							) }
+						>
+							<td className="logscope-stats__top-rank">
+								<span className="logscope-stats__top-rank-num">
+									{ '#' + ( idx + 1 ) }
+								</span>
+							</td>
+							<td>
+								<span
+									className={ `logscope-pill logscope-pill--${ tone }` }
+								>
+									<span
+										className={ `logscope-pill__dot logscope-pill__dot--${ tone }` }
+										aria-hidden="true"
+									/>
+									{ severityLabel( row.severity ) }
+								</span>
+							</td>
+							<td className="logscope-stats__top-table-msg">
+								{ row.sample }
+							</td>
+							<td className="logscope-stats__top-table-count">
+								{ Number( row.count || 0 ).toLocaleString() }
+							</td>
+						</tr>
+					);
+				} ) }
 			</tbody>
 		</table>
 	);

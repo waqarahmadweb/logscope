@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Logscope — Stats tab mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #1d2327;
+    color: #1a1a1f;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* WP admin frame */
+  .wp-frame { display: grid; grid-template-rows: 32px 1fr; grid-template-columns: 160px 1fr; min-height: 100vh; }
+  .wp-topbar { height: 32px; background: #1d2327; color: #f0f0f1; display: flex; align-items: center; padding: 0 16px; gap: 16px; font-size: 13px; grid-column: 1 / -1; }
+  .wp-sidebar { background: #1d2327; color: #c3c4c7; padding: 12px 0; font-size: 13px; }
+  .wp-sidebar .logo { padding: 8px 14px; font-weight: 700; color: #fff; font-size: 15px; }
+  .wp-sidebar ul { list-style: none; padding: 0; margin: 8px 0; }
+  .wp-sidebar li { padding: 8px 14px; border-left: 3px solid transparent; cursor: default; }
+  .wp-sidebar li.active { background: #2271b1; color: #fff; border-left-color: #fff; }
+  .wp-content { background: #faf7f2; padding: 0; overflow: hidden; }
+
+  /* style switcher */
+  .switcher { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 14px 32px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .switcher .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #646970; margin-right: 8px; font-weight: 600; }
+  .switcher button { border: 1px solid #dcdcde; background: #fff; padding: 8px 14px; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; color: #1d2327; transition: all 0.15s ease; }
+  .switcher button:hover { border-color: #2271b1; }
+  .switcher button.active { background: #1a1a1f; color: #fff; border-color: #1a1a1f; }
+  .switcher .note { margin-left: auto; font-size: 12px; color: #646970; }
+
+  .stage { display: none; }
+  .stage.active { display: block; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  /* ─────────────────────────────── shared pastel surface ─────────────────────────────── */
+  .pastel {
+    --bg: #faf7f2;
+    --surface: #ffffff;
+    --sunken: #f3efe8;
+    --track: #efeae0;
+    --ink: #1a1a1f;
+    --ink-soft: #6b6b78;
+    --ink-mute: #9a96a3;
+    --border: #ece7df;
+    --border-soft: #f3efe8;
+    --border-strong: #d8d2c3;
+    --row-hover: #faf7f2;
+    --fatal: #e5484d;
+    --parse: #f76b15;
+    --warn: #f5a524;
+    --notice: #3e63dd;
+    --deprec: #8347b9;
+    --strict: #29a383;
+    --fatal-bg: #ffe1e3; --fatal-fg: #9b1c2a;
+    --warn-bg: #fff3c2;  --warn-fg: #785b00;
+    --notice-bg: #d8eaff; --notice-fg: #0c4a8a;
+    --deprec-bg: #e6e0ff; --deprec-fg: #43308f;
+    --strict-bg: #d6f3e7; --strict-fg: #1a6e4d;
+    background: var(--bg); min-height: 100%; padding: 24px 32px 80px; color: var(--ink);
+  }
+
+  /* page head — match existing logscope-page-head */
+  .pastel .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
+  .pastel h1 { font-size: 44px; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 4px; line-height: 1.05; }
+  .pastel .sub { color: var(--ink-soft); font-size: 15px; }
+  .pastel .live { display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; border-radius: 999px; background: #fff; border: 1px solid var(--border); font-size: 13px; color: var(--ink-soft); white-space: nowrap; margin-top: 6px; }
+  .pastel .live strong { color: var(--ink); font-weight: 600; }
+  .pastel .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--strict); box-shadow: 0 0 0 3px rgba(41,163,131,0.18); }
+
+  /* tabs (match existing) */
+  .pastel .tabs { display: flex; gap: 4px; padding: 4px; background: #efeae0; border-radius: 14px; width: fit-content; margin-bottom: 24px; }
+  .pastel .tabs button { border: 0; background: transparent; padding: 9px 18px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--ink-soft); }
+  .pastel .tabs button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-weight: 600; }
+
+  /* range/bucket controls — soft pill toggles */
+  .pastel .ctrl { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; margin-bottom: 20px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+  .pastel .ctrl-group { display: inline-flex; align-items: center; gap: 8px; }
+  .pastel .ctrl-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-mute); font-weight: 600; }
+  .pastel .seg { display: inline-flex; padding: 3px; background: var(--sunken); border-radius: 8px; gap: 2px; }
+  .pastel .seg button { border: 0; background: transparent; padding: 5px 12px; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--ink-soft); }
+  .pastel .seg button.on { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+  /* swatches/dots */
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot.fatal { background: var(--fatal); }
+  .dot.parse { background: var(--parse); }
+  .dot.warn  { background: var(--warn); }
+  .dot.notice { background: var(--notice); }
+  .dot.deprec { background: var(--deprec); }
+  .dot.strict { background: var(--strict); }
+
+  /* severity pill — used in tables */
+  .sev { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 5px; width: fit-content; }
+  .sev.fatal { background: var(--fatal-bg); color: var(--fatal-fg); }
+  .sev.warn { background: var(--warn-bg); color: var(--warn-fg); }
+  .sev.notice { background: var(--notice-bg); color: var(--notice-fg); }
+  .sev.deprec { background: var(--deprec-bg); color: var(--deprec-fg); }
+
+  /* ════════════════════════════════════════════════════════════════════════════
+     OPTION A — KPI tiles + hero chart + top errors (classic SaaS dashboard)
+     ════════════════════════════════════════════════════════════════════════════ */
+  .opt-a .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 18px; }
+  .opt-a .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; position: relative; overflow: hidden; }
+  .opt-a .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-mute); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .opt-a .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-top: 6px; }
+  .opt-a .kpi-delta { font-size: 11px; color: var(--ink-soft); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  .opt-a .kpi-delta.up { color: var(--fatal-fg); }
+  .opt-a .kpi-delta.down { color: var(--strict-fg); }
+  .opt-a .kpi-spark { position: absolute; right: 12px; bottom: 10px; width: 60px; height: 22px; opacity: 0.55; }
+
+  .opt-a .kpi.total { grid-column: span 1; background: linear-gradient(135deg, #1a1a1f, #2a2a32); color: #fff; border-color: #1a1a1f; }
+  .opt-a .kpi.total .kpi-label { color: rgba(255,255,255,0.65); }
+  .opt-a .kpi.total .kpi-value { color: #fff; font-size: 32px; }
+  .opt-a .kpi.total .kpi-delta { color: rgba(255,255,255,0.7); }
+
+  .opt-a .hero-row { display: grid; grid-template-columns: 1.7fr 1fr; gap: 14px; margin-bottom: 18px; align-items: stretch; }
+  .opt-a .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 18px 14px; }
+  .opt-a .panel h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+  .opt-a .panel h2 .small { font-size: 11px; font-weight: 500; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.06em; }
+  .opt-a .hero-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .opt-a .hero-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  .opt-a .hero-head .legend { display: flex; gap: 12px; font-size: 12px; color: var(--ink-soft); }
+  .opt-a .hero-head .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .opt-a .hero-chart { height: 220px; position: relative; }
+  .opt-a .x-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-mute); font-family: 'JetBrains Mono', monospace; padding: 6px 4px 0; }
+
+  .opt-a .top-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px 14px; }
+  .opt-a .top-section h2 { margin: 0 0 14px; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+  .opt-a .top-section h2 .small { font-size: 11px; font-weight: 500; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .opt-a table.top { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .opt-a table.top th { font-weight: 500; color: var(--ink-mute); text-align: left; padding: 6px 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+  .opt-a table.top td { padding: 9px 8px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+  .opt-a table.top tr:last-child td { border-bottom: 0; }
+  .opt-a table.top tr:hover { background: var(--row-hover); cursor: pointer; }
+  .opt-a table.top td.count { font-family: 'JetBrains Mono', monospace; font-weight: 600; text-align: right; }
+  .opt-a table.top td.msg { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .opt-a table.top td.trend { width: 110px; }
+  .opt-a .breakdown-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+  .opt-a .breakdown-list li { display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+  .opt-a .breakdown-list .row1 { display: flex; align-items: center; gap: 8px; }
+  .opt-a .breakdown-list .name { flex: 1; }
+  .opt-a .breakdown-list .num { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .opt-a .breakdown-list .pct { color: var(--ink-mute); font-size: 12px; font-family: 'JetBrains Mono', monospace; min-width: 44px; text-align: right; }
+  .opt-a .breakdown-list .bar-track { height: 6px; background: var(--sunken); border-radius: 3px; overflow: hidden; }
+  .opt-a .breakdown-list .bar-fill { height: 100%; }
+
+  /* ════════════════════════════════════════════════════════════════════════════
+     OPTION B — Hero chart + side breakdown panel + top errors below
+     ════════════════════════════════════════════════════════════════════════════ */
+  .opt-b .totals-row { display: flex; align-items: baseline; gap: 24px; margin-bottom: 18px; padding: 0 4px; }
+  .opt-b .totals-row .big { font-size: 56px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+  .opt-b .totals-row .lbl { font-size: 13px; color: var(--ink-soft); }
+  .opt-b .totals-row .lbl strong { color: var(--ink); font-weight: 600; }
+  .opt-b .totals-row .delta { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--fatal-fg); padding: 3px 9px; background: var(--fatal-bg); border-radius: 999px; font-weight: 500; }
+
+  .opt-b .layout { display: grid; grid-template-columns: 1.7fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .opt-b .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .opt-b .panel h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .opt-b .panel h2 .small { font-size: 11px; font-weight: 500; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.06em; }
+  .opt-b .chart { height: 240px; position: relative; }
+  .opt-b .x-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-mute); font-family: 'JetBrains Mono', monospace; padding-top: 6px; }
+
+  .opt-b .breakdown-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; }
+  .opt-b .breakdown-list li { display: flex; flex-direction: column; gap: 6px; }
+  .opt-b .breakdown-list .row1 { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .opt-b .breakdown-list .row1 .name { font-weight: 500; flex: 1; }
+  .opt-b .breakdown-list .row1 .num { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .opt-b .breakdown-list .row1 .pct { color: var(--ink-mute); font-size: 12px; font-family: 'JetBrains Mono', monospace; min-width: 48px; text-align: right; }
+  .opt-b .breakdown-list .bar { height: 6px; background: var(--sunken); border-radius: 3px; overflow: hidden; }
+  .opt-b .breakdown-list .fill { height: 100%; }
+
+  .opt-b .top-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .opt-b .top-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-mute); font-weight: 500; text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--border); }
+  .opt-b .top-table td { padding: 11px 8px; border-bottom: 1px solid var(--border-soft); }
+  .opt-b .top-table tr:last-child td { border-bottom: 0; }
+  .opt-b .top-table tr:hover { background: var(--row-hover); cursor: pointer; }
+  .opt-b .top-table .msg { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .opt-b .top-table .count { font-family: 'JetBrains Mono', monospace; font-weight: 600; text-align: right; }
+  .opt-b .top-table .trend { width: 100px; }
+
+  /* ════════════════════════════════════════════════════════════════════════════
+     OPTION C — Bento grid (asymmetric tiles, pinterest-y)
+     ════════════════════════════════════════════════════════════════════════════ */
+  .opt-c .bento { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: minmax(120px, auto); gap: 12px; }
+  .opt-c .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; position: relative; overflow: hidden; }
+  .opt-c .tile h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-mute); margin: 0; font-weight: 600; }
+  .opt-c .tile .big-num { font-size: 38px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin: 6px 0 4px; }
+  .opt-c .tile .meta { font-size: 12px; color: var(--ink-soft); }
+  .opt-c .tile-spark { width: 100%; height: 36px; margin-top: 8px; opacity: 0.7; }
+
+  .opt-c .tile.total { grid-column: span 2; grid-row: span 2; background: linear-gradient(135deg, #1a1a1f, #2a2a32); color: #fff; border-color: #1a1a1f; padding: 22px 24px; }
+  .opt-c .tile.total h3 { color: rgba(255,255,255,0.65); }
+  .opt-c .tile.total .big-num { font-size: 72px; color: #fff; }
+  .opt-c .tile.total .meta { color: rgba(255,255,255,0.75); }
+  .opt-c .tile.total .ring { position: absolute; right: -40px; bottom: -40px; width: 200px; height: 200px; border-radius: 50%; border: 30px solid rgba(255,255,255,0.06); }
+
+  .opt-c .tile.fatal { grid-column: span 2; background: linear-gradient(180deg, #ffe1e3 0%, #fff 70%); border-color: #f7c7ca; }
+  .opt-c .tile.fatal .big-num { color: var(--fatal-fg); }
+
+  .opt-c .tile.warn  { grid-column: span 2; background: linear-gradient(180deg, #fff3c2 0%, #fff 70%); border-color: #ecd987; }
+  .opt-c .tile.warn .big-num { color: var(--warn-fg); }
+
+  .opt-c .tile.donut { grid-column: span 2; grid-row: span 2; display: flex; flex-direction: column; }
+  .opt-c .tile.donut .donut-wrap { flex: 1; display: flex; align-items: center; justify-content: center; gap: 18px; padding-top: 10px; }
+  .opt-c .tile.donut svg { width: 130px; height: 130px; }
+  .opt-c .tile.donut .legend { display: flex; flex-direction: column; gap: 7px; font-size: 12px; }
+  .opt-c .tile.donut .legend li { display: flex; align-items: center; gap: 7px; list-style: none; }
+  .opt-c .tile.donut .legend .nm { color: var(--ink); }
+  .opt-c .tile.donut .legend .num { font-family: 'JetBrains Mono', monospace; color: var(--ink-soft); margin-left: auto; }
+
+  .opt-c .tile.chart { grid-column: span 4; grid-row: span 2; padding: 18px 20px; }
+  .opt-c .tile.chart .chart-area { height: 180px; position: relative; margin-top: 10px; }
+
+  .opt-c .tile.minor { grid-column: span 2; }
+  .opt-c .tile.minor .big-num { font-size: 26px; }
+
+  .opt-c .tile.top { grid-column: span 6; padding: 0; overflow: hidden; }
+  .opt-c .tile.top .top-head { padding: 14px 18px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+  .opt-c .tile.top .top-head h3 { font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--ink); font-weight: 600; }
+  .opt-c .tile.top .row { display: grid; grid-template-columns: 80px 60px 1fr 90px 100px; gap: 14px; padding: 11px 18px; align-items: center; border-bottom: 1px solid var(--border-soft); font-size: 13px; cursor: pointer; }
+  .opt-c .tile.top .row:hover { background: var(--row-hover); }
+  .opt-c .tile.top .row:last-child { border-bottom: 0; }
+  .opt-c .tile.top .row .count { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .opt-c .tile.top .row .msg { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .opt-c .tile.top .row .when { color: var(--ink-mute); font-size: 11.5px; font-family: 'JetBrains Mono', monospace; }
+  .opt-c .tile.top .row .trend { width: 100%; height: 24px; }
+</style>
+</head>
+<body>
+
+<div class="wp-frame">
+  <div class="wp-topbar">
+    <span style="font-weight:600;">dev.meggeremc.com</span>
+    <span style="color:#a7aaad;">WP Admin</span>
+    <span style="flex:1;"></span>
+    <span>Howdy, Waqar</span>
+  </div>
+  <aside class="wp-sidebar">
+    <div class="logo">WP</div>
+    <ul>
+      <li>Dashboard</li>
+      <li>Posts</li>
+      <li>Tools</li>
+      <li class="active">Logscope</li>
+      <li>Settings</li>
+    </ul>
+  </aside>
+  <main class="wp-content">
+
+    <div class="switcher">
+      <span class="label">Stats tab —</span>
+      <button data-stage="a" class="active">A · KPI tiles + hero chart</button>
+      <button data-stage="b">B · Hero chart + side breakdown</button>
+      <button data-stage="c">C · Bento grid</button>
+      <span class="note">Click options to compare. All use the same Soft Pastel palette as the Logs tab.</span>
+    </div>
+
+    <!-- ╔═══════════ OPTION A ═══════════╗ -->
+    <section class="stage active" id="stage-a">
+      <div class="pastel opt-a">
+        <header class="page-head">
+          <div>
+            <h1>Logscope</h1>
+            <p class="sub">PHP error log viewer for WordPress.</p>
+          </div>
+          <div class="live"><span class="live-dot"></span><strong>118</strong> entries · <span style="color:var(--fatal-fg);font-weight:500;">12 fatal</span></div>
+        </header>
+        <div class="tabs">
+          <button>Logs</button>
+          <button class="on">Stats</button>
+          <button>Settings</button>
+          <button>Shortcuts (?)</button>
+        </div>
+
+        <!-- range / bucket -->
+        <div class="ctrl">
+          <div class="ctrl-group">
+            <span class="ctrl-label">Range</span>
+            <div class="seg">
+              <button>Last 24 hours</button>
+              <button class="on">Last 7 days</button>
+              <button>Last 30 days</button>
+            </div>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">Bucket</span>
+            <div class="seg">
+              <button>Hour</button>
+              <button class="on">Day</button>
+            </div>
+          </div>
+          <div style="margin-left:auto; font-size:12px; color:var(--ink-mute); font-family:'JetBrains Mono',monospace;">
+            updated 14s ago · auto-refresh ⏵
+          </div>
+        </div>
+
+        <!-- KPI grid -->
+        <div class="kpi-grid">
+          <div class="kpi total">
+            <div class="kpi-label">Total entries</div>
+            <div class="kpi-value">1,284</div>
+            <div class="kpi-delta">↑ 12% vs prev 7d</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label"><span class="dot fatal"></span> Fatal</div>
+            <div class="kpi-value" style="color:var(--fatal-fg);">23</div>
+            <div class="kpi-delta up">↑ 65% · 14 ▴</div>
+            <svg class="kpi-spark" viewBox="0 0 60 22" preserveAspectRatio="none"><polyline points="0,18 8,15 16,16 24,12 32,14 40,9 48,7 60,3" fill="none" stroke="var(--fatal)" stroke-width="1.5"/></svg>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label"><span class="dot warn"></span> Warnings</div>
+            <div class="kpi-value">312</div>
+            <div class="kpi-delta">→ 0%</div>
+            <svg class="kpi-spark" viewBox="0 0 60 22" preserveAspectRatio="none"><polyline points="0,12 8,11 16,13 24,12 32,11 40,12 48,13 60,12" fill="none" stroke="var(--warn)" stroke-width="1.5"/></svg>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label"><span class="dot notice"></span> Notices</div>
+            <div class="kpi-value">786</div>
+            <div class="kpi-delta down">↓ 8%</div>
+            <svg class="kpi-spark" viewBox="0 0 60 22" preserveAspectRatio="none"><polyline points="0,5 8,8 16,7 24,11 32,14 40,12 48,15 60,16" fill="none" stroke="var(--notice)" stroke-width="1.5"/></svg>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label"><span class="dot deprec"></span> Deprecated</div>
+            <div class="kpi-value">142</div>
+            <div class="kpi-delta down">↓ 3%</div>
+            <svg class="kpi-spark" viewBox="0 0 60 22" preserveAspectRatio="none"><polyline points="0,8 8,9 16,11 24,10 32,12 40,13 48,14 60,15" fill="none" stroke="var(--deprec)" stroke-width="1.5"/></svg>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label"><span class="dot parse"></span> Parse / strict</div>
+            <div class="kpi-value">21</div>
+            <div class="kpi-delta">↑ 2</div>
+            <svg class="kpi-spark" viewBox="0 0 60 22" preserveAspectRatio="none"><polyline points="0,18 8,18 16,17 24,17 32,16 40,15 48,12 60,9" fill="none" stroke="var(--parse)" stroke-width="1.5"/></svg>
+          </div>
+        </div>
+
+        <!-- Hero chart + Severity mix side-by-side -->
+        <div class="hero-row">
+          <div class="panel">
+            <div class="hero-head">
+              <h2>Volume over time</h2>
+              <div class="legend">
+                <span><span class="dot fatal"></span>Fatal</span>
+                <span><span class="dot warn"></span>Warning</span>
+                <span><span class="dot notice"></span>Notice</span>
+                <span><span class="dot deprec"></span>Deprecated</span>
+              </div>
+            </div>
+            <div class="hero-chart">
+              <svg width="100%" height="100%" viewBox="0 0 700 220" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="aFat" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#e5484d" stop-opacity="0.55"/><stop offset="100%" stop-color="#e5484d" stop-opacity="0"/></linearGradient>
+                  <linearGradient id="aNot" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#3e63dd" stop-opacity="0.4"/><stop offset="100%" stop-color="#3e63dd" stop-opacity="0"/></linearGradient>
+                </defs>
+                <line x1="0" y1="55"  x2="700" y2="55"  stroke="#f3efe8" stroke-dasharray="2 4"/>
+                <line x1="0" y1="110" x2="700" y2="110" stroke="#f3efe8" stroke-dasharray="2 4"/>
+                <line x1="0" y1="165" x2="700" y2="165" stroke="#f3efe8" stroke-dasharray="2 4"/>
+                <path d="M0,150 L100,130 L200,98 L300,118 L400,77 L500,103 L600,87 L700,108 L700,220 L0,220 Z" fill="url(#aNot)"/>
+                <polyline points="0,150 100,130 200,98 300,118 400,77 500,103 600,87 700,108" fill="none" stroke="#3e63dd" stroke-width="1.6"/>
+                <polyline points="0,175 100,165 200,154 300,148 400,154 500,143 600,160 700,154" fill="none" stroke="#f5a524" stroke-width="1.6"/>
+                <polyline points="0,187 100,182 200,187 300,176 400,174 500,180 600,184 700,182" fill="none" stroke="#8347b9" stroke-width="1.4"/>
+                <path d="M0,210 L100,204 L200,187 L300,182 L400,165 L500,143 L600,99 L700,66 L700,220 L0,220 Z" fill="url(#aFat)"/>
+                <polyline points="0,210 100,204 200,187 300,182 400,165 500,143 600,99 700,66" fill="none" stroke="#e5484d" stroke-width="2"/>
+                <circle cx="700" cy="66" r="5" fill="#fff" stroke="#e5484d" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="x-axis">
+              <span>May 1</span><span>May 2</span><span>May 3</span><span>May 4</span><span>May 5</span><span>May 6</span><span>May 7</span>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2>Severity mix <span class="small">7 days</span></h2>
+            <ul class="breakdown-list">
+              <li>
+                <div class="row1"><span class="dot notice"></span><span class="name">Notice</span><span class="num">786</span><span class="pct">61%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:61%; background:var(--notice);"></div></div>
+              </li>
+              <li>
+                <div class="row1"><span class="dot warn"></span><span class="name">Warning</span><span class="num">312</span><span class="pct">24%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:24%; background:var(--warn);"></div></div>
+              </li>
+              <li>
+                <div class="row1"><span class="dot deprec"></span><span class="name">Deprecated</span><span class="num">142</span><span class="pct">11%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:11%; background:var(--deprec);"></div></div>
+              </li>
+              <li>
+                <div class="row1"><span class="dot fatal"></span><span class="name">Fatal</span><span class="num">23</span><span class="pct">1.8%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:1.8%; background:var(--fatal);"></div></div>
+              </li>
+              <li>
+                <div class="row1"><span class="dot parse"></span><span class="name">Parse / strict</span><span class="num">21</span><span class="pct">1.6%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:1.6%; background:var(--parse);"></div></div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Top error signatures — full width -->
+        <div class="top-section">
+          <h2>Top error signatures <span class="small">last 7 days · click row to filter Logs</span></h2>
+          <table class="top">
+            <thead>
+              <tr><th style="width:30px;"></th><th style="width:80px;">Sev</th><th>Sample</th><th class="trend">Trend</th><th style="text-align:right;width:70px;">Count</th><th style="width:90px;">Last seen</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="mono" style="color:var(--ink-mute);">#1</span></td>
+                <td><span class="sev fatal"><span class="dot fatal"></span>Fatal</span></td>
+                <td class="msg">Uncaught Error: Class "Logscope\Cron\CronScheduler" not found in /home/u400431326/domains/dev.meggeremc.com/public_html/wp-content/plugins/logscope/...</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,18 12,16 24,15 36,12 48,11 60,8 72,7 84,5 100,2" fill="none" stroke="var(--fatal)" stroke-width="1.5"/></svg></td>
+                <td class="count">14</td>
+                <td class="mono" style="color:var(--ink-soft);">2m ago</td>
+              </tr>
+              <tr>
+                <td><span class="mono" style="color:var(--ink-mute);">#2</span></td>
+                <td><span class="sev warn"><span class="dot warn"></span>Warn</span></td>
+                <td class="msg">ob_end_flush(): Failed to send buffer of ob_gzhandler (0)</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,12 12,11 24,13 36,12 48,11 60,12 72,13 84,11 100,12" fill="none" stroke="var(--warn)" stroke-width="1.5"/></svg></td>
+                <td class="count">128</td>
+                <td class="mono" style="color:var(--ink-soft);">8m ago</td>
+              </tr>
+              <tr>
+                <td><span class="mono" style="color:var(--ink-mute);">#3</span></td>
+                <td><span class="sev notice"><span class="dot notice"></span>Notice</span></td>
+                <td class="msg">Function _load_textdomain_just_in_time was called incorrectly. Translation loading for the woocommerce domain was triggered too early.</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,5 12,8 24,7 36,11 48,14 60,12 72,15 84,14 100,16" fill="none" stroke="var(--notice)" stroke-width="1.5"/></svg></td>
+                <td class="count">94</td>
+                <td class="mono" style="color:var(--ink-soft);">12m ago</td>
+              </tr>
+              <tr>
+                <td><span class="mono" style="color:var(--ink-mute);">#4</span></td>
+                <td><span class="sev deprec"><span class="dot deprec"></span>Deprec</span></td>
+                <td class="msg">Creation of dynamic property MyClass::$foo is deprecated in /vendor/foo/bar.php</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,8 12,9 24,11 36,10 48,12 60,13 72,14 84,15 100,15" fill="none" stroke="var(--deprec)" stroke-width="1.5"/></svg></td>
+                <td class="count">56</td>
+                <td class="mono" style="color:var(--ink-soft);">42m ago</td>
+              </tr>
+              <tr>
+                <td><span class="mono" style="color:var(--ink-mute);">#5</span></td>
+                <td><span class="sev warn"><span class="dot warn"></span>Warn</span></td>
+                <td class="msg">Undefined array key "data" in /wp-content/plugins/foo/bar.php</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,18 12,18 24,17 36,15 48,12 60,12 72,9 84,7 100,5" fill="none" stroke="var(--warn)" stroke-width="1.5"/></svg></td>
+                <td class="count">38</td>
+                <td class="mono" style="color:var(--ink-soft);">1h ago</td>
+              </tr>
+              <tr>
+                <td><span class="mono" style="color:var(--ink-mute);">#6</span></td>
+                <td><span class="sev notice"><span class="dot notice"></span>Notice</span></td>
+                <td class="msg">PHP Notice: Trying to access array offset on null</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,15 12,14 24,12 36,11 48,10 60,8 72,7 84,5 100,4" fill="none" stroke="var(--notice)" stroke-width="1.5"/></svg></td>
+                <td class="count">22</td>
+                <td class="mono" style="color:var(--ink-soft);">2h ago</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ╔═══════════ OPTION B ═══════════╗ -->
+    <section class="stage" id="stage-b">
+      <div class="pastel opt-b">
+        <header class="page-head">
+          <div>
+            <h1>Logscope</h1>
+            <p class="sub">PHP error log viewer for WordPress.</p>
+          </div>
+          <div class="live"><span class="live-dot"></span><strong>118</strong> entries · <span style="color:var(--fatal-fg);font-weight:500;">12 fatal</span></div>
+        </header>
+        <div class="tabs">
+          <button>Logs</button>
+          <button class="on">Stats</button>
+          <button>Settings</button>
+          <button>Shortcuts (?)</button>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrl-group">
+            <span class="ctrl-label">Range</span>
+            <div class="seg">
+              <button>24h</button><button class="on">7d</button><button>30d</button>
+            </div>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">Bucket</span>
+            <div class="seg">
+              <button>Hour</button><button class="on">Day</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Headline numbers -->
+        <div class="totals-row">
+          <div class="big">1,284</div>
+          <div class="lbl">total entries · <strong>23 fatal</strong> in this range</div>
+          <div class="delta">↑ 12% vs prev 7d</div>
+        </div>
+
+        <!-- Hero + breakdown side by side -->
+        <div class="layout">
+          <div class="panel">
+            <h2>Volume over time <span class="small">stacked, daily</span></h2>
+            <div class="chart">
+              <svg width="100%" height="100%" viewBox="0 0 600 240" preserveAspectRatio="none">
+                <line x1="0" y1="60"  x2="600" y2="60"  stroke="#f3efe8" stroke-dasharray="2 4"/>
+                <line x1="0" y1="120" x2="600" y2="120" stroke="#f3efe8" stroke-dasharray="2 4"/>
+                <line x1="0" y1="180" x2="600" y2="180" stroke="#f3efe8" stroke-dasharray="2 4"/>
+                <!-- bars: 7 day-buckets stacked notice/warn/deprec/fatal -->
+                <g>
+                  <!-- bar 1 -->
+                  <rect x="20"  y="135" width="60" height="85" rx="3" fill="#3e63dd" opacity="0.85"/>
+                  <rect x="20"  y="105" width="60" height="30" rx="3" fill="#f5a524" opacity="0.85"/>
+                  <rect x="20"  y="92"  width="60" height="13" rx="3" fill="#8347b9" opacity="0.85"/>
+                  <rect x="20"  y="86"  width="60" height="6"  rx="3" fill="#e5484d"/>
+                  <!-- bar 2 -->
+                  <rect x="100" y="125" width="60" height="95" rx="3" fill="#3e63dd" opacity="0.85"/>
+                  <rect x="100" y="98"  width="60" height="27" rx="3" fill="#f5a524" opacity="0.85"/>
+                  <rect x="100" y="83"  width="60" height="15" rx="3" fill="#8347b9" opacity="0.85"/>
+                  <rect x="100" y="76"  width="60" height="7"  rx="3" fill="#e5484d"/>
+                  <!-- bar 3 -->
+                  <rect x="180" y="120" width="60" height="100" rx="3" fill="#3e63dd" opacity="0.85"/>
+                  <rect x="180" y="92"  width="60" height="28" rx="3" fill="#f5a524" opacity="0.85"/>
+                  <rect x="180" y="78"  width="60" height="14" rx="3" fill="#8347b9" opacity="0.85"/>
+                  <rect x="180" y="70"  width="60" height="8"  rx="3" fill="#e5484d"/>
+                  <!-- bar 4 -->
+                  <rect x="260" y="115" width="60" height="105" rx="3" fill="#3e63dd" opacity="0.85"/>
+                  <rect x="260" y="86"  width="60" height="29" rx="3" fill="#f5a524" opacity="0.85"/>
+                  <rect x="260" y="72"  width="60" height="14" rx="3" fill="#8347b9" opacity="0.85"/>
+                  <rect x="260" y="64"  width="60" height="8"  rx="3" fill="#e5484d"/>
+                  <!-- bar 5 -->
+                  <rect x="340" y="110" width="60" height="110" rx="3" fill="#3e63dd" opacity="0.85"/>
+                  <rect x="340" y="80"  width="60" height="30" rx="3" fill="#f5a524" opacity="0.85"/>
+                  <rect x="340" y="64"  width="60" height="16" rx="3" fill="#8347b9" opacity="0.85"/>
+                  <rect x="340" y="55"  width="60" height="9"  rx="3" fill="#e5484d"/>
+                  <!-- bar 6 -->
+                  <rect x="420" y="100" width="60" height="120" rx="3" fill="#3e63dd" opacity="0.85"/>
+                  <rect x="420" y="68"  width="60" height="32" rx="3" fill="#f5a524" opacity="0.85"/>
+                  <rect x="420" y="50"  width="60" height="18" rx="3" fill="#8347b9" opacity="0.85"/>
+                  <rect x="420" y="38"  width="60" height="12" rx="3" fill="#e5484d"/>
+                  <!-- bar 7 (today) -->
+                  <rect x="500" y="92"  width="60" height="128" rx="3" fill="#3e63dd"/>
+                  <rect x="500" y="58"  width="60" height="34" rx="3" fill="#f5a524"/>
+                  <rect x="500" y="38"  width="60" height="20" rx="3" fill="#8347b9"/>
+                  <rect x="500" y="22"  width="60" height="16" rx="3" fill="#e5484d"/>
+                </g>
+              </svg>
+            </div>
+            <div class="x-axis">
+              <span>Apr 25</span><span>Apr 26</span><span>Apr 27</span><span>Apr 28</span><span>Apr 29</span><span>Apr 30</span><span style="color:var(--ink);font-weight:600;">May 1</span>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2>Severity mix</h2>
+            <ul class="breakdown-list">
+              <li>
+                <div class="row1"><span class="dot notice"></span><span class="name">Notice</span><span class="num">786</span><span class="pct">61%</span></div>
+                <div class="bar"><div class="fill" style="width:61%; background:var(--notice);"></div></div>
+              </li>
+              <li>
+                <div class="row1"><span class="dot warn"></span><span class="name">Warning</span><span class="num">312</span><span class="pct">24%</span></div>
+                <div class="bar"><div class="fill" style="width:24%; background:var(--warn);"></div></div>
+              </li>
+              <li>
+                <div class="row1"><span class="dot deprec"></span><span class="name">Deprecated</span><span class="num">142</span><span class="pct">11%</span></div>
+                <div class="bar"><div class="fill" style="width:11%; background:var(--deprec);"></div></div>
+              </li>
+              <li>
+                <div class="row1"><span class="dot fatal"></span><span class="name">Fatal</span><span class="num">23</span><span class="pct">1.8%</span></div>
+                <div class="bar"><div class="fill" style="width:1.8%; background:var(--fatal);"></div></div>
+              </li>
+              <li>
+                <div class="row1"><span class="dot parse"></span><span class="name">Parse / strict</span><span class="num">21</span><span class="pct">1.6%</span></div>
+                <div class="bar"><div class="fill" style="width:1.6%; background:var(--parse);"></div></div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Top errors -->
+        <div class="panel">
+          <h2>Top error signatures <span class="small">click a row to filter Logs</span></h2>
+          <table class="top-table">
+            <thead>
+              <tr><th>Severity</th><th>Sample message</th><th>Trend</th><th class="count" style="text-align:right;">Count</th><th>Last seen</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="sev fatal"><span class="dot fatal"></span>Fatal</span></td>
+                <td class="msg">Uncaught Error: Class "Logscope\Cron\CronScheduler" not found in /home/...</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,18 12,16 24,15 36,12 48,11 60,8 72,7 84,5 100,2" fill="none" stroke="var(--fatal)" stroke-width="1.5"/></svg></td>
+                <td class="count">14</td>
+                <td class="mono" style="color:var(--ink-soft);">2m ago</td>
+              </tr>
+              <tr>
+                <td><span class="sev warn"><span class="dot warn"></span>Warn</span></td>
+                <td class="msg">ob_end_flush(): Failed to send buffer of ob_gzhandler (0)</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,12 12,11 24,13 36,12 48,11 60,12 72,13 84,11 100,12" fill="none" stroke="var(--warn)" stroke-width="1.5"/></svg></td>
+                <td class="count">128</td>
+                <td class="mono" style="color:var(--ink-soft);">8m ago</td>
+              </tr>
+              <tr>
+                <td><span class="sev notice"><span class="dot notice"></span>Notice</span></td>
+                <td class="msg">Function _load_textdomain_just_in_time was called incorrectly</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,5 12,8 24,7 36,11 48,14 60,12 72,15 84,14 100,16" fill="none" stroke="var(--notice)" stroke-width="1.5"/></svg></td>
+                <td class="count">94</td>
+                <td class="mono" style="color:var(--ink-soft);">12m ago</td>
+              </tr>
+              <tr>
+                <td><span class="sev deprec"><span class="dot deprec"></span>Deprec</span></td>
+                <td class="msg">Creation of dynamic property is deprecated in /vendor/.../foo.php</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,8 12,9 24,11 36,10 48,12 60,13 72,14 84,15 100,15" fill="none" stroke="var(--deprec)" stroke-width="1.5"/></svg></td>
+                <td class="count">56</td>
+                <td class="mono" style="color:var(--ink-soft);">42m ago</td>
+              </tr>
+              <tr>
+                <td><span class="sev warn"><span class="dot warn"></span>Warn</span></td>
+                <td class="msg">Undefined array key "data" in /wp-content/plugins/foo/bar.php</td>
+                <td class="trend"><svg width="100" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline points="0,18 12,18 24,17 36,15 48,12 60,12 72,9 84,7 100,5" fill="none" stroke="var(--warn)" stroke-width="1.5"/></svg></td>
+                <td class="count">38</td>
+                <td class="mono" style="color:var(--ink-soft);">1h ago</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ╔═══════════ OPTION C ═══════════╗ -->
+    <section class="stage" id="stage-c">
+      <div class="pastel opt-c">
+        <header class="page-head">
+          <div>
+            <h1>Logscope</h1>
+            <p class="sub">PHP error log viewer for WordPress.</p>
+          </div>
+          <div class="live"><span class="live-dot"></span><strong>118</strong> entries · <span style="color:var(--fatal-fg);font-weight:500;">12 fatal</span></div>
+        </header>
+        <div class="tabs">
+          <button>Logs</button>
+          <button class="on">Stats</button>
+          <button>Settings</button>
+          <button>Shortcuts (?)</button>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrl-group">
+            <span class="ctrl-label">Range</span>
+            <div class="seg">
+              <button>24h</button><button class="on">7d</button><button>30d</button>
+            </div>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">Bucket</span>
+            <div class="seg">
+              <button>Hour</button><button class="on">Day</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bento">
+          <!-- big total tile -->
+          <div class="tile total">
+            <h3>Total entries · 7 days</h3>
+            <div class="big-num">1,284</div>
+            <div class="meta">↑ 12% vs prev 7d</div>
+            <div class="ring"></div>
+          </div>
+
+          <!-- chart spans 4 cols x 2 rows -->
+          <div class="tile chart">
+            <h3 style="text-transform:none;letter-spacing:0;color:var(--ink);font-weight:600;font-size:13px;display:flex;justify-content:space-between;">
+              Volume over time
+              <span style="font-size:11px;color:var(--ink-mute);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;">stacked area · daily</span>
+            </h3>
+            <div class="chart-area">
+              <svg width="100%" height="100%" viewBox="0 0 700 200" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="cFat" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#e5484d" stop-opacity="0.6"/><stop offset="100%" stop-color="#e5484d" stop-opacity="0"/></linearGradient>
+                  <linearGradient id="cNot" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#3e63dd" stop-opacity="0.45"/><stop offset="100%" stop-color="#3e63dd" stop-opacity="0"/></linearGradient>
+                </defs>
+                <line x1="0" y1="50"  x2="700" y2="50"  stroke="#f3efe8" stroke-dasharray="2 4"/>
+                <line x1="0" y1="100" x2="700" y2="100" stroke="#f3efe8" stroke-dasharray="2 4"/>
+                <line x1="0" y1="150" x2="700" y2="150" stroke="#f3efe8" stroke-dasharray="2 4"/>
+                <path d="M0,140 L100,120 L200,90 L300,110 L400,70 L500,95 L600,80 L700,100 L700,200 L0,200 Z" fill="url(#cNot)"/>
+                <path d="M0,190 L100,185 L200,170 L300,165 L400,150 L500,130 L600,90 L700,60 L700,200 L0,200 Z" fill="url(#cFat)"/>
+                <polyline points="0,190 100,185 200,170 300,165 400,150 500,130 600,90 700,60" fill="none" stroke="#e5484d" stroke-width="2"/>
+                <polyline points="0,140 100,120 200,90 300,110 400,70 500,95 600,80 700,100" fill="none" stroke="#3e63dd" stroke-width="1.6"/>
+                <polyline points="0,160 100,150 200,140 300,135 400,140 500,130 600,145 700,140" fill="none" stroke="#f5a524" stroke-width="1.6"/>
+                <polyline points="0,170 100,165 200,170 300,160 400,158 500,164 600,168 700,165" fill="none" stroke="#8347b9" stroke-width="1.4"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- fatal tile -->
+          <div class="tile fatal">
+            <h3><span class="dot fatal"></span> Fatal</h3>
+            <div class="big-num">23</div>
+            <div class="meta">↑ 65% · 14 today ▴</div>
+          </div>
+
+          <!-- warn tile -->
+          <div class="tile warn">
+            <h3><span class="dot warn"></span> Warnings</h3>
+            <div class="big-num">312</div>
+            <div class="meta">→ flat vs prev 7d</div>
+          </div>
+
+          <!-- donut tile -->
+          <div class="tile donut">
+            <h3>Severity mix</h3>
+            <div class="donut-wrap">
+              <svg viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f3efe8" stroke-width="6"/>
+                <!-- notice 61% -->
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#3e63dd" stroke-width="6" stroke-dasharray="61 39" stroke-dashoffset="25" transform="rotate(-90 21 21)"/>
+                <!-- warn 24% start at 61 -->
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f5a524" stroke-width="6" stroke-dasharray="24 76" stroke-dashoffset="-36" transform="rotate(-90 21 21)"/>
+                <!-- deprec 11% -->
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#8347b9" stroke-width="6" stroke-dasharray="11 89" stroke-dashoffset="-60" transform="rotate(-90 21 21)"/>
+                <!-- fatal 1.8 + parse 1.6 (combined ~4 last) -->
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#e5484d" stroke-width="6" stroke-dasharray="4 96" stroke-dashoffset="-71" transform="rotate(-90 21 21)"/>
+              </svg>
+              <ul class="legend">
+                <li><span class="dot notice"></span><span class="nm">Notice</span><span class="num">61%</span></li>
+                <li><span class="dot warn"></span><span class="nm">Warning</span><span class="num">24%</span></li>
+                <li><span class="dot deprec"></span><span class="nm">Deprecated</span><span class="num">11%</span></li>
+                <li><span class="dot fatal"></span><span class="nm">Fatal</span><span class="num">1.8%</span></li>
+                <li><span class="dot parse"></span><span class="nm">Parse</span><span class="num">1.6%</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- minor tiles row -->
+          <div class="tile minor">
+            <h3><span class="dot notice"></span> Notices</h3>
+            <div class="big-num">786</div>
+            <svg class="tile-spark" viewBox="0 0 100 36" preserveAspectRatio="none"><polyline points="0,8 14,12 28,10 42,18 56,22 70,18 84,24 100,28" fill="none" stroke="var(--notice)" stroke-width="1.5"/></svg>
+          </div>
+          <div class="tile minor">
+            <h3><span class="dot deprec"></span> Deprecated</h3>
+            <div class="big-num">142</div>
+            <svg class="tile-spark" viewBox="0 0 100 36" preserveAspectRatio="none"><polyline points="0,12 14,14 28,18 42,16 56,20 70,22 84,24 100,26" fill="none" stroke="var(--deprec)" stroke-width="1.5"/></svg>
+          </div>
+          <div class="tile minor">
+            <h3><span class="dot parse"></span> Parse / strict</h3>
+            <div class="big-num">21</div>
+            <svg class="tile-spark" viewBox="0 0 100 36" preserveAspectRatio="none"><polyline points="0,30 14,30 28,28 42,28 56,26 70,24 84,18 100,12" fill="none" stroke="var(--parse)" stroke-width="1.5"/></svg>
+          </div>
+
+          <!-- top errors strip -->
+          <div class="tile top">
+            <div class="top-head">
+              <h3>Top error signatures · last 7 days</h3>
+              <span style="font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">click row to filter Logs</span>
+            </div>
+            <div class="row">
+              <span class="sev fatal"><span class="dot fatal"></span>Fatal</span>
+              <span class="count">14</span>
+              <span class="msg">Uncaught Error: Class "Logscope\Cron\CronScheduler" not found in /home/...</span>
+              <svg class="trend" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,20 14,18 28,16 42,12 56,11 70,8 84,5 100,2" fill="none" stroke="var(--fatal)" stroke-width="1.5"/></svg>
+              <span class="when">2m ago</span>
+            </div>
+            <div class="row">
+              <span class="sev warn"><span class="dot warn"></span>Warn</span>
+              <span class="count">128</span>
+              <span class="msg">ob_end_flush(): Failed to send buffer of ob_gzhandler (0)</span>
+              <svg class="trend" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,12 14,11 28,13 42,12 56,11 70,12 84,13 100,12" fill="none" stroke="var(--warn)" stroke-width="1.5"/></svg>
+              <span class="when">8m ago</span>
+            </div>
+            <div class="row">
+              <span class="sev notice"><span class="dot notice"></span>Notice</span>
+              <span class="count">94</span>
+              <span class="msg">Function _load_textdomain_just_in_time was called incorrectly</span>
+              <svg class="trend" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,5 14,8 28,7 42,11 56,14 70,12 84,15 100,16" fill="none" stroke="var(--notice)" stroke-width="1.5"/></svg>
+              <span class="when">12m ago</span>
+            </div>
+            <div class="row">
+              <span class="sev deprec"><span class="dot deprec"></span>Deprec</span>
+              <span class="count">56</span>
+              <span class="msg">Creation of dynamic property is deprecated in /vendor/.../foo.php</span>
+              <svg class="trend" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,8 14,9 28,11 42,10 56,12 70,13 84,14 100,15" fill="none" stroke="var(--deprec)" stroke-width="1.5"/></svg>
+              <span class="when">42m ago</span>
+            </div>
+            <div class="row">
+              <span class="sev warn"><span class="dot warn"></span>Warn</span>
+              <span class="count">38</span>
+              <span class="msg">Undefined array key "data" in /wp-content/plugins/foo/bar.php</span>
+              <svg class="trend" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,18 14,18 28,17 42,15 56,12 70,12 84,9 100,5" fill="none" stroke="var(--warn)" stroke-width="1.5"/></svg>
+              <span class="when">1h ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  document.querySelectorAll('.switcher button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const stage = btn.dataset.stage;
+      document.querySelectorAll('.switcher button').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.stage').forEach(s => s.classList.toggle('active', s.id === 'stage-' + stage));
+    });
+  });
+</script>
+</body>
+</html>
