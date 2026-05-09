@@ -806,7 +806,7 @@ Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscod
 
 Goal: every security-sensitive surface re-reviewed under one pass before the public release.
 
--   [ ] **20.1** 🔒 Full `security-review` skill pass across:
+-   [x] **20.1** 🔒 Full `security-review` skill pass across:
 
     -   `PathGuard` (traversal, symlink escape, allowlist)
     -   REST auth (every route has cap + nonce; abstract base enforces it)

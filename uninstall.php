@@ -15,7 +15,9 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
 /*
  * Enumerated option keys. Keep this list in sync as new options are added
- * by later roadmap steps (Phase 5 Settings, v1.1 Alerts, v1.2 Cron).
+ * by later roadmap steps. Mirrors the seed list in
+ * Logscope\Activator::DEFAULT_OPTIONS plus the scanner's runtime cursors
+ * (logscope_last_scanned_*) which the activator does not seed.
  */
 $logscope_options = array(
 	'logscope_log_path',
@@ -33,6 +35,7 @@ $logscope_options = array(
 	'logscope_default_per_page',
 	'logscope_default_severity_filter',
 	'logscope_timestamp_tz',
+	'logscope_admin_bar_enabled',
 	'logscope_last_scanned_byte',
 	'logscope_last_scanned_at',
 	'logscope_last_scanned_dispatched',
@@ -45,15 +48,61 @@ foreach ( $logscope_options as $logscope_option ) {
 }
 
 /*
- * Enumerated transient prefixes. Empty today; v1.1 Alerts adds
- * `logscope_alert_dedup_*` transients that must be purged here.
+ * Transient sweep. The plugin writes transients with several distinct
+ * prefixes (logscope_alert_dedup_*, logscope_stats_*, logscope_admin_bar_today_*)
+ * keyed off signature hashes, file mtimes, and rolling dates — enumerating
+ * them at runtime is impractical, so we delete by `option_name` LIKE pattern
+ * on the wp_options table directly. The shared `logscope_` prefix on every
+ * Logscope-owned transient bounds the wildcard so we do not touch foreign
+ * transients. Both the value rows (`_transient_<key>`) and the matching
+ * timeout rows (`_transient_timeout_<key>`) are removed in the same query.
+ *
+ * On a multisite install, `delete_transient` only addresses the site's own
+ * transients; the same wildcard sweep is run against `sitemeta` for network-
+ * wide transients via `_site_transient_*`.
  */
-$logscope_transients = array();
+global $wpdb;
+if ( isset( $wpdb ) && is_object( $wpdb ) ) {
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Uninstall runs once and bypasses the options API by necessity (set_transient/get_transient have no enumerator).
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+			$wpdb->esc_like( '_transient_logscope_' ) . '%',
+			$wpdb->esc_like( '_transient_timeout_logscope_' ) . '%'
+		)
+	);
 
-foreach ( $logscope_transients as $logscope_transient ) {
-	delete_transient( $logscope_transient );
-	delete_site_transient( $logscope_transient );
+	if ( is_multisite() && isset( $wpdb->sitemeta ) ) {
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s OR meta_key LIKE %s",
+				$wpdb->esc_like( '_site_transient_logscope_' ) . '%',
+				$wpdb->esc_like( '_site_transient_timeout_logscope_' ) . '%'
+			)
+		);
+	}
+
+	/*
+	 * Per-user filter presets (Phase 14.8). Stored under the
+	 * `logscope_filter_presets` user-meta key — one row per admin who
+	 * saved a preset. `delete_metadata` with `$delete_all = true` removes
+	 * every user's row in a single query without enumerating users.
+	 */
+	delete_metadata( 'user', 0, 'logscope_filter_presets', '', true );
+	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 }
+
+/*
+ * Scheduled events. The plugin registers two recurring crons —
+ * `logscope_scan_fatals` (the alert scanner) and `logscope_rotate_logs`
+ * (the retention rotator). Deactivation already clears them, but a forced
+ * delete that bypasses deactivate would leave the WP-Cron rows behind, so
+ * we clear them here too. The hook names are duplicated here as literals
+ * because uninstall runs without autoload — we cannot reference the
+ * `Logscope\Cron\CronScheduler` constants.
+ */
+wp_clear_scheduled_hook( 'logscope_scan_fatals' );
+wp_clear_scheduled_hook( 'logscope_rotate_logs' );
 
 $logscope_roles = wp_roles();
 if ( $logscope_roles instanceof WP_Roles ) {
