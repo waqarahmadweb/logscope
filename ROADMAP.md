@@ -787,7 +787,7 @@ Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscod
     -   **AC**: Widget renders on wp-admin Dashboard for users with the cap; hidden for users without.
     -   **Commit**: `feat(admin): dashboard widget for recent errors`
 
--   [ ] **19.3** Site Health integration
+-   [x] **19.3** Site Health integration
 
     -   Custom Site Health test via `site_status_tests` filter.
     -   Test turns red when fatals occurred in the last 24h, amber when only warnings, green when clean.

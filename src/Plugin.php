@@ -15,6 +15,7 @@ use Logscope\Admin\AssetLoader;
 use Logscope\Admin\DashboardWidget;
 use Logscope\Admin\Menu;
 use Logscope\Admin\PageRenderer;
+use Logscope\Admin\SiteHealthTest;
 use Logscope\Alerts\AlertCoordinator;
 use Logscope\Alerts\AlertDeduplicator;
 use Logscope\Alerts\EmailAlerter;
@@ -281,6 +282,16 @@ final class Plugin {
 		);
 
 		$this->register(
+			'admin.site_health_test',
+			static function ( Plugin $plugin ): SiteHealthTest {
+				$stats = $plugin->get( 'log.stats' );
+				assert( $stats instanceof LogStats );
+
+				return new SiteHealthTest( $stats );
+			}
+		);
+
+		$this->register(
 			'admin.asset_loader',
 			static function ( Plugin $plugin ): AssetLoader {
 				$menu = $plugin->get( 'admin.menu' );
@@ -501,6 +512,7 @@ final class Plugin {
 		add_action( 'admin_bar_menu', array( $this, 'register_admin_bar' ), AdminBar::HOOK_PRIORITY );
 		add_action( 'wp_before_admin_bar_render', array( $this, 'print_admin_bar_styles' ) );
 		add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
+		add_filter( 'site_status_tests', array( $this, 'register_site_health_test' ) );
 		add_action( 'logscope_scan_fatals', array( $this, 'run_cron_scan' ) );
 		add_action( CronScheduler::HOOK_ROTATE, array( $this, 'run_cron_rotate' ) );
 		add_filter( 'cron_schedules', array( __CLASS__, 'register_cron_schedule' ) );
@@ -715,6 +727,27 @@ final class Plugin {
 			$widget->register();
 		} catch ( Throwable $e ) {
 			self::log_route_registration_failure( 'dashboard_widget', $e );
+		}
+	}
+
+	/**
+	 * `site_status_tests` filter callback. Resolves the
+	 * {@see SiteHealthTest} and lets it append its row. Wrapped in
+	 * `try/catch` so a misconfigured log path returns the unmodified
+	 * tests list rather than aborting the Site Health screen for
+	 * everyone else.
+	 *
+	 * @param array<string, array<string, mixed>>|mixed $tests Existing tests.
+	 * @return array<string, array<string, mixed>>
+	 */
+	public function register_site_health_test( $tests ): array {
+		try {
+			$health = $this->get( 'admin.site_health_test' );
+			assert( $health instanceof SiteHealthTest );
+			return $health->register( $tests );
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'site_health', $e );
+			return is_array( $tests ) ? $tests : array();
 		}
 	}
 
