@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Changed
+
+-   `readme.txt` Changelog and Upgrade Notice sections now cover 0.16.0 (Phase 18 pre-1.0 UI redesign) and 0.17.0 (Phase 19 pre-1.0 feature parity) so the wp.org-facing release notes are not stuck two cycles behind the Stable tag — the directory listing renders those bodies verbatim, and the file had been frozen at 0.15.0 since Phase 17.1. The new entries mirror the CHANGELOG.md narratives in wp.org-flavoured bullets (one summary line plus 3–5 highlights), the same cadence the file's earlier entries set.
+
 ### Security
 
 -   `uninstall.php` now removes every persisted-state class the plugin owns, closing the only gap the Phase 20.1 security review surfaced. The previous routine enumerated options and a (deliberately empty) transient prefix list; the new routine adds (a) the `logscope_admin_bar_enabled` option introduced in Phase 19.1, (b) a `wpdb` wildcard sweep across `wp_options` for every `_transient_logscope_*` and `_transient_timeout_logscope_*` row so the rolling-key transient namespaces (`logscope_alert_dedup_*`, `logscope_stats_*`, `logscope_admin_bar_today_*`) drop in a single query without runtime enumeration, (c) the equivalent `_site_transient_*` sweep against `sitemeta` on multisite, (d) a `delete_metadata('user', 0, 'logscope_filter_presets', '', true)` that drops every admin's saved presets in one query rather than iterating users, and (e) explicit `wp_clear_scheduled_hook` calls for `logscope_scan_fatals` and `logscope_rotate_logs` so a forced delete that bypasses deactivation does not leave the WP-Cron rows behind. The hook names are duplicated as literals because uninstall runs without the plugin autoload — the `Logscope\Cron\CronScheduler` constants are intentionally unreferenced. Closes the Phase 20.1 acceptance criterion that "uninstall.php deletes every logscope\_\* option + transient + user-meta + scheduled cron."
