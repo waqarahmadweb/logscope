@@ -7,15 +7,14 @@
  * server returns the new authoritative shape, and the reducer copies it
  * back into both slots.
  *
- * The "Test path" button hits the side-effect-free `/settings/test-path`
- * REST route. The verdict it returns (ok/resolved/exists/readable/
- * writable/reason/allowed_roots) is rendered inline beneath the field so
- * the admin sees the resolved absolute path on success and a clear
- * rejection reason ("outside allowed directories", "parent-directory
- * segment", etc.) on failure — satisfying the Phase 8.2 AC that
- * `../../../etc/passwd` shows a rejection message.
+ * Layout: a sticky left sidenav anchors into four sections (Log file,
+ * Alerts, Schedule, Muted signatures) with a single Save button at the
+ * top of the rail. An IntersectionObserver mirrors the active section
+ * back into the nav so the highlight tracks scrolling. The "Test path"
+ * button hits the side-effect-free `/settings/test-path` REST route and
+ * the verdict renders inline beneath the path field.
  */
-import { useEffect } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
 import { Button, Notice, TextControl } from '@wordpress/components';
@@ -36,11 +35,29 @@ const ALERT_FIELD_KEYS = [
 	'alert_dedup_window',
 ];
 
-/**
- * Map server-side field-error codes to their translated, user-facing
- * copy. The store records codes (not strings) so user-facing wording
- * stays in the panel layer alongside every other __() call.
- */
+const SECTIONS = [
+	{
+		id: 'logscope-settings-log-file',
+		label: __( 'Log file', 'logscope' ),
+		icon: '📄',
+	},
+	{
+		id: 'logscope-settings-alerts',
+		label: __( 'Alerts', 'logscope' ),
+		icon: '🔔',
+	},
+	{
+		id: 'logscope-settings-schedule',
+		label: __( 'Schedule', 'logscope' ),
+		icon: '⏱',
+	},
+	{
+		id: 'logscope-settings-muted',
+		label: __( 'Muted signatures', 'logscope' ),
+		icon: '🔕',
+	},
+];
+
 function translateFieldError( code ) {
 	switch ( code ) {
 		case 'unknown_setting':
@@ -166,112 +183,278 @@ export default function SettingsPanel() {
 				handleSave();
 			} }
 		>
-			<div className="logscope-settings-panel__stack">
-				<TextControl
-					label={ __( 'Custom log path', 'logscope' ) }
-					help={ __(
-						'Absolute path to your debug log. Leave empty to use the default WordPress location.',
-						'logscope'
-					) }
-					value={ draft.log_path }
-					onChange={ ( next ) => {
-						setSettingsDraft( { log_path: next } );
-						if ( testResult ) {
-							clearTestResult();
-						}
-					} }
-					autoComplete="off"
-					spellCheck={ false }
-					__next40pxDefaultSize
-					__nextHasNoMarginBottom
+			<div className="logscope-settings-panel__layout">
+				<SettingsNav
+					isDirty={ isDirty }
+					isSaving={ isSaving }
+					onReset={ resetSettingsDraft }
 				/>
 
-				<div className="logscope-settings-panel__actions-row">
-					<Button
-						variant="secondary"
-						onClick={ handleTest }
-						isBusy={ isTesting }
-						disabled={
-							isTesting ||
-							! draft.log_path ||
-							! draft.log_path.trim()
-						}
+				<div className="logscope-settings-panel__pane">
+					<section
+						id={ SECTIONS[ 0 ].id }
+						className="logscope-settings-panel__section"
 					>
-						{ __( 'Test path', 'logscope' ) }
-					</Button>
-				</div>
+						<h2 className="logscope-settings-panel__section-title">
+							{ __( 'Log file', 'logscope' ) }
+						</h2>
+						<p className="logscope-settings-panel__section-lead">
+							{ __(
+								'Where Logscope reads PHP errors from, and how often the live tail polls.',
+								'logscope'
+							) }
+						</p>
 
-				{ testResult && <PathTestVerdict result={ testResult } /> }
-				{ testError && (
-					<Notice status="warning" isDismissible={ false }>
-						{ sprintf(
-							/* translators: %s is the underlying error message from the failed REST call. */
-							__( 'Could not test the path: %s', 'logscope' ),
-							testError
-						) }
-					</Notice>
-				) }
-				{ fieldErrors.log_path && (
-					<Notice status="error" isDismissible={ false }>
-						{ translateFieldError( fieldErrors.log_path ) }
-					</Notice>
-				) }
+						<div className="logscope-settings-panel__field">
+							<div className="logscope-settings-panel__field-row">
+								<TextControl
+									label={ __(
+										'Custom log path',
+										'logscope'
+									) }
+									help={ __(
+										'Absolute path to your debug log. Leave empty to use the default WordPress location.',
+										'logscope'
+									) }
+									value={ draft.log_path }
+									onChange={ ( next ) => {
+										setSettingsDraft( { log_path: next } );
+										if ( testResult ) {
+											clearTestResult();
+										}
+									} }
+									autoComplete="off"
+									spellCheck={ false }
+									__next40pxDefaultSize
+									__nextHasNoMarginBottom
+								/>
+								<Button
+									variant="secondary"
+									onClick={ handleTest }
+									isBusy={ isTesting }
+									disabled={
+										isTesting ||
+										! draft.log_path ||
+										! draft.log_path.trim()
+									}
+								>
+									{ __( 'Test path', 'logscope' ) }
+								</Button>
+							</div>
 
-				<TextControl
-					type="number"
-					label={ __( 'Tail interval (seconds)', 'logscope' ) }
-					help={ __(
-						'How often the live tail polls for new entries. Minimum 1 second.',
-						'logscope'
+							{ testResult && (
+								<div style={ { marginTop: 10 } }>
+									<PathTestVerdict result={ testResult } />
+								</div>
+							) }
+							{ testError && (
+								<div style={ { marginTop: 10 } }>
+									<Notice
+										status="warning"
+										isDismissible={ false }
+									>
+										{ sprintf(
+											/* translators: %s is the underlying error message from the failed REST call. */
+											__(
+												'Could not test the path: %s',
+												'logscope'
+											),
+											testError
+										) }
+									</Notice>
+								</div>
+							) }
+							{ fieldErrors.log_path && (
+								<div style={ { marginTop: 10 } }>
+									<Notice
+										status="error"
+										isDismissible={ false }
+									>
+										{ translateFieldError(
+											fieldErrors.log_path
+										) }
+									</Notice>
+								</div>
+							) }
+						</div>
+
+						<div className="logscope-settings-panel__field">
+							<TextControl
+								type="number"
+								label={ __(
+									'Tail interval (seconds)',
+									'logscope'
+								) }
+								help={ __(
+									'How often the live tail polls for new entries. Minimum 1 second.',
+									'logscope'
+								) }
+								value={ String( draft.tail_interval ?? '' ) }
+								min={ TAIL_INTERVAL_MIN }
+								onChange={ ( next ) =>
+									setSettingsDraft( {
+										tail_interval:
+											next === '' ? '' : Number( next ),
+									} )
+								}
+								__next40pxDefaultSize
+								__nextHasNoMarginBottom
+							/>
+							{ fieldErrors.tail_interval && (
+								<div style={ { marginTop: 10 } }>
+									<Notice
+										status="error"
+										isDismissible={ false }
+									>
+										{ translateFieldError(
+											fieldErrors.tail_interval
+										) }
+									</Notice>
+								</div>
+							) }
+						</div>
+					</section>
+
+					<section
+						id={ SECTIONS[ 1 ].id }
+						className="logscope-settings-panel__section"
+					>
+						<AlertsPanel />
+					</section>
+
+					<section
+						id={ SECTIONS[ 2 ].id }
+						className="logscope-settings-panel__section"
+					>
+						<CronPanel />
+					</section>
+
+					<section
+						id={ SECTIONS[ 3 ].id }
+						className="logscope-settings-panel__section"
+					>
+						<MutedSignaturesPanel />
+					</section>
+
+					{ saveError && Object.keys( fieldErrors ).length === 0 && (
+						<Notice status="error" isDismissible={ false }>
+							{ saveError }
+						</Notice>
 					) }
-					value={ String( draft.tail_interval ?? '' ) }
-					min={ TAIL_INTERVAL_MIN }
-					onChange={ ( next ) =>
-						setSettingsDraft( {
-							tail_interval: next === '' ? '' : Number( next ),
-						} )
-					}
-					__next40pxDefaultSize
-					__nextHasNoMarginBottom
-				/>
-				{ fieldErrors.tail_interval && (
-					<Notice status="error" isDismissible={ false }>
-						{ translateFieldError( fieldErrors.tail_interval ) }
-					</Notice>
-				) }
-
-				<AlertsPanel />
-
-				<CronPanel />
-
-				<MutedSignaturesPanel />
-
-				{ saveError && Object.keys( fieldErrors ).length === 0 && (
-					<Notice status="error" isDismissible={ false }>
-						{ saveError }
-					</Notice>
-				) }
-
-				<div className="logscope-settings-panel__actions">
-					<Button
-						variant="primary"
-						type="submit"
-						isBusy={ isSaving }
-						disabled={ isSaving || ! isDirty }
-					>
-						{ __( 'Save settings', 'logscope' ) }
-					</Button>
-					<Button
-						variant="tertiary"
-						type="button"
-						onClick={ resetSettingsDraft }
-						disabled={ isSaving || ! isDirty }
-					>
-						{ __( 'Reset', 'logscope' ) }
-					</Button>
 				</div>
 			</div>
 		</form>
+	);
+}
+
+function SettingsNav( { isDirty, isSaving, onReset } ) {
+	const [ activeId, setActiveId ] = useState( SECTIONS[ 0 ].id );
+	const lockUntilRef = useRef( 0 );
+
+	// Mirror the section closest to the top of the viewport into the nav
+	// highlight. rootMargin pushes the "active band" into the upper
+	// portion of the viewport so a section becomes active as its top
+	// crosses ~30% down the screen, not when it's already half-scrolled.
+	useEffect( () => {
+		const elements = SECTIONS.map( ( s ) =>
+			document.getElementById( s.id )
+		).filter( Boolean );
+		if ( elements.length === 0 ) {
+			return undefined;
+		}
+		const observer = new IntersectionObserver(
+			( entries ) => {
+				if ( Date.now() < lockUntilRef.current ) {
+					return;
+				}
+				const visible = entries
+					.filter( ( e ) => e.isIntersecting )
+					.sort(
+						( a, b ) =>
+							a.boundingClientRect.top - b.boundingClientRect.top
+					);
+				if ( visible.length > 0 ) {
+					setActiveId( visible[ 0 ].target.id );
+				}
+			},
+			{ rootMargin: '-20% 0px -60% 0px', threshold: 0 }
+		);
+		elements.forEach( ( el ) => observer.observe( el ) );
+		return () => observer.disconnect();
+	}, [] );
+
+	const handleClick = ( id ) => ( event ) => {
+		event.preventDefault();
+		const target = document.getElementById( id );
+		if ( ! target ) {
+			return;
+		}
+		// Briefly suppress the observer so the click-driven highlight
+		// isn't fought by intersection events fired during the smooth
+		// scroll — otherwise the highlight can flicker through every
+		// section the scroll passes.
+		setActiveId( id );
+		lockUntilRef.current = Date.now() + 700;
+		target.scrollIntoView( { behavior: 'smooth', block: 'start' } );
+	};
+
+	return (
+		<aside
+			className="logscope-settings-panel__nav"
+			aria-label={ __( 'Settings sections', 'logscope' ) }
+		>
+			<ul className="logscope-settings-panel__nav-list">
+				{ SECTIONS.map( ( section ) => {
+					const on = section.id === activeId;
+					return (
+						<li key={ section.id }>
+							<a
+								href={ `#${ section.id }` }
+								className={
+									'logscope-settings-panel__nav-link' +
+									( on
+										? ' logscope-settings-panel__nav-link--on'
+										: '' )
+								}
+								onClick={ handleClick( section.id ) }
+							>
+								<span
+									className="logscope-settings-panel__nav-icon"
+									aria-hidden="true"
+								>
+									{ section.icon }
+								</span>
+								<span>{ section.label }</span>
+							</a>
+						</li>
+					);
+				} ) }
+			</ul>
+			<div className="logscope-settings-panel__nav-sep" />
+			<div className="logscope-settings-panel__nav-actions">
+				<Button
+					variant="primary"
+					type="submit"
+					isBusy={ isSaving }
+					disabled={ isSaving || ! isDirty }
+				>
+					{ __( 'Save settings', 'logscope' ) }
+				</Button>
+				<Button
+					variant="tertiary"
+					type="button"
+					onClick={ onReset }
+					disabled={ isSaving || ! isDirty }
+				>
+					{ __( 'Reset', 'logscope' ) }
+				</Button>
+				{ isDirty && (
+					<div className="logscope-settings-panel__nav-dirty">
+						{ __( 'Unsaved changes', 'logscope' ) }
+					</div>
+				) }
+			</div>
+		</aside>
 	);
 }
 

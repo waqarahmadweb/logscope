@@ -32,8 +32,8 @@ final class PageRenderer {
 	 */
 	public function render(): void {
 		?>
-		<div class="wrap">
-			<h1><?php echo esc_html__( 'Logscope', 'logscope' ); ?></h1>
+		<div class="wrap logscope-wrap">
+			<h1 class="screen-reader-text"><?php echo esc_html__( 'Logscope', 'logscope' ); ?></h1>
 			<div id="<?php echo esc_attr( self::ROOT_ELEMENT_ID ); ?>"></div>
 		</div>
 		<?php
