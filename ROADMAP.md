@@ -768,7 +768,7 @@ Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscod
 
 > The fourth P0 (one-click `WP_DEBUG` toggle) is **deferred to v1.1.0 / Phase 22.1** because it edits `wp-config.php` and warrants its own security-review pass on a post-1.0 release line.
 
--   [ ] **19.1** Admin bar status indicator
+-   [x] **19.1** Admin bar status indicator
 
     -   Hook `admin_bar_menu` (priority 90) to add a node when `logscope_manage` cap holds.
     -   Two states: green dot when `WP_DEBUG_LOG` is on, gray when off.
@@ -778,7 +778,7 @@ Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscod
     -   **AC**: Bar item visible to admin on any wp-admin screen; hidden from subscribers; toggle in Settings turns it off.
     -   **Commit**: `feat(admin): admin bar status indicator with error count`
 
--   [ ] **19.2** Dashboard widget showing latest errors
+-   [x] **19.2** Dashboard widget showing latest errors
 
     -   `wp_add_dashboard_widget('logscope_recent_errors', …)` gated by `logscope_manage`.
     -   Latest 5 errors with severity pill + truncated message + relative time.
@@ -787,7 +787,7 @@ Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscod
     -   **AC**: Widget renders on wp-admin Dashboard for users with the cap; hidden for users without.
     -   **Commit**: `feat(admin): dashboard widget for recent errors`
 
--   [ ] **19.3** Site Health integration
+-   [x] **19.3** Site Health integration
 
     -   Custom Site Health test via `site_status_tests` filter.
     -   Test turns red when fatals occurred in the last 24h, amber when only warnings, green when clean.
@@ -795,8 +795,10 @@ Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscod
     -   **AC**: Site Health → Status shows the Logscope test; manual fixture with a fresh fatal flips it red.
     -   **Commit**: `feat(admin): Site Health test for recent fatals`
 
--   [ ] **19.4** 🏷️ **Release v0.17.0** — Pre-1.0 feature parity
+-   [x] **19.4** 🏷️ **Release v0.17.0** — Pre-1.0 feature parity
     -   **Commit**: `chore(release): v0.17.0`
+
+> Phase 19 complete on 2026-05-09.
 
 ---
 

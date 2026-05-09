@@ -10,9 +10,12 @@ declare(strict_types=1);
 namespace Logscope;
 
 use Closure;
+use Logscope\Admin\AdminBar;
 use Logscope\Admin\AssetLoader;
+use Logscope\Admin\DashboardWidget;
 use Logscope\Admin\Menu;
 use Logscope\Admin\PageRenderer;
+use Logscope\Admin\SiteHealthTest;
 use Logscope\Alerts\AlertCoordinator;
 use Logscope\Alerts\AlertDeduplicator;
 use Logscope\Alerts\EmailAlerter;
@@ -256,6 +259,39 @@ final class Plugin {
 		);
 
 		$this->register(
+			'admin.admin_bar',
+			static function ( Plugin $plugin ): AdminBar {
+				$source = $plugin->get( 'log_source' );
+				assert( $source instanceof \Logscope\Log\FileLogSource );
+
+				$settings = $plugin->get( 'settings' );
+				assert( $settings instanceof Settings );
+
+				return new AdminBar( $source, $settings );
+			}
+		);
+
+		$this->register(
+			'admin.dashboard_widget',
+			static function ( Plugin $plugin ): DashboardWidget {
+				$repo = $plugin->get( 'log_repository' );
+				assert( $repo instanceof LogRepository );
+
+				return new DashboardWidget( $repo );
+			}
+		);
+
+		$this->register(
+			'admin.site_health_test',
+			static function ( Plugin $plugin ): SiteHealthTest {
+				$stats = $plugin->get( 'log.stats' );
+				assert( $stats instanceof LogStats );
+
+				return new SiteHealthTest( $stats );
+			}
+		);
+
+		$this->register(
 			'admin.asset_loader',
 			static function ( Plugin $plugin ): AssetLoader {
 				$menu = $plugin->get( 'admin.menu' );
@@ -473,6 +509,10 @@ final class Plugin {
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'admin_bar_menu', array( $this, 'register_admin_bar' ), AdminBar::HOOK_PRIORITY );
+		add_action( 'wp_before_admin_bar_render', array( $this, 'print_admin_bar_styles' ) );
+		add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
+		add_filter( 'site_status_tests', array( $this, 'register_site_health_test' ) );
 		add_action( 'logscope_scan_fatals', array( $this, 'run_cron_scan' ) );
 		add_action( CronScheduler::HOOK_ROTATE, array( $this, 'run_cron_rotate' ) );
 		add_filter( 'cron_schedules', array( __CLASS__, 'register_cron_schedule' ) );
@@ -631,6 +671,83 @@ final class Plugin {
 			$loader->enqueue( $hook_suffix );
 		} catch ( Throwable $e ) {
 			self::log_route_registration_failure( 'admin_enqueue', $e );
+		}
+	}
+
+	/**
+	 * `admin_bar_menu` callback. Resolves the {@see AdminBar} service
+	 * through the DI graph and lets it register its node. Wrapped in
+	 * `try/catch` for the same reason {@see Plugin::register_admin_menu()}
+	 * is — a constructor-time failure in the admin DI subgraph (e.g. a
+	 * misconfigured log path) must not abort the rest of WordPress's
+	 * admin-bar build.
+	 *
+	 * @param \WP_Admin_Bar $bar Admin bar instance.
+	 * @return void
+	 */
+	public function register_admin_bar( $bar ): void {
+		try {
+			$admin_bar = $this->get( 'admin.admin_bar' );
+			assert( $admin_bar instanceof AdminBar );
+			$admin_bar->register( $bar );
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'admin_bar', $e );
+		}
+	}
+
+	/**
+	 * `wp_before_admin_bar_render` callback. Pushes the inline styles the
+	 * Logscope bar node needs. Same `try/catch` posture as the registration
+	 * callback so a DI failure never produces a CSS-stripped admin bar.
+	 *
+	 * @return void
+	 */
+	public function print_admin_bar_styles(): void {
+		try {
+			$admin_bar = $this->get( 'admin.admin_bar' );
+			assert( $admin_bar instanceof AdminBar );
+			$admin_bar->print_styles();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'admin_bar_styles', $e );
+		}
+	}
+
+	/**
+	 * `wp_dashboard_setup` callback. Resolves the {@see DashboardWidget}
+	 * and lets it register its meta-box. Wrapped in `try/catch` for the
+	 * same reason the admin-bar callbacks are — a misconfigured log path
+	 * must not abort dashboard setup for everything else on the screen.
+	 *
+	 * @return void
+	 */
+	public function register_dashboard_widget(): void {
+		try {
+			$widget = $this->get( 'admin.dashboard_widget' );
+			assert( $widget instanceof DashboardWidget );
+			$widget->register();
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'dashboard_widget', $e );
+		}
+	}
+
+	/**
+	 * `site_status_tests` filter callback. Resolves the
+	 * {@see SiteHealthTest} and lets it append its row. Wrapped in
+	 * `try/catch` so a misconfigured log path returns the unmodified
+	 * tests list rather than aborting the Site Health screen for
+	 * everyone else.
+	 *
+	 * @param array<string, array<string, mixed>>|mixed $tests Existing tests.
+	 * @return array<string, array<string, mixed>>
+	 */
+	public function register_site_health_test( $tests ): array {
+		try {
+			$health = $this->get( 'admin.site_health_test' );
+			assert( $health instanceof SiteHealthTest );
+			return $health->register( $tests );
+		} catch ( Throwable $e ) {
+			self::log_route_registration_failure( 'site_health', $e );
+			return is_array( $tests ) ? $tests : array();
 		}
 	}
 

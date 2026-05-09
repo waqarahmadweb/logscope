@@ -43,6 +43,7 @@ final class Activator {
 		'logscope_default_per_page'           => 50,
 		'logscope_default_severity_filter'    => '',
 		'logscope_timestamp_tz'               => 'site',
+		'logscope_admin_bar_enabled'          => 1,
 		'logscope_db_version'                 => '1',
 	);
 

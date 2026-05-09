@@ -288,6 +288,14 @@ class SettingsSchema {
 					return implode( ',', $ordered );
 				},
 			),
+			'admin_bar_enabled'          => array(
+				'option_key' => 'logscope_admin_bar_enabled',
+				'type'       => 'integer',
+				'default'    => 1,
+				'sanitizer'  => static function ( $value ): int {
+					return self::coerce_bool_to_int( $value );
+				},
+			),
 			'timestamp_tz'               => array(
 				'option_key' => 'logscope_timestamp_tz',
 				'type'       => 'string',

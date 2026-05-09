@@ -157,7 +157,8 @@ export default function SettingsPanel() {
 		isFieldDirty( 'alert_dedup_window', false ) ||
 		isFieldDirty( 'default_per_page', false ) ||
 		isFieldDirty( 'default_severity_filter', true ) ||
-		isFieldDirty( 'timestamp_tz', true );
+		isFieldDirty( 'timestamp_tz', true ) ||
+		isFieldDirty( 'admin_bar_enabled', false );
 
 	const validationOk = monitoringValidation.valid && displayValidation.valid;
 
@@ -179,6 +180,7 @@ export default function SettingsPanel() {
 			default_per_page: Number( draft.default_per_page ) || PER_PAGE_MIN,
 			default_severity_filter: draft.default_severity_filter || '',
 			timestamp_tz: draft.timestamp_tz === 'utc' ? 'utc' : 'site',
+			admin_bar_enabled: Number( draft.admin_bar_enabled ) === 1 ? 1 : 0,
 		} );
 	};
 
