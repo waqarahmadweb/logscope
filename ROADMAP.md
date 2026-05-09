@@ -749,9 +749,9 @@ Goal: replace the default `@wordpress/components` look with the soft-pastel / Li
     -   Bulk mute from list view — `Mute (N)` acts inline by collapsing the selection to its distinct signatures and calling `bulkMuteSignatures` directly (signature is now exposed on every entry payload by `LogsController::shape_entry`).
     -   **Shipped in**: commits `2ddd94b` + `971e76d` + `c71e8b3`.
 
--   [ ] **18.7** StackTracePanel restyle + visual hierarchy
+-   [x] **18.7** StackTracePanel restyle + visual hierarchy
 
-    -   Match the new card surface; add visual call-stack hierarchy (indented frames, file/line aligned columns, plugin/theme/core color coding for frame source).
+    -   Match the new card surface; add visual call-stack hierarchy (file/line aligned columns, plugin/theme/core color coding for frame source).
     -   Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P1-3.
     -   **Commit**: `feat(ui): stack trace visual hierarchy`
 

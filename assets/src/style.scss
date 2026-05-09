@@ -1217,47 +1217,129 @@ body.tools_page_logscope {
 
 .logscope-trace {
 	list-style: none;
-	margin: 4px 12px 10px;
-	padding: 10px 14px;
-	background: var( --logscope-bg-sunken );
-	border: 1px solid var( --logscope-border-soft );
-	border-radius: var( --logscope-radius-sm );
+	margin: 6px 12px 12px;
+	padding: 10px 12px;
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
 	font-family: var( --logscope-font-mono );
+	display: grid;
+	// 4 columns: frame index · source tag · file:line · call
+	// File:line shares the row gutter so paths line up across frames
+	// and the eye can scan a single column to spot the offending file.
+	grid-template-columns: 28px minmax( 88px, auto ) minmax( 0, 1fr ) minmax(
+			0,
+			1.4fr
+		);
+	column-gap: 12px;
+	row-gap: 0;
 
 	&__frame {
-		display: flex;
-		gap: 10px;
-		align-items: baseline;
-		padding: 3px 0;
+		display: contents;
 		font-size: 11.5px;
-		line-height: 1.55;
+		line-height: 1.65;
+	}
+
+	// Subgrid-less alignment: every cell renders in its column with a
+	// shared bottom border, so the panel reads as a small table.
+	&__frame > * {
+		padding: 4px 0;
+		border-bottom: 1px solid var( --logscope-border-soft );
+		min-width: 0;
+	}
+
+	&__frame:last-child > * {
+		border-bottom: 0;
+	}
+
+	// De-emphasise core / unknown frames so plugin and theme frames —
+	// the ones an admin can actually act on — stand out at a glance.
+	&__frame--core,
+	&__frame--unknown {
+		opacity: 0.72;
 	}
 
 	&__index {
 		color: var( --logscope-fg-mute );
-		flex-shrink: 0;
-		width: 28px;
+		font-variant-numeric: tabular-nums;
+	}
+
+	&__source {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		max-width: 100%;
+		padding: 1px 8px;
+		border-radius: var( --logscope-radius-pill );
+		font-size: 10.5px;
+		font-weight: 600;
+		font-family: var( --logscope-font-mono );
+		letter-spacing: 0.01em;
+		background: var( --logscope-pill-unknown-bg );
+		color: var( --logscope-pill-unknown-fg );
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		// Keep the pill cell vertically centred inside the row instead of
+		// hugging the baseline like the surrounding text cells.
+		align-self: center;
+
+		&--plugin {
+			background: var( --logscope-pill-notice-bg );
+			color: var( --logscope-pill-notice-fg );
+		}
+		&--theme {
+			background: var( --logscope-pill-deprecated-bg );
+			color: var( --logscope-pill-deprecated-fg );
+		}
+		&--mu-plugin {
+			background: var( --logscope-pill-warning-bg );
+			color: var( --logscope-pill-warning-fg );
+		}
+		&--core,
+		&--unknown {
+			background: var( --logscope-pill-unknown-bg );
+			color: var( --logscope-pill-unknown-fg );
+		}
 	}
 
 	&__location {
 		appearance: none;
 		background: transparent;
 		border: 0;
-		padding: 0;
+		padding: 4px 0;
+		text-align: left;
 		color: var( --logscope-accent );
 		cursor: pointer;
 		font: inherit;
 		font-family: var( --logscope-font-mono );
 		text-decoration: underline dotted;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 
 		&:hover {
 			text-decoration: underline;
+		}
+
+		&:focus-visible {
+			outline: 2px solid var( --logscope-focus-ring );
+			outline-offset: 1px;
+			border-radius: var( --logscope-radius-xs );
 		}
 
 		&--internal {
 			color: var( --logscope-fg-muted );
 			cursor: default;
 			text-decoration: none;
+		}
+
+		code {
+			background: transparent;
+			padding: 0;
+			font-family: inherit;
+			font-size: inherit;
+			color: inherit;
 		}
 	}
 
