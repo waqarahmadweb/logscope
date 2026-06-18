@@ -100,6 +100,18 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.2'
+                  tools: composer:v2
+                  coverage: none
+
+            # Plugin Check activates the plugin; without runtime deps the
+            # autoloader require in logscope.php fatals. Ship prod deps only.
+            - name: Install composer dependencies (prod)
+              run: composer install --no-dev --no-interaction --prefer-dist
+
             - name: Setup pnpm
               uses: pnpm/action-setup@v4
 
