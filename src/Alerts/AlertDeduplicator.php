@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Alerts;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Transient-backed dedup window keyed by `(dispatcher_name, signature)`.
  * Prevents a single recurring fatal from triggering hundreds of emails

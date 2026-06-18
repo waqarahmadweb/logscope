@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Carries one page of items plus the totals needed to build
  * `X-WP-Total` / `X-WP-TotalPages` REST headers and to render

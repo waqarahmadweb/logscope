@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Wraps the `logscope_muted_signatures` option with a typed CRUD surface.
  *

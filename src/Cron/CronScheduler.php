@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Cron;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Single owner of the `logscope_scan_fatals` schedule. The activation
  * handler, deactivation handler, and the option-update listeners all

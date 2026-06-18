@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * One row in the grouped view: the signature, the representative
  * fields shared across the group, and the running count / first-seen

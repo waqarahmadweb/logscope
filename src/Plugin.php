@@ -505,7 +505,6 @@ final class Plugin {
 	 * @return void
 	 */
 	private function register_hooks(): void {
-		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
@@ -848,19 +847,6 @@ final class Plugin {
 				get_class( $error ),
 				$error->getMessage()
 			)
-		);
-	}
-
-	/**
-	 * Loads the plugin text domain from the bundled languages directory.
-	 *
-	 * @return void
-	 */
-	public function load_textdomain(): void {
-		load_plugin_textdomain(
-			'logscope',
-			false,
-			dirname( plugin_basename( LOGSCOPE_PLUGIN_FILE ) ) . '/languages'
 		);
 	}
 }

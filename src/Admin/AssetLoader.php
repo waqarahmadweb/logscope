@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Admin;
 
+defined( 'ABSPATH' ) || exit;
+
 use Logscope\REST\RestController;
 use Logscope\Settings\Settings;
 use Logscope\Support\Capabilities;

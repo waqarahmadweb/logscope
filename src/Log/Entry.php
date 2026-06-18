@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * One parsed entry from a debug log. A single entry can span multiple
  * lines: the `raw` field captures the full text including stack-trace

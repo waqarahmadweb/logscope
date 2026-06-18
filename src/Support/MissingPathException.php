@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Support;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Specialisation of {@see InvalidPathException} for the "candidate path
  * does not exist (or is not accessible)" rejection branch. Callers that

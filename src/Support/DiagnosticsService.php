@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Support;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Builds a structured, all-typed snapshot describing the host environment
  * the plugin is running in: whether `WP_DEBUG` / `WP_DEBUG_LOG` are on,

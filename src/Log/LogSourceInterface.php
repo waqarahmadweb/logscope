@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Minimal contract the log reader, parser, and tail mode all sit on top of.
  *

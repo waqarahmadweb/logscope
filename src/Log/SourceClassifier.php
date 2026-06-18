@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Pure helper that turns a file path observed in a log entry into a
  * stable source identifier the filter UI and grouped view can group

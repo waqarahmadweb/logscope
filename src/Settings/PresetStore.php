@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Settings;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Wraps the `logscope_filter_presets` user-meta key with a typed CRUD
  * surface. Each user owns their own list rather than sharing a global

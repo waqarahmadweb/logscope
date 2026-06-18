@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 use Logscope\Support\InvalidPathException;
 use Logscope\Support\PathGuard;
 

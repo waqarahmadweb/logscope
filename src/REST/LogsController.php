@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\REST;
 
+defined( 'ABSPATH' ) || exit;
+
 use Logscope\Log\Entry;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\Frame;

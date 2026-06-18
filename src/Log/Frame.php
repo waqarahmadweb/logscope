@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * One frame parsed from a PHP stack trace. Special frames are
  * represented by null patterns rather than dedicated subtypes:

@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Alerts;
 
+defined( 'ABSPATH' ) || exit;
+
 use Logscope\Log\Group;
 
 /**

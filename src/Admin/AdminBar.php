@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Admin;
 
+defined( 'ABSPATH' ) || exit;
+
 use DateTimeImmutable;
 use DateTimeZone;
 use Logscope\Log\LogParser;

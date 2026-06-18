@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Pure parser: text in, `Entry[]` out. No state, no side effects, no
  * filesystem access. This is the single most-tested class in the

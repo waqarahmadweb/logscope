@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Support;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Single source of truth for the capability required to manage Logscope.
  * Centralizing here lets site owners remap via the

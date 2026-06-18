@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Pure parser for the `#N ...` frame lines that PHP writes after
  * `Stack trace:` headers. Input is typically `Entry::$raw` for a fatal

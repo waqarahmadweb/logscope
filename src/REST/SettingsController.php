@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\REST;
 
+defined( 'ABSPATH' ) || exit;
+
 use InvalidArgumentException;
 use Logscope\Settings\Settings;
 use Logscope\Support\InvalidPathException;

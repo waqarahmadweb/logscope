@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\REST;
 
+defined( 'ABSPATH' ) || exit;
+
 use Logscope\Support\DiagnosticsService;
 use WP_REST_Response;
 

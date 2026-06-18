@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * String constants for entry severities. Implemented as a class of
  * constants rather than a PHP 8.1 enum because the project minimum is

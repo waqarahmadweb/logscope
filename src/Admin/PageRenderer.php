@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Admin;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The PHP side of the admin screen is intentionally bare: a heading for
  * a11y / SEO scrapers and a single mount node. Everything else — tabs,

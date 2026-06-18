@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Log;
 
+defined( 'ABSPATH' ) || exit;
+
 use Logscope\Support\PathGuard;
 
 /**
@@ -187,12 +189,11 @@ final class LogRotator {
 		for ( $i = 0; $i < $excess; $i++ ) {
 			$victim = $dated[ $i ]['path'];
 
-			// `@` is intentional: a failed `unlink` is non-fatal —
-			// the next tick's prune retries from the still-current
-			// archive list, and surfacing a per-file E_WARNING into
-			// the cron callback would not change that.
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink, WordPress.PHP.NoSilencedErrors.Discouraged
-			if ( @unlink( $victim ) ) {
+			// A failed delete is non-fatal — the next tick's prune retries
+			// from the still-current archive list. wp_delete_file() returns
+			// void, so confirm the unlink actually landed before recording it.
+			wp_delete_file( $victim );
+			if ( ! file_exists( $victim ) ) {
 				$pruned[] = $victim;
 			}
 		}

@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope\Cron;
 
+defined( 'ABSPATH' ) || exit;
+
 use Logscope\Alerts\AlertCoordinator;
 use Logscope\Log\Entry;
 use Logscope\Log\FileLogSource;
