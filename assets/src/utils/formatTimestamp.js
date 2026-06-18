@@ -69,6 +69,9 @@ function getFormatter( targetTz ) {
  * caller's chosen zone — this is correct when source TZ === target TZ
  * (the common case) and off by a fixed offset otherwise. Good enough for
  * a log viewer; revisit if/when we add a real TZ library.
+ *
+ * @param {string} raw The raw `d-M-Y H:i:s` timestamp string.
+ * @return {Date|null} The parsed instant, or null when unparseable.
  */
 function parseRaw( raw ) {
 	if ( typeof raw !== 'string' || raw === '' ) {
@@ -80,15 +83,15 @@ function parseRaw( raw ) {
 	if ( ! m ) {
 		return null;
 	}
-	const day = Number( m[ 1 ] );
 	const month = MONTHS[ m[ 2 ] ];
+	if ( month === undefined ) {
+		return null;
+	}
+	const day = Number( m[ 1 ] );
 	const year = Number( m[ 3 ] );
 	const hour = Number( m[ 4 ] );
 	const minute = Number( m[ 5 ] );
 	const second = Number( m[ 6 ] );
-	if ( month === undefined ) {
-		return null;
-	}
 	const ms = Date.UTC( year, month, day, hour, minute, second );
 	if ( Number.isNaN( ms ) ) {
 		return null;
@@ -99,10 +102,10 @@ function parseRaw( raw ) {
 /**
  * Format an entry timestamp for display.
  *
- * @param {string} raw  The raw timestamp from `entry.timestamp`.
- * @param {object} opts Bootstrap-style options.
- * @param {string} opts.mode      'site' or 'utc'. Defaults to 'site'.
- * @param {string} opts.siteTz    IANA zone for 'site' mode; defaults to UTC.
+ * @param {string} raw         The raw timestamp from `entry.timestamp`.
+ * @param {Object} opts        Bootstrap-style options.
+ * @param {string} opts.mode   'site' or 'utc'. Defaults to 'site'.
+ * @param {string} opts.siteTz IANA zone for 'site' mode; defaults to UTC.
  * @return {string} Formatted display string, or the raw input on any failure.
  */
 export function formatTimestamp( raw, opts = {} ) {
@@ -127,6 +130,9 @@ export function formatTimestamp( raw, opts = {} ) {
  * Convenience wrapper that pulls the mode + site TZ off
  * `window.LogscopeAdmin`. Most consumers can call this directly rather
  * than threading the bootstrap state through props.
+ *
+ * @param {string} raw The raw timestamp from `entry.timestamp`.
+ * @return {string} Formatted display string, or the raw input on any failure.
  */
 export function formatEntryTimestamp( raw ) {
 	if ( typeof window === 'undefined' ) {
