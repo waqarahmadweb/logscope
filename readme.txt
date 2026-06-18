@@ -97,6 +97,19 @@ Diagnostics data exposed through the `GET /diagnostics` REST endpoint (gated by 
 
 == Changelog ==
 
+= 0.17.0 =
+Phase 19: pre-1.0 feature parity.
+* New admin-bar status indicator on every wp-admin (and front-end-when-logged-in) screen for users with the `logscope_manage` cap. Green dot when `WP_DEBUG_LOG` is on, grey when off; a red badge shows today's entry count when non-zero. Click the node to jump to **Tools → Logscope**. Toggle the indicator off from the Display section of Settings if you find it noisy.
+* New "Logscope · Recent errors" widget on the wp-admin Dashboard. The five most recent log entries with severity pills, monospace messages, and human-readable relative times — `5 mins ago` rather than raw timestamps. "View all" footer link returns you to the Logs tab.
+* New Tools → Site Health test that goes red when fatal or parse errors occurred in the last 24 hours, amber when only warnings did, green when the window is clean. Action links deep-link into the Logs tab with the matching severity + 24-hour window pre-selected.
+* Stack-trace panel restyled with a four-column grid (frame index · source tag · file:line · call) and color-coded source tags so plugin and theme frames stand out from core glue at a glance.
+
+= 0.16.0 =
+Phase 18: pre-1.0 UI redesign.
+* Warm-pastel design tokens, page header with live counter pill, pill-on-tan-track tabs, single-row FilterBar with summary line, redesigned log table with inline regex-match highlighting, sticky bulk-action bar with inline list-view bulk mute.
+* Stack-trace panel restyled into a four-column grid with plugin / theme / mu-plugin / core color coding via a new client-side classifier mirroring the server-side `SourceClassifier`.
+* New Display section in Settings for admin-wide defaults: page size, severity preset, timestamp display (site time / UTC), plus a read-only WordPress debug constants card.
+
 = 0.15.0 =
 Release infrastructure for the v1.0.0 wp.org cut: this `readme.txt`, the `.wordpress-org/` asset spec, and the GitHub release workflow that builds the distribution zip on tag push.
 
@@ -177,6 +190,12 @@ Phase 1: tooling.
 Initial scaffold.
 
 == Upgrade Notice ==
+
+= 0.17.0 =
+Adds an admin-bar status indicator, a Dashboard widget, and a Site Health test. New `admin_bar_enabled` setting (default on) lets you hide the bar item if you find it noisy.
+
+= 0.16.0 =
+Pre-1.0 UI redesign — warm-pastel tokens, redesigned log table with inline search highlighting, redesigned stack-trace panel with plugin/theme/core color coding, new Display section in Settings.
 
 = 0.15.0 =
 Release infrastructure only — no runtime changes from 0.14.0.
