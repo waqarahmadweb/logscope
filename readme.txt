@@ -1,8 +1,8 @@
-=== Logscope ===
+=== Logscope — Debug Log Viewer ===
 Contributors: waqarahmadweb
 Tags: debug-log, error-log, logging, log-viewer, alerts
 Requires at least: 6.2
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 8.0
 Stable tag: 0.17.0
 License: GPLv2 or later
