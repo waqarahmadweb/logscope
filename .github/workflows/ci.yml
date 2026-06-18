@@ -127,10 +127,24 @@ jobs:
             - name: Build plugin assets
               run: pnpm build
 
+            # Assemble the exact tree that ships to wp.org: `git archive`
+            # honours `.gitattributes export-ignore` (drops tests, .github,
+            # dev dotfiles, AGENTS/CLAUDE/ROADMAP, etc.), then we layer in the
+            # built assets and prod-only vendor that are gitignored. Checking
+            # this instead of the raw checkout stops Plugin Check from flagging
+            # dev-only files that never reach the published zip.
+            - name: Assemble distribution
+              run: |
+                  mkdir -p dist
+                  git archive --format=tar HEAD | tar -x -C dist
+                  cp -r vendor dist/vendor
+                  mkdir -p dist/assets
+                  cp -r assets/build dist/assets/build
+
             - name: Run wp.org Plugin Check
               uses: WordPress/plugin-check-action@v1
               with:
-                  build-dir: '.'
+                  build-dir: 'dist'
                   categories: |
                       plugin_repo
                       security

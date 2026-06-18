@@ -34,6 +34,8 @@ AGENTS.md         export-ignore
 CLAUDE.md         export-ignore
 CHANGELOG.md      export-ignore
 ROADMAP.md        export-ignore
+README.md         export-ignore
+.gitkeep          export-ignore
 phpcs.xml.dist    export-ignore
 phpcs.xml         export-ignore
 phpunit.xml.dist  export-ignore
