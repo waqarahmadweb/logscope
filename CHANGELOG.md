@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Fixed
+
+-   CI is green again across all jobs. Three independent breakages had accumulated: (a) `pnpm-lock.yaml` was out of sync with `package.json` after the `basic-ftp` deploy dependency was added without regenerating the lockfile, so every `pnpm install --frozen-lockfile` job (JS lint, Plugin Check, the JS half of the audit job) failed fast with `ERR_PNPM_OUTDATED_LOCKFILE` — regenerated the lockfile so the `basic-ftp@^5.0.5` devDependency is recorded in the root importer; (b) the `audit` job ran `composer audit` with no prior `composer install`, so it aborted with "No installed packages found" — switched it to `composer audit --locked`, which audits the committed lockfile directly without needing a `vendor/` tree; (c) `phpcs` failed the PHP-lint matrix on a single `WordPress.WP.CronInterval.ChangeDetected` warning at `Plugin.php` (the sniff cannot statically follow the `cron_schedules` filter callback to verify the interval) — suppressed with an inline `phpcs:ignore` carrying the justification that the interval is validated to 1–1440 minutes in `SettingsSchema` before the schedule is registered.
+
 ### Changed
 
 -   `readme.txt` Changelog and Upgrade Notice sections now cover 0.16.0 (Phase 18 pre-1.0 UI redesign) and 0.17.0 (Phase 19 pre-1.0 feature parity) so the wp.org-facing release notes are not stuck two cycles behind the Stable tag — the directory listing renders those bodies verbatim, and the file had been frozen at 0.15.0 since Phase 17.1. The new entries mirror the CHANGELOG.md narratives in wp.org-flavoured bullets (one summary line plus 3–5 highlights), the same cadence the file's earlier entries set.

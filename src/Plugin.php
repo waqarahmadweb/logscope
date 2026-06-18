@@ -515,6 +515,7 @@ final class Plugin {
 		add_filter( 'site_status_tests', array( $this, 'register_site_health_test' ) );
 		add_action( 'logscope_scan_fatals', array( $this, 'run_cron_scan' ) );
 		add_action( CronScheduler::HOOK_ROTATE, array( $this, 'run_cron_rotate' ) );
+		// phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- interval validated to 1–1440 min in SettingsSchema before the schedule is registered.
 		add_filter( 'cron_schedules', array( __CLASS__, 'register_cron_schedule' ) );
 
 		// Re-align the WP schedule with the persisted toggle + interval
