@@ -95,7 +95,6 @@ jobs:
     plugin-check:
         name: wp.org Plugin Check
         runs-on: ubuntu-latest
-        continue-on-error: true
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -148,6 +147,10 @@ jobs:
               uses: WordPress/plugin-check-action@v1
               with:
                   build-dir: 'build/logscope'
+                  # Errors block the build; warnings stay visible in the log
+                  # but don't fail it — the one remaining warning is the
+                  # false-positive `logscope/email` slash-hook prefix.
+                  ignore-warnings: true
                   categories: |
                       plugin_repo
                       security
