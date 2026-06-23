@@ -37,6 +37,15 @@ final class FileLogSource implements LogSourceInterface {
 	private string $resolved_path;
 
 	/**
+	 * The validator, retained so the file leaf can be re-checked through the
+	 * allowlist once it exists (the constructor can only validate the parent
+	 * directory — see {@see FileLogSource::exists()}).
+	 *
+	 * @var PathGuard
+	 */
+	private PathGuard $guard;
+
+	/**
 	 * Validates the candidate path's parent directory and stores the
 	 * recombined safe path. Rejection happens at construction so misuse
 	 * surfaces immediately rather than on first read.
@@ -47,6 +56,7 @@ final class FileLogSource implements LogSourceInterface {
 	 *                              directory is outside the allowlist.
 	 */
 	public function __construct( string $raw_path, PathGuard $guard ) {
+		$this->guard = $guard;
 		if ( '' === $raw_path ) {
 			throw new InvalidPathException( 'Path is empty.' );
 		}
@@ -78,10 +88,31 @@ final class FileLogSource implements LogSourceInterface {
 	}
 
 	/**
-	 * True when the file is present and readable by the PHP process.
+	 * True when the file is present, readable, AND its canonical path is
+	 * still inside the allowlist.
+	 *
+	 * The constructor validates only the parent directory because the log
+	 * may not exist yet on a fresh install. Once the file IS present we
+	 * re-resolve the leaf through PathGuard: `realpath()` follows symlinks,
+	 * so a symlink planted at the log path (e.g. `debug.log -> /etc/passwd`)
+	 * resolves outside the allowlist and is rejected here. Every read path
+	 * (`read_chunk`, `size`, `mtime`) gates on `exists()`, so a failed leaf
+	 * check makes the source behave as empty rather than following the link.
 	 */
 	public function exists(): bool {
-		return is_file( $this->resolved_path ) && is_readable( $this->resolved_path );
+		if ( ! is_file( $this->resolved_path ) || ! is_readable( $this->resolved_path ) ) {
+			return false;
+		}
+
+		try {
+			$this->guard->resolve( $this->resolved_path );
+		} catch ( InvalidPathException $e ) {
+			// Covers MissingPathException too (it extends InvalidPathException):
+			// a leaf that no longer resolves or escapes the allowlist is unsafe.
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

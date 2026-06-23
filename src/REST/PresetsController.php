@@ -68,6 +68,21 @@ final class PresetsController extends RestController {
 					'methods'             => 'POST',
 					'callback'            => array( $this, 'handle_post' ),
 					'permission_callback' => array( $this, 'permission_callback' ),
+					// Bound + sanitize the name at the boundary (mirrors the
+					// store's own cap); `filters` is constrained to an object,
+					// with the store's allowlist doing the per-key validation.
+					'args'                => array(
+						'name'    => array(
+							'type'              => 'string',
+							'required'          => true,
+							'maxLength'         => PresetStore::MAX_NAME_LENGTH,
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+						'filters' => array(
+							'type'     => 'object',
+							'required' => false,
+						),
+					),
 				),
 			)
 		);
@@ -79,6 +94,14 @@ final class PresetsController extends RestController {
 				'methods'             => 'DELETE',
 				'callback'            => array( $this, 'handle_delete' ),
 				'permission_callback' => array( $this, 'permission_callback' ),
+				'args'                => array(
+					'name' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'maxLength'         => PresetStore::MAX_NAME_LENGTH,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
 			)
 		);
 	}

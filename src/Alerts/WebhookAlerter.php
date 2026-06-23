@@ -26,12 +26,15 @@ use Logscope\Log\Group;
  *
  * Security posture (the dispatcher is on the SSRF-attack-surface side of
  * the codebase):
- *   - URL is rejected at construction-time validation if it isn't a
- *     well-formed http(s) URL via {@see wp_http_validate_url()}; protocols
- *     like `file://`, `gopher://`, `dict://` cannot reach `wp_remote_post`.
- *   - `wp_remote_post()` is called with `redirection => 0` so a 30x
- *     response from the configured host cannot redirect the request to
- *     an internal address.
+ *   - URL is rejected at dispatch-time validation if it isn't a
+ *     well-formed http(s) URL via {@see wp_http_validate_url()} plus an
+ *     explicit scheme pin; protocols like `file://`, `gopher://`, `dict://`
+ *     cannot reach the HTTP API.
+ *   - Sent via {@see wp_safe_remote_post()} (not `wp_remote_post`), so the
+ *     `reject_unsafe_urls` guard refuses loopback and private/reserved IPs —
+ *     no SSRF pivot to internal services or cloud metadata endpoints.
+ *   - `redirection => 0` so a 30x response from the configured host cannot
+ *     redirect the request to an internal address.
  *   - `timeout => 5` so a slow webhook never holds up the alert pipeline.
  *   - Non-2xx responses are recorded as failure (return false) but do
  *     not throw — the coordinator continues with remaining backends.
@@ -141,7 +144,11 @@ final class WebhookAlerter implements AlertDispatcherInterface {
 			return false;
 		}
 
-		$response = wp_remote_post(
+		// Use the SAFE transport: it sets `reject_unsafe_urls`, so loopback
+		// and private/reserved IPs (127.0.0.1, 169.254.x cloud metadata,
+		// 10/172.16/192.168 ranges) are refused — closing the SSRF pivot a
+		// hostile or mistaken webhook URL would otherwise open on shared hosts.
+		$response = wp_safe_remote_post(
 			$validated,
 			array(
 				'timeout'     => self::REQUEST_TIMEOUT,

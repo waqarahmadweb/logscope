@@ -68,6 +68,22 @@ final class MuteController extends RestController {
 					'methods'             => 'POST',
 					'callback'            => array( $this, 'handle_post' ),
 					'permission_callback' => array( $this, 'permission_callback' ),
+					// Bound + sanitize the body at the boundary so a stored
+					// record can't carry unbounded or tag-laden input.
+					'args'                => array(
+						'signature' => array(
+							'type'              => 'string',
+							'required'          => true,
+							'maxLength'         => 255,
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+						'reason'    => array(
+							'type'              => 'string',
+							'required'          => false,
+							'maxLength'         => 500,
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
 				),
 			)
 		);
@@ -79,6 +95,14 @@ final class MuteController extends RestController {
 				'methods'             => 'DELETE',
 				'callback'            => array( $this, 'handle_delete' ),
 				'permission_callback' => array( $this, 'permission_callback' ),
+				'args'                => array(
+					'signature' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'maxLength'         => 255,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
 			)
 		);
 	}
