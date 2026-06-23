@@ -818,6 +818,14 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				},
 			};
 		case 'TAIL_APPEND_ENTRIES': {
+			// Tail emits a flat entry list; appending it while the view is
+			// grouped would inject raw entries (no signature/count) into the
+			// groups array, rendering as `×undefined` rows and colliding on
+			// React keys. Tail is stopped when switching to grouped, but a
+			// poll already in flight can resolve just after — drop it.
+			if ( state.viewMode !== 'list' ) {
+				return state;
+			}
 			const incoming = stampEntries( action.entries || [] );
 			// Rotation: server detected the file shrunk, so the response
 			// is a fresh baseline, not a delta. Replace the list, drop

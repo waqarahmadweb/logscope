@@ -31,7 +31,9 @@ export default function GroupedView() {
 		( select ) => {
 			const store = select( STORE_KEY );
 			return {
-				groups: store.getLogs(),
+				// Drop any stray raw entry (no signature) that slipped into
+				// the grouped array — see the TAIL_APPEND_ENTRIES guard.
+				groups: store.getLogs().filter( ( g ) => g && g.signature ),
 				filters: store.getFilters(),
 				isSavingMutes: store.isSavingMutes(),
 				perPage: store.getLogsPerPage(),
