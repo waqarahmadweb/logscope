@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Logscope;
 
+defined( 'ABSPATH' ) || exit;
+
 use Logscope\Cron\CronScheduler;
 
 /**
