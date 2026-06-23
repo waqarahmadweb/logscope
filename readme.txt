@@ -1,4 +1,4 @@
-=== Logscope — Debug Log Viewer ===
+=== Logscope ===
 Contributors: waqarahmadweb
 Tags: debug-log, error-log, logging, log-viewer, alerts
 Requires at least: 6.2
@@ -39,6 +39,10 @@ Logscope turns `wp-content/debug.log` into a real admin tool. Instead of SSHing 
 = Architecture =
 
 REST-first (`/wp-json/logscope/v1/*`), React admin UI on `@wordpress/data` and `@wordpress/components`. All log access flows through a `PathGuard` allowlist that resolves and validates paths before any filesystem call. Every REST route is gated by a `logscope_manage` capability check on a shared `RestController` base.
+
+= Open source / build =
+
+Logscope is fully open source (GPLv2+) and developed in the open at https://github.com/waqarahmadweb/logscope. The admin UI is built with `@wordpress/scripts`: the un-minified source lives in `assets/src/`, and the bundled `assets/build/` files are compiled from it (`pnpm install && pnpm build`). The repository is the canonical source for the human-readable code behind the shipped, minified assets.
 
 == Installation ==
 
@@ -110,90 +114,8 @@ Phase 19: pre-1.0 feature parity.
 * New Tools → Site Health test that goes red when fatal or parse errors occurred in the last 24 hours, amber when only warnings did, green when the window is clean. Action links deep-link into the Logs tab with the matching severity + 24-hour window pre-selected.
 * Stack-trace panel restyled with a four-column grid (frame index · source tag · file:line · call) and color-coded source tags so plugin and theme frames stand out from core glue at a glance.
 
-= 0.16.0 =
-Phase 18: pre-1.0 UI redesign.
-* Warm-pastel design tokens, page header with live counter pill, pill-on-tan-track tabs, single-row FilterBar with summary line, redesigned log table with inline regex-match highlighting, sticky bulk-action bar with inline list-view bulk mute.
-* Stack-trace panel restyled into a four-column grid with plugin / theme / mu-plugin / core color coding via a new client-side classifier mirroring the server-side `SourceClassifier`.
-* New Display section in Settings for admin-wide defaults: page size, severity preset, timestamp display (site time / UTC), plus a read-only WordPress debug constants card.
-
-= 0.15.0 =
-Release infrastructure for the v1.0.0 wp.org cut: this `readme.txt`, the `.wordpress-org/` asset spec, and the GitHub release workflow that builds the distribution zip on tag push.
-
-= 0.14.0 =
-Phase 16: onboarding, diagnostics, bulk actions.
-* Onboarding banner above the FilterBar when `WP_DEBUG_LOG` is off — embeds the exact `wp-config.php` lines and a link to the WordPress handbook. Dismissible per browser session.
-* Reason-aware empty-log state — the empty screen now names the underlying cause (file missing, file empty, all entries muted, filters too narrow) instead of one generic line.
-* `GET /diagnostics` REST endpoint over a new `DiagnosticsService` — typed snapshot of `WP_DEBUG` / `WP_DEBUG_LOG` / log path / size / mtime, fed to the banner and the empty state.
-* Bulk actions in grouped view — per-row checkbox, tri-state Select-all header, "Mute selected" (batched POST to `/logs/mute`) and "Export selected" (CSV blob built client-side, RFC 4180 quoted, UTF-8 BOM for Excel auto-detection).
-
-= 0.13.0 =
-Phase 15: stats dashboard.
-* New **Stats** tab with 24h / 7d / 30d range and hour / day bucket toggles.
-* Severity breakdown bar (proportions across the range), sparkline grid per severity (hand-rolled SVG, no chart library), top-10 signatures table with "View in Logs" click-through that pre-populates the FilterBar.
-* New `GET /stats` REST endpoint with transient caching keyed by file size + mtime + range + bucket + snapped-now boundary.
-
-= 0.12.0 =
-Phase 14: retention, mute, presets.
-* Opt-in size-based log rotation — daily cron renames `debug.log` to `debug.log.archived-YYYYMMDD-HHMMSS` once it crosses a configurable size, then prunes oldest archives beyond a configurable cap.
-* Mute — per-signature silencing with reason. Settings tab carries an unmute panel. Mute filter is on by default at the repository layer; `?include_muted=true` opts the management UI back in.
-* Filter presets — per-user named filter sets, save / load / delete from a FilterBar dropdown. Captures view mode alongside filter values.
-
-= 0.11.0 =
-Phase 13: scheduled fatal scanner.
-* Opt-in WP-Cron scanner reads bytes appended since the last tick, filters to fatal / parse, groups, and dispatches through the alert coordinator.
-* Configurable interval (1–1440 minutes), rotation-aware cursor, "Last scan: …" status line in Settings.
-
-= 0.10.0 =
-Phase 12: alerts subsystem.
-* Email and generic webhook backends fanned out by a single coordinator with per-dispatcher signature-keyed dedup.
-* Webhook hardened with two-layer http(s) scheme allowlist, no redirect following (anti-SSRF), 5s timeout.
-* "Send test alert" button in Settings hits a new `POST /alerts/test` route.
-
-= 0.9.0 =
-Phase 11: polish, accessibility, dark mode, i18n.
-* First dedicated stylesheet (variable-driven for light / OS dark / `admin-color-midnight`).
-* Loading skeletons replace the bare spinner. Toast / Snackbar surface for save success and REST failures.
-* Keyboard shortcuts (`/`, `g`, `t`, `?`), WAI-ARIA tablist with roving tabindex and arrow-key nav, `role="status"` / `role="alert"` regions, focus-visible ring.
-* `languages/logscope.pot` (87 strings, both PHP and JS).
-
-= 0.8.0 =
-Phase 8: settings tab is now a real form.
-* Edit `log_path` and `tail_interval`. Save through `POST /settings`.
-* Side-effect-free `POST /settings/test-path` probe that surfaces `PathGuard`'s verdict inline, with a clean fall-through to a parent-directory writability check for not-yet-created custom paths.
-
-= 0.7.0 =
-Phase 7: filters, grouping, stack-trace expansion, tail mode.
-* FilterBar with severity multi-select, debounced regex, date range, source dropdown — URL-mirrored.
-* Grouped view backed by signature grouping. List ↔ grouped mode toggle.
-* `StackTracePanel` with click-to-copy `file:line` for fatals.
-* Tail mode polling `GET /logs?since=<last_byte>` with rotation detection and an "N new entries" pill.
-
-= 0.6.0 =
-Phase 6: admin page and React viewer shell.
-* **Tools → Logscope** menu, gated by `logscope_manage`.
-* React app on `@wordpress/data` consuming the REST surface. Virtualized log list (`react-window`).
-* Two-tab layout (Logs · Settings) with hashchange-driven routing.
-
-= 0.5.0 =
-Phases 4 and 5: REST surface and settings backend.
-* `GET / DELETE /logs`, `GET /logs/download`, `GET / POST /settings`.
-* Schema-driven settings facade. Abstract `RestController` base centralising 401 / 403.
-
-= 0.4.0 =
-Phase 3: log-reading and parsing foundation.
-* `PathGuard` allowlist with traversal protection.
-* `FileLogSource` (chunked reads, no whole-file loads), `LogParser` (six WP severity tokens), `StackTraceParser`, `LogGrouper` (md5 signature with hex / string / int normalisation), `LogRepository` facade.
-
-= 0.3.0 =
-Phase 2: plugin bootstrap.
-* DI container, activation / deactivation / uninstall lifecycle, capability helper, PHPUnit + Brain Monkey scaffolding.
-
-= 0.2.0 =
-Phase 1: tooling.
-* Composer + pnpm, phpcs (WordPress Coding Standards) + ESLint / Prettier, GitHub Actions CI, husky + lint-staged pre-commit.
-
-= 0.1.0 =
-Initial scaffold.
+For older releases, see the bundled changelog.txt or CHANGELOG.md on GitHub:
+https://github.com/waqarahmadweb/logscope/blob/main/CHANGELOG.md
 
 == Upgrade Notice ==
 
@@ -203,8 +125,3 @@ Security hardening (anti-SSRF webhook transport, tighter REST validation) plus g
 = 0.17.0 =
 Adds an admin-bar status indicator, a Dashboard widget, and a Site Health test. New `admin_bar_enabled` setting (default on) lets you hide the bar item if you find it noisy.
 
-= 0.16.0 =
-Pre-1.0 UI redesign — warm-pastel tokens, redesigned log table with inline search highlighting, redesigned stack-trace panel with plugin/theme/core color coding, new Display section in Settings.
-
-= 0.15.0 =
-Release infrastructure only — no runtime changes from 0.14.0.
