@@ -284,6 +284,9 @@ const actions = {
 	settingsSaved( payload ) {
 		return { type: 'SETTINGS_SAVED', payload };
 	},
+	settingsSavedQuiet( payload ) {
+		return { type: 'SETTINGS_SAVED_QUIET', payload };
+	},
 	failSaveSettings( error, fieldErrors = {} ) {
 		return { type: 'SETTINGS_SAVE_FAILED', error, fieldErrors };
 	},
@@ -322,7 +325,11 @@ const actions = {
 					type: 'API_SAVE_SETTINGS',
 					body: pendingSettings,
 				};
-				yield actions.settingsSaved( saved );
+				// Quiet save: refresh persisted `values` so the test reads
+				// the channels server-side, but DON'T replace the working
+				// draft — a full settingsSaved would wipe an unsaved master-
+				// toggle flip and silently switch "Watch the log" back off.
+				yield actions.settingsSavedQuiet( saved );
 			} catch ( error ) {
 				yield actions.failAlertTest(
 					error?.message ||
@@ -1045,6 +1052,22 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					draft: { ...action.payload },
 					fieldErrors: {},
 					lastSavedAt: Date.now(),
+				},
+			};
+		case 'SETTINGS_SAVED_QUIET':
+			// Side-effect save from "Send test alert": persist the channel
+			// fields server-side (so the test dispatches against real config)
+			// without discarding the working draft. Leaving `draft` untouched
+			// keeps an unsaved master-toggle flip intact, and dirty detection
+			// (draft vs values, per field) correctly keeps Save enabled until
+			// the user actually saves the toggle.
+			return {
+				...state,
+				settings: {
+					...state.settings,
+					saveError: null,
+					values: { ...action.payload },
+					fieldErrors: {},
 				},
 			};
 		case 'SETTINGS_SAVE_FAILED':
