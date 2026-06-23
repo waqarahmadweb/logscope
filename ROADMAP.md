@@ -823,7 +823,7 @@ Goal: every security-sensitive surface re-reviewed under one pass before the pub
     -   Plugin Check tool clean
     -   `readme.txt` validated against the wp.org validator
     -   Banner + icon final assets in `.wordpress-org/`
-    -   7 screenshots re-captured on the v1.0 UI
+    -   6 screenshots re-captured on the v1.0 UI (wp.org allows 5–7; 6 cover viewer, grouped+bulk, stats, alerts, mute, onboarding — captions in `readme.txt`)
     -   `.gitattributes export-ignore` covers every dev file
     -   Activation smoke test on PHP 8.0, 8.1, 8.2, 8.3 — no notices, no warnings
     -   Zip < 10 MB

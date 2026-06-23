@@ -31,7 +31,13 @@ export default function GroupedView() {
 		( select ) => {
 			const store = select( STORE_KEY );
 			return {
-				groups: store.getLogs(),
+				// Only real groups carry a numeric `count` — raw entries do
+				// not (they share the `signature` field, so that alone is not
+				// a safe discriminator). Filtering here drops any wrong-shape
+				// item so it cannot render as `×undefined` or collide on keys.
+				groups: store
+					.getLogs()
+					.filter( ( g ) => g && typeof g.count === 'number' ),
 				filters: store.getFilters(),
 				isSavingMutes: store.isSavingMutes(),
 				perPage: store.getLogsPerPage(),
