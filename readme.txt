@@ -4,7 +4,7 @@ Tags: debug-log, error-log, logging, log-viewer, alerts
 Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.17.0
+Stable tag: 0.18.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,7 +34,6 @@ Logscope turns `wp-content/debug.log` into a real admin tool. Instead of SSHing 
 * **Diagnostics** — `GET /diagnostics` REST endpoint reports `WP_DEBUG`, `WP_DEBUG_LOG`, the resolved log path, file existence, size, and mtime.
 * **Keyboard shortcuts** — `/` focuses search, `g` toggles list ↔ grouped, `t` toggles tail mode, `?` opens the help modal.
 * **Accessibility** — WAI-ARIA tablist, roving tabindex, `role="status"` / `role="alert"` live regions, focus-visible ring, WCAG AA-contrast severity pills.
-* **Dark mode** — follows `prefers-color-scheme` and the WordPress `admin-color-midnight` admin scheme.
 * **i18n** — every user-facing string is translatable. `languages/logscope.pot` ships in the zip.
 
 = Architecture =
@@ -96,6 +95,13 @@ The only outbound traffic Logscope can produce is from the alerts subsystem, and
 Diagnostics data exposed through the `GET /diagnostics` REST endpoint (gated by the `logscope_manage` capability) covers `WP_DEBUG`, `WP_DEBUG_LOG`, the resolved log path, file size, and modification time. This information is already visible to anyone with the manage capability through the existing settings surface.
 
 == Changelog ==
+
+= 0.18.0 =
+Phase 20: pre-1.0 security gate and UI fixes.
+* Ships **light-only** for now — WordPress 7.0 began honouring OS dark mode inside wp-admin, which exposed a broken half-dark palette (light background, dark surfaces). A correctly built dark mode returns in a later release.
+* Grouped view fixes: the expanded detail panel now spans the full row width, the phantom "×undefined" group is gone, and the bulk-action bar no longer overlaps the first row.
+* Settings fix: clicking "Send test alert" with an unsaved "Watch the log and send alerts" toggle no longer flips the toggle back off.
+* Security hardening: webhook alerts now use WordPress's safe HTTP transport, which refuses requests to private / internal / loopback addresses (anti-SSRF); plus tighter input validation on the mute and preset REST routes and direct-access guards across every PHP file.
 
 = 0.17.0 =
 Phase 19: pre-1.0 feature parity.
@@ -190,6 +196,9 @@ Phase 1: tooling.
 Initial scaffold.
 
 == Upgrade Notice ==
+
+= 0.18.0 =
+Security hardening (anti-SSRF webhook transport, tighter REST validation) plus grouped-view and settings UI fixes. Ships light-only while a proper dark mode is rebuilt.
 
 = 0.17.0 =
 Adds an admin-bar status indicator, a Dashboard widget, and a Site Health test. New `admin_bar_enabled` setting (default on) lets you hide the bar item if you find it noisy.
