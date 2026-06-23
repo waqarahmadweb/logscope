@@ -4,6 +4,8 @@
 
 # Build artifacts
 /assets/build/
+/build/
+/dist/
 
 # Compiled translations (source .po / .pot are tracked)
 /languages/*.mo
