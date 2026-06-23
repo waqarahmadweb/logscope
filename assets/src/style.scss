@@ -1367,8 +1367,10 @@ body.tools_page_logscope {
 	}
 
 	&__detail {
+		// Span every column on its own implicit row below the summary.
+		// (A `grid-area: auto` here previously reset this span, dropping the
+		// panel into the 28px checkbox column → text wrapped one char wide.)
 		grid-column: 1 / -1;
-		grid-area: auto;
 		padding: 12px 16px 14px;
 		background: var( --logscope-bg-sunken );
 		border-top: 1px solid var( --logscope-border-soft );
