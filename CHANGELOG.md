@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-06-23
+
+First public release on the WordPress.org plugin directory — Phase 21 of the [roadmap](ROADMAP.md). No functional changes from 0.18.0; this is the public 1.0 cut. The complete feature set built across the pre-1.0 cycle (log viewer, filters, grouped view + bulk actions, tail mode, stats dashboard, email/webhook alerts, scheduled scanner, log rotation, mute, presets, admin-bar / Dashboard widget / Site Health surfaces) ships hardened by the full Phase 20 security and privacy review.
+
 ## [0.18.0] - 2026-06-23
 
 Closes Phase 20 of the [roadmap](ROADMAP.md): the pre-1.0 security gate (20.1 review hardening + the 20.2 pre-submission pass). Ships the light-only theme that resolves the WordPress 7.0 dark-mode regression, the four grouped-view / settings UI fixes found while preparing the wp.org assets, a four-item security hardening pass (anti-SSRF webhook transport, ABSPATH guards, log-leaf symlink re-validation, boundary REST schemas), the `uninstall.php` completeness fix, and the wp.org packaging work (Plugin Check header/runtime fixes, one-command `pnpm package` zip builder, removal of the obsolete FTP deploy stack).

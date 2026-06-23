@@ -4,6 +4,12 @@ Full version history for Logscope. The bundled readme.txt keeps only the
 two most recent releases (per WordPress.org guidelines); the complete
 history lives here and in CHANGELOG.md on GitHub.
 
+= 1.0.0 =
+First public release of Logscope on WordPress.org.
+* The 1.0 milestone ships the complete feature set from the pre-1.0 cycle — virtualized log viewer; severity, regex, date, and source filters; grouped view with bulk mute and CSV export; tail mode; stats dashboard; email and webhook alerts; the scheduled fatal scanner; opt-in log rotation; signature mute; filter presets; and the admin-bar, Dashboard widget, and Site Health surfaces.
+* Backed by a full security and privacy review: PathGuard path allowlisting, capability-gated REST routes, anti-SSRF webhook transport, and zero telemetry.
+* No functional changes from 0.18.0 — this release marks the public debut.
+
 = 0.18.0 =
 Phase 20: pre-1.0 security gate and UI fixes.
 * Ships **light-only** for now — WordPress 7.0 began honouring OS dark mode inside wp-admin, which exposed a broken half-dark palette (light background, dark surfaces). A correctly built dark mode returns in a later release.

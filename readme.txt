@@ -4,7 +4,7 @@ Tags: debug-log, error-log, logging, log-viewer, alerts
 Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.18.0
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -100,6 +100,12 @@ Diagnostics data exposed through the `GET /diagnostics` REST endpoint (gated by 
 
 == Changelog ==
 
+= 1.0.0 =
+First public release of Logscope on WordPress.org.
+* The 1.0 milestone ships the complete feature set from the pre-1.0 cycle — virtualized log viewer; severity, regex, date, and source filters; grouped view with bulk mute and CSV export; tail mode; stats dashboard; email and webhook alerts; the scheduled fatal scanner; opt-in log rotation; signature mute; filter presets; and the admin-bar, Dashboard widget, and Site Health surfaces.
+* Backed by a full security and privacy review: PathGuard path allowlisting, capability-gated REST routes, anti-SSRF webhook transport, and zero telemetry.
+* No functional changes from 0.18.0 — this release marks the public debut.
+
 = 0.18.0 =
 Phase 20: pre-1.0 security gate and UI fixes.
 * Ships **light-only** for now — WordPress 7.0 began honouring OS dark mode inside wp-admin, which exposed a broken half-dark palette (light background, dark surfaces). A correctly built dark mode returns in a later release.
@@ -107,21 +113,14 @@ Phase 20: pre-1.0 security gate and UI fixes.
 * Settings fix: clicking "Send test alert" with an unsaved "Watch the log and send alerts" toggle no longer flips the toggle back off.
 * Security hardening: webhook alerts now use WordPress's safe HTTP transport, which refuses requests to private / internal / loopback addresses (anti-SSRF); plus tighter input validation on the mute and preset REST routes and direct-access guards across every PHP file.
 
-= 0.17.0 =
-Phase 19: pre-1.0 feature parity.
-* New admin-bar status indicator on every wp-admin (and front-end-when-logged-in) screen for users with the `logscope_manage` cap. Green dot when `WP_DEBUG_LOG` is on, grey when off; a red badge shows today's entry count when non-zero. Click the node to jump to **Tools → Logscope**. Toggle the indicator off from the Display section of Settings if you find it noisy.
-* New "Logscope · Recent errors" widget on the wp-admin Dashboard. The five most recent log entries with severity pills, monospace messages, and human-readable relative times — `5 mins ago` rather than raw timestamps. "View all" footer link returns you to the Logs tab.
-* New Tools → Site Health test that goes red when fatal or parse errors occurred in the last 24 hours, amber when only warnings did, green when the window is clean. Action links deep-link into the Logs tab with the matching severity + 24-hour window pre-selected.
-* Stack-trace panel restyled with a four-column grid (frame index · source tag · file:line · call) and color-coded source tags so plugin and theme frames stand out from core glue at a glance.
-
 For older releases, see the bundled changelog.txt or CHANGELOG.md on GitHub:
 https://github.com/waqarahmadweb/logscope/blob/main/CHANGELOG.md
 
 == Upgrade Notice ==
 
+= 1.0.0 =
+First stable release of Logscope on the WordPress.org plugin directory. Same code as 0.18.0 — the public 1.0 milestone.
+
 = 0.18.0 =
 Security hardening (anti-SSRF webhook transport, tighter REST validation) plus grouped-view and settings UI fixes. Ships light-only while a proper dark mode is rebuilt.
-
-= 0.17.0 =
-Adds an admin-bar status indicator, a Dashboard widget, and a Site Health test. New `admin_bar_enabled` setting (default on) lets you hide the bar item if you find it noisy.
 
