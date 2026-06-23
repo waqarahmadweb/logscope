@@ -2454,7 +2454,12 @@ $severity-unknown: #889096;
 	// the selection is cleared.
 	&--active {
 		position: sticky;
-		top: 32px; // wp admin top bar
+		// Sticky reference is the grouped scroll pane (.logscope-viewer--grouped,
+		// overflow:auto), not the page — so pin to that container's top edge.
+		// A 32px offset (the wp-admin bar) would shift the header down INTO the
+		// pane and cover the first row. List's bulk bar sits outside its scroll
+		// pane, which is why it correctly uses 32px.
+		top: 0;
 		z-index: 5;
 		background: var( --logscope-fg );
 		color: var( --logscope-bg-muted );
