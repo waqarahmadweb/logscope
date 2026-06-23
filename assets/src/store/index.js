@@ -745,7 +745,17 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				action.mode === 'grouped' && state.tail.active
 					? { ...state.tail, active: false, newCount: 0 }
 					: state.tail;
-			return { ...state, viewMode: action.mode, tail };
+			// Entries (list) and groups carry different shapes. Carrying the
+			// old view's items into the new one renders the wrong shape until
+			// the refetch lands — most visibly a raw entry shown as a
+			// `×undefined` group. Clear to a loading state so each view only
+			// ever sees its own data; the view-mode fetch effect repopulates.
+			return {
+				...state,
+				viewMode: action.mode,
+				tail,
+				logs: { ...state.logs, items: [], isLoading: true },
+			};
 		}
 		case 'SET_FILTERS':
 			return {
