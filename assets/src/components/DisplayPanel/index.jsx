@@ -24,13 +24,6 @@ import { SEVERITY_TOKENS, severityLabel } from '../../utils/severity';
 const PER_PAGE_MIN = 10;
 const PER_PAGE_MAX = 500;
 
-export const DISPLAY_FIELD_KEYS = [
-	'default_per_page',
-	'default_severity_filter',
-	'timestamp_tz',
-	'admin_bar_enabled',
-];
-
 /**
  * Pure validator over the display draft. Returns `{ valid, errors }`
  * keyed by field name. Exported so SettingsPanel can gate Save without

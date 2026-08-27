@@ -55,5 +55,3 @@ export default function ToastHost() {
 		</div>
 	);
 }
-
-export { DEFAULT_TIMEOUT_MS };

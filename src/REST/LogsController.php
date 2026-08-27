@@ -213,12 +213,13 @@ final class LogsController extends RestController {
 	 */
 	public function handle_index( WP_REST_Request $request ) {
 		try {
-			$query = $this->build_query( (array) $request->get_params() );
+			$query  = $this->build_query( (array) $request->get_params() );
+			// query() can also throw: a pattern that passes compilation can
+			// still blow the PCRE backtrack budget against real log content.
+			$result = $this->repository->query( $query );
 		} catch ( LogQueryException $e ) {
 			return $this->error( 'logscope_rest_bad_query', $e->getMessage(), 400 );
 		}
-
-		$result = $this->repository->query( $query );
 
 		$response = new WP_REST_Response( $this->serialize_result( $result, $query->grouped ) );
 		$response->header( 'X-WP-Total', (string) $result->total );
@@ -286,6 +287,14 @@ final class LogsController extends RestController {
 		}
 
 		$archive_path = self::archive_path_for( $path, gmdate( 'Ymd-His' ) );
+
+		// Same-second double-clear must not overwrite the first archive —
+		// rename() replaces an existing target on most filesystems.
+		$bump = 1;
+		while ( file_exists( $archive_path ) && $bump < 100 ) {
+			$archive_path = self::archive_path_for( $path, gmdate( 'Ymd-His' ) . '-' . $bump );
+			++$bump;
+		}
 
 		// PathGuard validated the parent directory; the suffix is built
 		// internally from gmdate() and the existing basename, so the

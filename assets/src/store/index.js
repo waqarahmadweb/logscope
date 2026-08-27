@@ -20,7 +20,7 @@
  *     asks for entries strictly after it; `newCount` is shown in the
  *     "N new" pill when the user has scrolled away from the bottom.
  *   - settings: { values, draft, isLoading, isSaving, loadError,
- *     saveError, fieldErrors, lastSavedAt, testResult, isTesting } —
+ *     saveError, fieldErrors, testResult, isTesting } —
  *     Phase 8. `values` is server-of-record, `draft` is the editing
  *     buffer the panel renders. `fieldErrors` maps a field key to a
  *     translated error string when the REST layer rejects per-field.
@@ -29,7 +29,7 @@
  *     11.1). Each entry has a stable id so dismiss-by-id can race-free
  *     coexist with auto-prune timers in the host component.
  */
-import { createReduxStore, register, select } from '@wordpress/data';
+import { createReduxStore, register } from '@wordpress/data';
 import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { client } from '../api/client';
@@ -106,7 +106,6 @@ const DEFAULT_STATE = {
 		loadError: null,
 		saveError: null,
 		fieldErrors: {},
-		lastSavedAt: 0,
 		testResult: null,
 		testError: null,
 		isTesting: false,
@@ -121,7 +120,6 @@ const DEFAULT_STATE = {
 		isLoading: false,
 		isSaving: false,
 		loadError: null,
-		saveError: null,
 	},
 	presets: {
 		items: [],
@@ -164,6 +162,34 @@ function stampEntry( entry ) {
 }
 function stampEntries( items ) {
 	return ( items || [] ).map( stampEntry );
+}
+
+/**
+ * Shared body of the two /logs thunks — one fetch pipeline, two receive
+ * actions (replace vs append). References `actions` at call time, so the
+ * declaration order relative to the actions object does not matter.
+ *
+ * @param {Object}   params        Query params for GET /logs.
+ * @param {Function} receiveAction Action creator handed the response.
+ * @param {string}   errorCopy     Toast fallback when the error has no message.
+ */
+function* fetchLogsInto( params, receiveAction, errorCopy ) {
+	yield actions.startLoadingLogs();
+	try {
+		const response = yield {
+			type: 'API_FETCH_LOGS',
+			params,
+		};
+		yield receiveAction( response );
+	} catch ( error ) {
+		yield actions.failLogs(
+			error?.message || __( 'Unknown error', 'logscope' )
+		);
+		yield actions.pushToast( {
+			message: error?.message || errorCopy,
+			status: 'error',
+		} );
+	}
 }
 
 const actions = {
@@ -225,49 +251,25 @@ const actions = {
 		return { type: 'LOGS_FAILED', error };
 	},
 	*fetchLogs( params = {} ) {
-		yield actions.startLoadingLogs();
-		try {
-			const response = yield {
-				type: 'API_FETCH_LOGS',
-				params,
-			};
-			yield actions.receiveLogs( response );
-		} catch ( error ) {
-			yield actions.failLogs( error?.message || __( 'Unknown error', 'logscope' ) );
-			yield actions.pushToast( {
-				message:
-					error?.message || __( 'Could not load logs.', 'logscope' ),
-				status: 'error',
-			} );
-		}
+		yield* fetchLogsInto(
+			params,
+			actions.receiveLogs,
+			__( 'Could not load logs.', 'logscope' )
+		);
 	},
 	*fetchNextLogsPage( params = {} ) {
-		// Infinite-scroll loader. Mirrors fetchLogs but appends to the
-		// existing list rather than replacing it. The scroll handler in
-		// LogViewer is responsible for not re-firing while a request is
-		// already in flight or after the loaded set covers `total`.
-		yield actions.startLoadingLogs();
-		try {
-			const response = yield {
-				type: 'API_FETCH_LOGS',
-				params,
-			};
-			yield actions.appendLogs( response );
-		} catch ( error ) {
-			yield actions.failLogs( error?.message || __( 'Unknown error', 'logscope' ) );
-			yield actions.pushToast( {
-				message:
-					error?.message ||
-					__( 'Could not load more logs.', 'logscope' ),
-				status: 'error',
-			} );
-		}
+		// Infinite-scroll loader: appends to the existing list rather than
+		// replacing it. The scroll handler in LogViewer is responsible for
+		// not re-firing while a request is already in flight or after the
+		// loaded set covers `total`.
+		yield* fetchLogsInto(
+			params,
+			actions.appendLogs,
+			__( 'Could not load more logs.', 'logscope' )
+		);
 	},
 	setSettingsDraft( partial ) {
 		return { type: 'SETTINGS_SET_DRAFT', partial };
-	},
-	resetSettingsDraft() {
-		return { type: 'SETTINGS_RESET_DRAFT' };
 	},
 	startLoadingSettings() {
 		return { type: 'SETTINGS_LOADING' };
@@ -654,10 +656,10 @@ const actions = {
 	failLoadStats( error ) {
 		return { type: 'STATS_LOAD_FAILED', error };
 	},
-	*fetchStats() {
+	*fetchStats( range, bucket ) {
 		yield actions.startLoadingStats();
 		try {
-			const payload = yield { type: 'API_FETCH_STATS' };
+			const payload = yield { type: 'API_FETCH_STATS', range, bucket };
 			yield actions.receiveStats( payload );
 		} catch ( error ) {
 			yield actions.failLoadStats( error?.message || __( 'Unknown error', 'logscope' ) );
@@ -1027,18 +1029,6 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					),
 				},
 			};
-		case 'SETTINGS_RESET_DRAFT':
-			return {
-				...state,
-				settings: {
-					...state.settings,
-					draft: state.settings.values
-						? { ...state.settings.values }
-						: null,
-					fieldErrors: {},
-					saveError: null,
-				},
-			};
 		case 'SETTINGS_SAVING':
 			return {
 				...state,
@@ -1059,7 +1049,6 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					values: { ...action.payload },
 					draft: { ...action.payload },
 					fieldErrors: {},
-					lastSavedAt: Date.now(),
 				},
 			};
 		case 'SETTINGS_SAVED_QUIET':
@@ -1196,7 +1185,6 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					isLoading: false,
 					isSaving: false,
 					loadError: null,
-					saveError: null,
 					items: action.items,
 				},
 			};
@@ -1215,16 +1203,16 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				mutes: {
 					...state.mutes,
 					isSaving: true,
-					saveError: null,
 				},
 			};
 		case 'MUTES_SAVE_FAILED':
+			// The failure surfaces through the thunk's toast; no component
+			// reads a per-slice mute save error.
 			return {
 				...state,
 				mutes: {
 					...state.mutes,
 					isSaving: false,
-					saveError: action.error,
 				},
 			};
 		case 'PRESETS_LOADING':
@@ -1380,7 +1368,6 @@ const selectors = {
 	getSettingsLoadError: ( state ) => state.settings.loadError,
 	getSettingsSaveError: ( state ) => state.settings.saveError,
 	getSettingsFieldErrors: ( state ) => state.settings.fieldErrors,
-	getSettingsLastSavedAt: ( state ) => state.settings.lastSavedAt,
 	getPathTestResult: ( state ) => state.settings.testResult,
 	getPathTestError: ( state ) => state.settings.testError,
 	isTestingPath: ( state ) => state.settings.isTesting,
@@ -1398,17 +1385,12 @@ const selectors = {
 	isLoadingMutes: ( state ) => state.mutes.isLoading,
 	isSavingMutes: ( state ) => state.mutes.isSaving,
 	getMutesLoadError: ( state ) => state.mutes.loadError,
-	getMutesSaveError: ( state ) => state.mutes.saveError,
-	isMuted: ( state, signature ) =>
-		state.mutes.items.some( ( m ) => m.signature === signature ),
 	getStatsRange: ( state ) => state.stats.range,
 	getStatsBucket: ( state ) => state.stats.bucket,
 	getStatsData: ( state ) => state.stats.data,
 	isLoadingStats: ( state ) => state.stats.isLoading,
 	getStatsLoadError: ( state ) => state.stats.loadError,
 	getDiagnostics: ( state ) => state.diagnostics.data,
-	isLoadingDiagnostics: ( state ) => state.diagnostics.isLoading,
-	getDiagnosticsLoadError: ( state ) => state.diagnostics.loadError,
 	getToasts: ( state ) => state.toasts,
 };
 
@@ -1446,13 +1428,7 @@ const controls = {
 	API_DELETE_PRESET( { name } ) {
 		return client.deletePreset( name );
 	},
-	API_FETCH_STATS() {
-		// Read current range/bucket out of the store so the thunk caller
-		// does not have to thread them through. `select` is imported
-		// statically; the registered store is the source of truth for
-		// what to fetch.
-		const range = select( STORE_KEY ).getStatsRange();
-		const bucket = select( STORE_KEY ).getStatsBucket();
+	API_FETCH_STATS( { range, bucket } ) {
 		return client.getStats( { range, bucket } );
 	},
 	API_FETCH_DIAGNOSTICS() {

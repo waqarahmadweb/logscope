@@ -23,6 +23,7 @@ import { useState } from '@wordpress/element';
 import { STORE_KEY } from '../../store';
 import { severityLabel, severityTone } from '../../utils/severity';
 import entryKey from '../../utils/entryKey';
+import formatFileLine from '../../utils/fileLine';
 import { formatEntryTimestamp } from '../../utils/formatTimestamp';
 import highlightMatches from '../../utils/highlightMatches';
 import StackTracePanel from '../StackTracePanel';
@@ -52,10 +53,7 @@ export function rowHeightFor( entry, isExpanded ) {
 }
 
 function pathLabel( entry ) {
-	if ( ! entry?.file ) {
-		return '';
-	}
-	return entry.line ? entry.file + ':' + entry.line : entry.file;
+	return formatFileLine( entry?.file, entry?.line );
 }
 
 export default function EntryRow( { index, style, items } ) {

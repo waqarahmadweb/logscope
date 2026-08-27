@@ -48,6 +48,16 @@ interface LogSourceInterface {
 	public function size(): int;
 
 	/**
+	 * Last-modified time as a unix timestamp, or 0 when the source is
+	 * missing or the time cannot be read. Cache layers widen their keys
+	 * with this so two writes landing on the same byte count still mint
+	 * distinct entries.
+	 *
+	 * @return int
+	 */
+	public function mtime(): int;
+
+	/**
 	 * Reads up to `$max_bytes` from the source starting at `$from_byte`.
 	 *
 	 * Returns an empty string when the source is missing, when the offset

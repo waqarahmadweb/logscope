@@ -230,32 +230,6 @@ final class LogRepository {
 	}
 
 	/**
-	 * Returns the distinct source slugs present in the current log
-	 * (post-filter), useful for populating the source-filter dropdown.
-	 * Wraps `query()` indirectly to stay consistent with the same
-	 * read budget and parser behaviour.
-	 *
-	 * @return string[] Sorted, deduplicated source slugs.
-	 */
-	public function distinct_sources(): array {
-		$size    = $this->source->exists() ? $this->source->size() : 0;
-		$entries = $this->load_entries( null, $size );
-		$sources = array();
-
-		foreach ( $entries as $entry ) {
-			$source = SourceClassifier::classify( $entry->file );
-			if ( null !== $source ) {
-				$sources[ $source ] = true;
-			}
-		}
-
-		$out = array_keys( $sources );
-		sort( $out );
-
-		return $out;
-	}
-
-	/**
 	 * Reads the (possibly tail-clipped) log bytes and parses them.
 	 * When `$since` is non-null, reads only bytes from that offset
 	 * forward — the tail-mode fast path.
@@ -306,26 +280,53 @@ final class LogRepository {
 		$regex      = $query->compiled_regex();
 		$has_date   = null !== $query->from || null !== $query->to;
 
+		// Tighter PCRE budget around the user-regex loop: the default 1M
+		// backtrack limit multiplied across thousands of entries is a
+		// silent CPU burn on a pathological pattern. Restored below.
+		$previous_backtrack = null;
+		if ( null !== $regex ) {
+			$previous_backtrack = ini_get( 'pcre.backtrack_limit' );
+			// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- Scoped tightening of the PCRE budget, restored in the finally.
+			ini_set( 'pcre.backtrack_limit', '100000' );
+		}
+
 		$out = array();
 
-		foreach ( $entries as $entry ) {
-			if ( null !== $severities && ! in_array( $entry->severity, $severities, true ) ) {
-				continue;
-			}
+		try {
+			foreach ( $entries as $entry ) {
+				if ( null !== $severities && ! in_array( $entry->severity, $severities, true ) ) {
+					continue;
+				}
 
-			if ( null !== $source && SourceClassifier::classify( $entry->file ) !== $source ) {
-				continue;
-			}
+				if ( null !== $source && SourceClassifier::classify( $entry->file ) !== $source ) {
+					continue;
+				}
 
-			if ( null !== $regex && 1 !== preg_match( $regex, $entry->message ) ) {
-				continue;
-			}
+				if ( null !== $regex ) {
+					$match = preg_match( $regex, $entry->message );
+					if ( false === $match ) {
+						// Surface the PCRE failure (usually the backtrack
+						// budget) as a 400 instead of silently filtering.
+						throw new LogQueryException(
+							__( 'The search pattern is too complex to run against this log — simplify the regex.', 'logscope' )
+						);
+					}
+					if ( 1 !== $match ) {
+						continue;
+					}
+				}
 
-			if ( $has_date && ! $this->date_in_range( $entry->timestamp, $query->from, $query->to ) ) {
-				continue;
-			}
+				if ( $has_date && ! $this->date_in_range( $entry->timestamp, $query->from, $query->to ) ) {
+					continue;
+				}
 
-			$out[] = $entry;
+				$out[] = $entry;
+			}
+		} finally {
+			if ( null !== $previous_backtrack && false !== $previous_backtrack ) {
+				// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- Restoring the budget captured above.
+				ini_set( 'pcre.backtrack_limit', (string) $previous_backtrack );
+			}
 		}
 
 		return $out;

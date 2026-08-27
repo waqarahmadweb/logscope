@@ -191,23 +191,6 @@ final class LogRepositoryTest extends TestCase {
 		$this->assertStringContainsString( 'middle', $result->items[0]->message );
 	}
 
-	public function test_distinct_sources_lists_unique_classified_slugs(): void {
-		$lines = array(
-			'[27-Apr-2026 12:00:00 UTC] PHP Notice:  a in /var/www/wp-content/plugins/akismet/x.php on line 1',
-			'[27-Apr-2026 12:00:01 UTC] PHP Notice:  b in /var/www/wp-content/plugins/akismet/y.php on line 1',
-			'[27-Apr-2026 12:00:02 UTC] PHP Notice:  c in /var/www/wp-content/themes/twentytwentyfour/x.php on line 1',
-			'[27-Apr-2026 12:00:03 UTC] PHP Notice:  d in /var/www/wp-includes/template-loader.php on line 1',
-		);
-		$this->write_log( implode( "\n", $lines ) );
-
-		$sources = $this->repo->distinct_sources();
-
-		$this->assertSame(
-			array( 'core', 'plugins/akismet', 'themes/twentytwentyfour' ),
-			$sources
-		);
-	}
-
 	public function test_tail_since_zero_returns_all_entries_with_last_byte(): void {
 		$lines    = array(
 			'[27-Apr-2026 12:00:00 UTC] PHP Notice:  one in /var/www/x.php on line 1',

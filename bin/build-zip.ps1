@@ -9,8 +9,7 @@
 
     Pipeline:
       1. Clean build/ and dist/.
-      2. Build admin assets via wp-scripts DIRECTLY (skips the `pnpm build`
-         postbuild FTP deploy).
+      2. Build admin assets via wp-scripts.
       3. git archive --format=zip — honours .gitattributes `export-ignore`,
          so tests/, .github/, dev dotfiles, assets/src/, *.md docs, etc. are
          dropped automatically.
@@ -39,8 +38,8 @@ foreach ($d in @($build, $dist)) {
 New-Item -ItemType Directory -Force -Path $staging | Out-Null
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
 
-# 2. Build assets. Call wp-scripts directly, NOT `pnpm build` — the latter
-#    fires a postbuild FTP deploy we don't want during packaging.
+# 2. Build assets with explicit src/output paths so the packaging build is
+#    self-describing regardless of package.json script changes.
 Write-Host '> Building admin assets...' -ForegroundColor DarkGray
 & pnpm exec wp-scripts build --webpack-src-dir=assets/src --output-path=assets/build
 if ($LASTEXITCODE -ne 0) { throw 'Asset build failed.' }

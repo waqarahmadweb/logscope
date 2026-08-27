@@ -141,6 +141,7 @@ jobs:
                       'logscope/assets/build/index.js'
                       'logscope/assets/build/index.asset.php'
                       'logscope/src/Plugin.php'
+                      'logscope/languages/logscope.pot'
                   )
                   for entry in "${REQUIRED[@]}"; do
                       if ! unzip -l "${ZIP_NAME}" | awk '{print $NF}' | grep -qE "^${entry}$"; then

@@ -34,6 +34,7 @@ use Logscope\REST\DiagnosticsController;
 use Logscope\REST\LogsController;
 use Logscope\REST\MuteController;
 use Logscope\REST\PresetsController;
+use Logscope\REST\RestController;
 use Logscope\REST\SettingsController;
 use Logscope\REST\StatsController;
 use Logscope\Settings\PresetStore;
@@ -125,16 +126,6 @@ final class Plugin {
 	public function register( string $id, Closure $factory ): void {
 		$this->factories[ $id ] = $factory;
 		unset( $this->instances[ $id ] );
-	}
-
-	/**
-	 * Returns true if the given service id has a registered factory.
-	 *
-	 * @param string $id Service id.
-	 * @return bool
-	 */
-	public function has( string $id ): bool {
-		return isset( $this->factories[ $id ] );
 	}
 
 	/**
@@ -514,7 +505,7 @@ final class Plugin {
 		add_action( 'wp_before_admin_bar_render', array( $this, 'print_admin_bar_styles' ) );
 		add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
 		add_filter( 'site_status_tests', array( $this, 'register_site_health_test' ) );
-		add_action( 'logscope_scan_fatals', array( $this, 'run_cron_scan' ) );
+		add_action( CronScheduler::HOOK, array( $this, 'run_cron_scan' ) );
 		add_action( CronScheduler::HOOK_ROTATE, array( $this, 'run_cron_rotate' ) );
 		// phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- interval validated to 1–1440 min in SettingsSchema before the schedule is registered.
 		add_filter( 'cron_schedules', array( __CLASS__, 'register_cron_schedule' ) );
@@ -764,65 +755,28 @@ final class Plugin {
 	 * @return void
 	 */
 	public function register_rest_routes(): void {
-		try {
-			$logs = $this->get( 'rest.logs_controller' );
-			assert( $logs instanceof LogsController );
-			$logs->register_routes();
-		} catch ( Throwable $e ) {
-			// Swallow so a misconfigured log path does not abort
-			// `rest_api_init` for other plugins. Settings routes still
-			// register independently below. Surface the failure to the
-			// PHP error log under WP_DEBUG so the breadcrumb is not
-			// invisible when an admin reports a 404 on /logs.
-			self::log_route_registration_failure( 'logs', $e );
-		}
+		// Service id => label used in the failure breadcrumb. Each group
+		// is trapped individually so one misconfigured controller (e.g. a
+		// bad log path) cannot abort `rest_api_init` for the rest of the
+		// surface — or for other plugins on the same hook.
+		$controllers = array(
+			'rest.logs_controller'        => 'logs',
+			'rest.settings_controller'    => 'settings',
+			'rest.alerts_controller'      => 'alerts',
+			'rest.mute_controller'        => 'mute',
+			'rest.presets_controller'     => 'presets',
+			'rest.stats_controller'       => 'stats',
+			'rest.diagnostics_controller' => 'diagnostics',
+		);
 
-		try {
-			$settings = $this->get( 'rest.settings_controller' );
-			assert( $settings instanceof SettingsController );
-			$settings->register_routes();
-		} catch ( Throwable $e ) {
-			self::log_route_registration_failure( 'settings', $e );
-		}
-
-		try {
-			$alerts = $this->get( 'rest.alerts_controller' );
-			assert( $alerts instanceof AlertsController );
-			$alerts->register_routes();
-		} catch ( Throwable $e ) {
-			self::log_route_registration_failure( 'alerts', $e );
-		}
-
-		try {
-			$mute = $this->get( 'rest.mute_controller' );
-			assert( $mute instanceof MuteController );
-			$mute->register_routes();
-		} catch ( Throwable $e ) {
-			self::log_route_registration_failure( 'mute', $e );
-		}
-
-		try {
-			$presets = $this->get( 'rest.presets_controller' );
-			assert( $presets instanceof PresetsController );
-			$presets->register_routes();
-		} catch ( Throwable $e ) {
-			self::log_route_registration_failure( 'presets', $e );
-		}
-
-		try {
-			$stats = $this->get( 'rest.stats_controller' );
-			assert( $stats instanceof StatsController );
-			$stats->register_routes();
-		} catch ( Throwable $e ) {
-			self::log_route_registration_failure( 'stats', $e );
-		}
-
-		try {
-			$diagnostics = $this->get( 'rest.diagnostics_controller' );
-			assert( $diagnostics instanceof DiagnosticsController );
-			$diagnostics->register_routes();
-		} catch ( Throwable $e ) {
-			self::log_route_registration_failure( 'diagnostics', $e );
+		foreach ( $controllers as $service_id => $label ) {
+			try {
+				$controller = $this->get( $service_id );
+				assert( $controller instanceof RestController );
+				$controller->register_routes();
+			} catch ( Throwable $e ) {
+				self::log_route_registration_failure( $label, $e );
+			}
 		}
 	}
 

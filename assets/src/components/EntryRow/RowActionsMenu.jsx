@@ -17,6 +17,7 @@ import { useDispatch } from '@wordpress/data';
 import { createPortal, useEffect, useRef } from '@wordpress/element';
 
 import { STORE_KEY } from '../../store';
+import formatFileLine from '../../utils/fileLine';
 
 const MENU_WIDTH = 220;
 const MENU_MARGIN = 8;
@@ -38,10 +39,7 @@ function framesToText( frames ) {
 				frame?.class && frame?.method
 					? `${ frame.class }->${ frame.method }`
 					: frame?.method || '';
-			const where =
-				frame?.file && frame?.line
-					? `${ frame.file }:${ frame.line }`
-					: frame?.file || '';
+			const where = formatFileLine( frame?.file, frame?.line );
 			return `#${ idx } ${ where } ${ callee }`.trim();
 		} )
 		.join( '\n' );
@@ -156,10 +154,7 @@ export default function RowActionsMenu( { entry, position, onClose } ) {
 		Math.min( position.y, vh - 280 - MENU_MARGIN )
 	);
 
-	const path =
-		entry.file && entry.line
-			? `${ entry.file }:${ entry.line }`
-			: entry.file || '';
+	const path = formatFileLine( entry.file, entry.line );
 	const hasTrace = Array.isArray( entry.frames ) && entry.frames.length > 0;
 
 	const act = ( fn ) => {

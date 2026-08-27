@@ -76,6 +76,10 @@ final class MuteController extends RestController {
 							'required'          => true,
 							'maxLength'         => 255,
 							'sanitize_callback' => 'sanitize_text_field',
+							// Signatures are md5 hex from LogGrouper — refuse
+							// arbitrary strings so the persisted option can
+							// only ever hold well-formed keys.
+							'validate_callback' => array( self::class, 'is_valid_signature' ),
 						),
 						'reason'    => array(
 							'type'              => 'string',
@@ -113,7 +117,7 @@ final class MuteController extends RestController {
 	 * @return WP_REST_Response
 	 */
 	public function handle_get(): WP_REST_Response {
-		return new WP_REST_Response( array( 'items' => $this->store->list() ) );
+		return $this->items_response( $this->store->list() );
 	}
 
 	/**
@@ -138,9 +142,26 @@ final class MuteController extends RestController {
 
 		$user_id = get_current_user_id();
 
-		$this->store->add( trim( $signature ), $reason, (int) $user_id );
+		if ( ! $this->store->add( trim( $signature ), $reason, (int) $user_id ) ) {
+			return $this->error(
+				'logscope_rest_mute_limit',
+				__( 'The mute list is full — unmute something before adding more.', 'logscope' ),
+				400
+			);
+		}
 
-		return new WP_REST_Response( array( 'items' => $this->store->list() ) );
+		return $this->items_response( $this->store->list() );
+	}
+
+	/**
+	 * Validates the md5-hex signature shape at the REST boundary.
+	 * Public static so `validate_callback` can reference it.
+	 *
+	 * @param mixed $value Raw param value.
+	 * @return bool
+	 */
+	public static function is_valid_signature( $value ): bool {
+		return is_string( $value ) && 1 === preg_match( '/^[a-f0-9]{32}$/', $value );
 	}
 
 	/**
@@ -168,6 +189,6 @@ final class MuteController extends RestController {
 			);
 		}
 
-		return new WP_REST_Response( array( 'items' => $this->store->list() ) );
+		return $this->items_response( $this->store->list() );
 	}
 }

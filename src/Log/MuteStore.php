@@ -34,6 +34,13 @@ final class MuteStore {
 	public const OPTION_KEY = 'logscope_muted_signatures';
 
 	/**
+	 * Maximum mute records. The option loads (autoload off, but still a
+	 * full unserialise) on every log query, so an unbounded list is a
+	 * per-request cost; 200 is far beyond any real triage set.
+	 */
+	public const MAX_MUTES = 200;
+
+	/**
 	 * Adds or updates a mute record for the given signature.
 	 *
 	 * @param string $signature Signature hash from {@see LogGrouper::signature()}.
@@ -41,14 +48,21 @@ final class MuteStore {
 	 *                          `wp_strip_all_tags` so a careless paste cannot
 	 *                          inject markup into the management UI.
 	 * @param int    $user_id   Acting user id; 0 for non-user contexts.
-	 * @return void
+	 * @return bool True when the record was stored; false on empty
+	 *              signature or when a net-new record would exceed the cap.
 	 */
-	public function add( string $signature, string $reason, int $user_id ): void {
+	public function add( string $signature, string $reason, int $user_id ): bool {
 		if ( '' === $signature ) {
-			return;
+			return false;
 		}
 
-		$records               = $this->load();
+		$records = $this->load();
+
+		// Re-mutes update in place; only net-new records hit the ceiling.
+		if ( ! isset( $records[ $signature ] ) && count( $records ) >= self::MAX_MUTES ) {
+			return false;
+		}
+
 		$records[ $signature ] = array(
 			'signature' => $signature,
 			'reason'    => wp_strip_all_tags( $reason ),
@@ -57,6 +71,7 @@ final class MuteStore {
 		);
 
 		update_option( self::OPTION_KEY, $records, false );
+		return true;
 	}
 
 	/**

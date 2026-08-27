@@ -112,16 +112,32 @@ final class PresetsController extends RestController {
 	 * @return WP_REST_Response|\WP_Error
 	 */
 	public function handle_get() {
+		$user_id = $this->current_user_id();
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
+		}
+
+		return $this->items_response( $this->store->list( $user_id ) );
+	}
+
+	/**
+	 * Resolves the acting user id or a 401. `permission_callback()`
+	 * already requires authentication, but presets key off the id, so a
+	 * cap granted outside a real user context (id 0) must still refuse.
+	 *
+	 * @return int|\WP_Error
+	 */
+	private function current_user_id() {
 		$user_id = (int) get_current_user_id();
 		if ( $user_id <= 0 ) {
 			return $this->error(
 				'logscope_rest_unauthenticated',
-				__( 'You must be authenticated to access presets.', 'logscope' ),
+				__( 'You must be authenticated to manage presets.', 'logscope' ),
 				401
 			);
 		}
 
-		return new WP_REST_Response( array( 'items' => $this->store->list( $user_id ) ) );
+		return $user_id;
 	}
 
 	/**
@@ -131,13 +147,9 @@ final class PresetsController extends RestController {
 	 * @return WP_REST_Response|\WP_Error
 	 */
 	public function handle_post( WP_REST_Request $request ) {
-		$user_id = (int) get_current_user_id();
-		if ( $user_id <= 0 ) {
-			return $this->error(
-				'logscope_rest_unauthenticated',
-				__( 'You must be authenticated to save presets.', 'logscope' ),
-				401
-			);
+		$user_id = $this->current_user_id();
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
 		}
 
 		$name = $request->get_param( 'name' );
@@ -162,7 +174,7 @@ final class PresetsController extends RestController {
 			);
 		}
 
-		return new WP_REST_Response( array( 'items' => $this->store->list( $user_id ) ) );
+		return $this->items_response( $this->store->list( $user_id ) );
 	}
 
 	/**
@@ -173,13 +185,9 @@ final class PresetsController extends RestController {
 	 * @return WP_REST_Response|\WP_Error
 	 */
 	public function handle_delete( WP_REST_Request $request ) {
-		$user_id = (int) get_current_user_id();
-		if ( $user_id <= 0 ) {
-			return $this->error(
-				'logscope_rest_unauthenticated',
-				__( 'You must be authenticated to delete presets.', 'logscope' ),
-				401
-			);
+		$user_id = $this->current_user_id();
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
 		}
 
 		$name = $request->get_param( 'name' );
@@ -199,6 +207,6 @@ final class PresetsController extends RestController {
 			);
 		}
 
-		return new WP_REST_Response( array( 'items' => $this->store->list( $user_id ) ) );
+		return $this->items_response( $this->store->list( $user_id ) );
 	}
 }

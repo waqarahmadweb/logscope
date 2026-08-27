@@ -25,17 +25,11 @@ use InvalidArgumentException;
 class SettingsSchema {
 
 	/**
-	 * Closed vocabulary of `type` values a field may declare. Kept as a
-	 * const so {@see SettingsSchema::matches_type()} can be exhaustive
-	 * without a defensive default branch.
-	 */
-	public const TYPES = array( 'string', 'integer' );
-
-	/**
 	 * Field map keyed by the public setting name. Each entry defines:
 	 *
 	 *   - option_key: the underlying `wp_options` row name.
-	 *   - type:       one of {@see SettingsSchema::TYPES}.
+	 *   - type:       'string' or 'integer' — the closed vocabulary
+	 *                 {@see SettingsSchema::matches_type()} switches on.
 	 *   - default:    value returned when the option is missing or the
 	 *                 stored value cannot be coerced into `type`.
 	 *   - sanitizer:  callable that accepts the raw input and returns a
@@ -276,7 +270,9 @@ class SettingsSchema {
 						return '';
 					}
 					$value = str_replace( "\0", '', $value );
-					$canonical = array( 'fatal', 'parse', 'warning', 'notice', 'deprecated', 'strict', 'unknown' );
+					// Canonical token list comes from Severity so the two
+					// vocabularies cannot drift.
+					$canonical = \Logscope\Log\Severity::all();
 					$incoming  = array_filter(
 						array_map( 'trim', explode( ',', $value ) ),
 						static function ( string $t ) use ( $canonical ): bool {
@@ -481,8 +477,7 @@ class SettingsSchema {
 			return false;
 		}
 
-		// Only 'string' remains; the type vocabulary is closed by
-		// {@see SettingsSchema::TYPES}.
+		// Only 'string' remains; the field map declares no other types.
 		return is_string( $value );
 	}
 }

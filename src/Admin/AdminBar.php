@@ -136,7 +136,7 @@ final class AdminBar {
 	}
 
 	/**
-	 * `admin_print_styles` / `wp_print_styles` callback. Emits the few
+	 * `wp_before_admin_bar_render` callback. Emits the few
 	 * inline rules the bar node needs. Inline rather than enqueued
 	 * because the node renders on every wp-admin and front-end-when-
 	 * logged-in screen — adding a stylesheet handle for ~200 bytes of

@@ -26,6 +26,7 @@ import { severityLabel, severityTone } from '../../utils/severity';
 import { formatEntryTimestamp } from '../../utils/formatTimestamp';
 import buildFilterParams from '../../utils/filterParams';
 import { csvCell, downloadCsv, timestampForFilename } from '../../utils/csv';
+import formatFileLine from '../../utils/fileLine';
 
 export default function GroupedView() {
 	const { groups, filters, isSavingMutes, perPage } = useSelect(
@@ -242,10 +243,7 @@ function GroupRow( { group, isSelected, onToggleSelected } ) {
 	const { toggleGroupExpanded, muteSignature } = useDispatch( STORE_KEY );
 
 	const tone = severityTone( group.severity );
-	const fileLine =
-		group.file && group.line
-			? `${ group.file }:${ group.line }`
-			: group.file || '';
+	const fileLine = formatFileLine( group.file, group.line );
 
 	const onMute = ( event ) => {
 		event.stopPropagation();

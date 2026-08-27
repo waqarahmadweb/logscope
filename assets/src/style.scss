@@ -2040,15 +2040,16 @@ body.tools_page_logscope {
 	}
 }
 
-// Severity tone palette — pulled into local vars so the new Stats
-// components can reference them without retyping the hex everywhere.
-$severity-fatal: #e5484d;
-$severity-parse: #f76b15;
-$severity-warning: #f5a524;
-$severity-notice: #3e63dd;
-$severity-deprecated: #8347b9;
-$severity-strict: #29a383;
-$severity-unknown: #889096;
+// Severity tone palette — aliases onto the `--logscope-dot-*` custom
+// props so Logs pills and Stats tiles cannot drift to different colors
+// for the same severity.
+$severity-fatal: var( --logscope-dot-fatal );
+$severity-parse: var( --logscope-dot-parse );
+$severity-warning: var( --logscope-dot-warning );
+$severity-notice: var( --logscope-dot-notice );
+$severity-deprecated: var( --logscope-dot-deprecated );
+$severity-strict: var( --logscope-dot-strict );
+$severity-unknown: var( --logscope-dot-unknown );
 
 .logscope-stats {
 	display: flex;
@@ -2234,16 +2235,16 @@ $severity-unknown: #889096;
 		display: inline-block;
 		flex-shrink: 0;
 
+		// Keyed off severityTone(), which collapses parse→fatal and
+		// strict→deprecated — only tone names can ever match here.
 		&--fatal { background: $severity-fatal; }
-		&--parse { background: $severity-parse; }
 		&--warning { background: $severity-warning; }
 		&--notice { background: $severity-notice; }
 		&--deprecated { background: $severity-deprecated; }
-		&--strict { background: $severity-strict; }
 		&--unknown { background: $severity-unknown; }
 	}
 
-	&__spark {
+&__spark {
 		position: absolute;
 		right: 12px;
 		bottom: 10px;
@@ -2252,12 +2253,11 @@ $severity-unknown: #889096;
 		opacity: 0.65;
 
 		polyline { stroke-linecap: round; stroke-linejoin: round; }
+		// Tone-keyed like the dot above — parse/strict collapse upstream.
 		&--fatal polyline { stroke: $severity-fatal; }
-		&--parse polyline { stroke: $severity-parse; }
 		&--warning polyline { stroke: $severity-warning; }
 		&--notice polyline { stroke: $severity-notice; }
 		&--deprecated polyline { stroke: $severity-deprecated; }
-		&--strict polyline { stroke: $severity-strict; }
 		&--unknown polyline { stroke: $severity-unknown; }
 	}
 
@@ -2272,7 +2272,6 @@ $severity-unknown: #889096;
 	}
 
 	&--fatal .logscope-kpi__value { color: $severity-fatal; }
-	&--parse .logscope-kpi__value { color: $severity-parse; }
 }
 
 // Volume chart panel.
@@ -2390,12 +2389,11 @@ $severity-unknown: #889096;
 	&__fill {
 		height: 100%;
 
+		// Tone-keyed — parse/strict collapse upstream in severityTone().
 		&--fatal { background: $severity-fatal; }
-		&--parse { background: $severity-parse; }
 		&--warning { background: $severity-warning; }
 		&--notice { background: $severity-notice; }
 		&--deprecated { background: $severity-deprecated; }
-		&--strict { background: $severity-strict; }
 		&--unknown { background: $severity-unknown; }
 	}
 }

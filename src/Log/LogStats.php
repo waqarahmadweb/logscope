@@ -387,17 +387,12 @@ final class LogStats {
 	}
 
 	/**
-	 * Returns the source file's mtime via the {@see LogSourceInterface}
-	 * extension if available, otherwise 0. Most callers won't define the
-	 * optional `mtime()` method, so we tolerate its absence.
+	 * Returns the source file's mtime — part of the interface contract,
+	 * so no reflection dance is needed.
 	 *
 	 * @return int
 	 */
 	private function source_mtime(): int {
-		if ( method_exists( $this->source, 'mtime' ) ) {
-			$mtime = $this->source->mtime();
-			return is_int( $mtime ) ? $mtime : 0;
-		}
-		return 0;
+		return $this->source->mtime();
 	}
 }

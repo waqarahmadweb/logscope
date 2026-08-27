@@ -30,6 +30,7 @@ import { STORE_KEY } from '../../store';
 import { client } from '../../api/client';
 import buildFilterParams from '../../utils/filterParams';
 import { csvCell, downloadCsv, timestampForFilename } from '../../utils/csv';
+import formatFileLine from '../../utils/fileLine';
 import hiddenSig from '../../utils/hiddenSig';
 import EmptyState from '../EmptyState';
 import EntryRow, { entryKey, ROW_HEIGHT_BASE, rowHeightFor } from '../EntryRow';
@@ -145,7 +146,7 @@ export default function LogViewer() {
 		}
 		const lines = selectedEntries
 			.map( ( e ) =>
-				e.file && e.line ? `${ e.file }:${ e.line }` : e.file || ''
+				formatFileLine( e.file, e.line )
 			)
 			.filter( Boolean );
 		try {
@@ -473,12 +474,7 @@ export default function LogViewer() {
 						{ selectedCount > 0
 							? sprintf(
 									/* translators: %d is the number of selected entries. */
-									_n(
-										'Mute (%d)',
-										'Mute (%d)',
-										selectedCount,
-										'logscope'
-									),
+									__( 'Mute (%d)', 'logscope' ),
 									selectedCount
 							  )
 							: __( 'Mute selected', 'logscope' ) }
@@ -541,12 +537,7 @@ export default function LogViewer() {
 							) }
 						/>
 						<strong>{ selectedCount }</strong>{ ' ' }
-						{ _n(
-							'selected',
-							'selected',
-							selectedCount,
-							'logscope'
-						) }
+						{ __( 'selected', 'logscope' ) }
 					</label>
 					<span className="logscope-bulk-bar__sep" aria-hidden="true">
 						·

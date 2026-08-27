@@ -13,7 +13,6 @@ defined( 'ABSPATH' ) || exit;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use Logscope\Log\Entry;
 use Logscope\Log\LogRepository;
 use Logscope\Support\Capabilities;
 use Throwable;
@@ -51,6 +50,18 @@ final class DashboardWidget {
 	 * height inside the default dashboard column.
 	 */
 	public const MESSAGE_TRUNCATE_AT = 140;
+
+	/**
+	 * Transient caching the shaped rows. The dashboard can repaint often
+	 * (multiple admins, auto-refresh plugins) and each uncached paint
+	 * tail-reads up to the full 50 MB budget for five rows.
+	 */
+	public const TRANSIENT_KEY = 'logscope_dashboard_recent';
+
+	/**
+	 * Cache TTL in seconds — mirrors the AdminBar's 60s posture.
+	 */
+	public const CACHE_TTL_SECONDS = 60;
 
 	/**
 	 * Repository the render reads from.
@@ -95,27 +106,57 @@ final class DashboardWidget {
 	 * @return void
 	 */
 	public function render(): void {
-		try {
-			$entries = $this->repository->get_recent( self::LIMIT );
-		} catch ( Throwable $e ) {
-			$entries = array();
-		}
+		$rows = $this->recent_rows();
 
 		echo $this->styles_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- styles_html() emits a fixed, escaped <style> block.
 
-		if ( array() === $entries ) {
+		if ( array() === $rows ) {
 			$this->render_empty_state();
 			$this->render_footer();
 			return;
 		}
 
 		echo '<ul class="logscope-dashboard-widget__list">';
-		foreach ( $entries as $entry ) {
-			$this->render_row( $entry );
+		foreach ( $rows as $row ) {
+			$this->render_row( $row );
 		}
 		echo '</ul>';
 
 		$this->render_footer();
+	}
+
+	/**
+	 * Returns the shaped recent-entry rows, served from a 60-second
+	 * transient so repeated dashboard paints don't re-read the log.
+	 * Plain arrays (not Entry objects) are cached so a stale serialised
+	 * class shape from a previous plugin version cannot fatal on load.
+	 *
+	 * @return list<array{severity:?string, message:string, timestamp:?string}>
+	 */
+	private function recent_rows(): array {
+		$cached = get_transient( self::TRANSIENT_KEY );
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+
+		try {
+			$entries = $this->repository->get_recent( self::LIMIT );
+		} catch ( Throwable $e ) {
+			$entries = array();
+		}
+
+		$rows = array();
+		foreach ( $entries as $entry ) {
+			$rows[] = array(
+				'severity'  => $entry->severity,
+				'message'   => (string) $entry->message,
+				'timestamp' => $entry->timestamp,
+			);
+		}
+
+		set_transient( self::TRANSIENT_KEY, $rows, self::CACHE_TTL_SECONDS );
+
+		return $rows;
 	}
 
 	/**
@@ -139,20 +180,20 @@ final class DashboardWidget {
 	 * time. Severities are rendered with their canonical Logscope label
 	 * so the dashboard tone matches the Logs tab.
 	 *
-	 * @param Entry $entry Parsed entry to render.
+	 * @param array{severity:?string, message:string, timestamp:?string} $row Shaped row from the cache.
 	 * @return void
 	 */
-	private function render_row( Entry $entry ): void {
-		$severity_class = $this->severity_class( $entry->severity );
-		$severity_label = $this->severity_label( $entry->severity );
-		$message        = $this->truncate( (string) $entry->message );
-		$relative       = $this->relative_time( $entry->timestamp );
+	private function render_row( array $row ): void {
+		$severity_class = $this->severity_class( $row['severity'] );
+		$severity_label = $this->severity_label( $row['severity'] );
+		$message        = $this->truncate( $row['message'] );
+		$relative       = $this->relative_time( $row['timestamp'] );
 
 		echo '<li class="logscope-dashboard-widget__row">';
 		echo '<span class="logscope-dashboard-widget__pill logscope-dashboard-widget__pill--' . esc_attr( $severity_class ) . '">'
 			. esc_html( $severity_label )
 			. '</span>';
-		echo '<span class="logscope-dashboard-widget__msg" title="' . esc_attr( (string) $entry->message ) . '">'
+		echo '<span class="logscope-dashboard-widget__msg" title="' . esc_attr( $row['message'] ) . '">'
 			. esc_html( $message )
 			. '</span>';
 		if ( '' !== $relative ) {

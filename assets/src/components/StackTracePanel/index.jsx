@@ -21,6 +21,7 @@
 import { useCallback, useMemo, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
+import fileLineFormat from '../../utils/fileLine';
 import frameSource from '../../utils/frameSource';
 
 const COPY_FEEDBACK_MS = 1500;
@@ -49,8 +50,11 @@ export default function StackTracePanel( { frames } ) {
 
 function FrameRow( { frame, index } ) {
 	const [ copied, setCopied ] = useState( false );
+	// Copy needs the exact `path:line`; a bare path is not a copy target.
 	const target =
-		frame.file && frame.line ? `${ frame.file }:${ frame.line }` : null;
+		frame.file && frame.line
+			? fileLineFormat( frame.file, frame.line )
+			: null;
 
 	const source = useMemo( () => frameSource( frame.file ), [ frame.file ] );
 
@@ -74,13 +78,9 @@ function FrameRow( { frame, index } ) {
 		  })`
 		: frame.raw;
 
+	// Punctuation-only join — not a translatable sentence, so no __() slot.
 	const tagTitle = source.slug
-		? sprintf(
-				/* translators: 1: source category (plugin / theme / mu-plugin / core); 2: plugin or theme folder slug. */
-				__( '%1$s — %2$s', 'logscope' ),
-				SOURCE_LABEL[ source.kind ],
-				source.slug
-		  )
+		? `${ SOURCE_LABEL[ source.kind ] } — ${ source.slug }`
 		: SOURCE_LABEL[ source.kind ];
 
 	return (

@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 use Logscope\Support\Capabilities;
 use WP_Error;
+use WP_REST_Response;
 
 /**
  * Centralises the cross-cutting concerns every Logscope REST route needs:
@@ -89,5 +90,16 @@ abstract class RestController {
 		$data = array_merge( $extra, array( 'status' => $status ) );
 
 		return new WP_Error( $code, $message, $data );
+	}
+
+	/**
+	 * Wraps a flat item list in the `{items: [...]}` collection shape the
+	 * mute and preset routes share, so the wire format is declared once.
+	 *
+	 * @param array $items Zero-indexed item list.
+	 * @return WP_REST_Response
+	 */
+	protected function items_response( array $items ): WP_REST_Response {
+		return new WP_REST_Response( array( 'items' => $items ) );
 	}
 }

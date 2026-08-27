@@ -84,7 +84,9 @@ final class AlertsController extends RestController {
 	 * Response body shape:
 	 *   - results: array of `{dispatcher, signature, outcome}` (one per
 	 *              registered dispatcher; outcome is `sent` / `skipped`
-	 *              / `failed` per `AlertCoordinator::dispatch_one()`).
+	 *              / `failed` / `deduped` per
+	 *              `AlertCoordinator::dispatch_one()` — the test route
+	 *              bypasses dedup, so `deduped` is theoretical here).
 	 *
 	 * @return WP_REST_Response|\WP_Error
 	 */

@@ -23,6 +23,17 @@ final class SourceClassifier {
 	public const CORE = 'core';
 
 	/**
+	 * Path → slug patterns, hoisted to a const because classify() runs
+	 * twice per entry on filtered queries and rebuilding the array per
+	 * call was measurable churn on 50 MB parses.
+	 */
+	private const PATTERNS = array(
+		'mu-plugins' => '#/wp-content/mu-plugins/(?P<slug>[^/]+)#',
+		'plugins'    => '#/wp-content/plugins/(?P<slug>[^/]+)#',
+		'themes'     => '#/wp-content/themes/(?P<slug>[^/]+)#',
+	);
+
+	/**
 	 * Classifies a file path. Both `/` and `\` separators are accepted
 	 * so Windows-style paths work without normalising the input first.
 	 *
@@ -36,13 +47,7 @@ final class SourceClassifier {
 
 		$normalised = strtr( $file, '\\', '/' );
 
-		$patterns = array(
-			'mu-plugins' => '#/wp-content/mu-plugins/(?P<slug>[^/]+)#',
-			'plugins'    => '#/wp-content/plugins/(?P<slug>[^/]+)#',
-			'themes'     => '#/wp-content/themes/(?P<slug>[^/]+)#',
-		);
-
-		foreach ( $patterns as $type => $pattern ) {
+		foreach ( self::PATTERNS as $type => $pattern ) {
 			if ( 1 === preg_match( $pattern, $normalised, $matches ) ) {
 				return $type . '/' . $matches['slug'];
 			}

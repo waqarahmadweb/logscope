@@ -27,14 +27,6 @@ import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
 
 const REGEX_DEBOUNCE_MS = 300;
 
-const DEFAULT_FILTERS_SHAPE = {
-	severity: [],
-	from: '',
-	to: '',
-	q: '',
-	source: '',
-};
-
 export default function FilterBar() {
 	const { filters, items, viewMode, presets, isSavingPresets, logsTotal } =
 		useSelect( ( select ) => {
@@ -640,6 +632,3 @@ function truncateMiddle( str, max ) {
 	const tail = Math.floor( ( max - 1 ) / 2 );
 	return str.slice( 0, head ) + '…' + str.slice( str.length - tail );
 }
-
-// Exported for tests; no other production caller.
-export { DEFAULT_FILTERS_SHAPE };

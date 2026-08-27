@@ -31,16 +31,6 @@ const DEDUP_WINDOW_DEFAULT = 1800;
 // (no @, trailing space) before the user clicks Save.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export const MONITORING_FIELD_KEYS = [
-	'cron_scan_enabled',
-	'cron_scan_interval_minutes',
-	'alert_email_enabled',
-	'alert_email_to',
-	'alert_webhook_enabled',
-	'alert_webhook_url',
-	'alert_dedup_window',
-];
-
 /**
  * Pure validator over a draft. Returns `{ valid, errors }` where `errors`
  * is keyed by the same field names the panel renders, plus a synthetic

@@ -56,6 +56,19 @@ final class PresetStore {
 	public const MAX_NAME_LENGTH = 80;
 
 	/**
+	 * Maximum presets per user. Usermeta rows load unserialised on every
+	 * list/save, so an unbounded list is a slow-bloat vector; 50 is far
+	 * beyond any real triage workflow.
+	 */
+	public const MAX_PRESETS = 50;
+
+	/**
+	 * Maximum stored length per scalar filter value. Matches the server
+	 * regex cap (`q` is the longest legitimate value).
+	 */
+	public const MAX_FILTER_VALUE_LENGTH = 200;
+
+	/**
 	 * Returns the preset list for the given user, or an empty list
 	 * when the user has no presets or the row is corrupt.
 	 *
@@ -125,6 +138,11 @@ final class PresetStore {
 		}
 
 		if ( ! $placed ) {
+			// Cap the list size — overwrites of an existing name are
+			// always allowed, only net-new entries hit the ceiling.
+			if ( count( $current ) >= self::MAX_PRESETS ) {
+				return false;
+			}
 			$next[] = array(
 				'name'    => $trimmed,
 				'filters' => $normalised_filters,
@@ -228,7 +246,8 @@ final class PresetStore {
 				continue;
 			}
 
-			$out[ $key ] = (string) $value;
+			// Length cap per value so a crafted body cannot bloat usermeta.
+			$out[ $key ] = substr( (string) $value, 0, self::MAX_FILTER_VALUE_LENGTH );
 		}
 
 		return $out;

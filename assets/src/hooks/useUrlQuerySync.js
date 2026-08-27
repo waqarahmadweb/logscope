@@ -43,7 +43,10 @@ export function readInitialQueryState() {
 			severity,
 			from: params.get( 'from' ) || '',
 			to: params.get( 'to' ) || '',
-			q: params.get( 'q' ) || '',
+			// Cap at the server's MAX_REGEX_LENGTH (200) so a crafted URL
+			// cannot feed an oversized pattern to the client-side highlight
+			// RegExp before the server ever rejects it.
+			q: ( params.get( 'q' ) || '' ).slice( 0, 200 ),
 			source: params.get( 'source' ) || '',
 		},
 	};

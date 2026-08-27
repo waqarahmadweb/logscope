@@ -167,8 +167,7 @@ final class DiagnosticsService {
 				$file_size   = false === $size_result ? 0 : (int) $size_result;
 				$modified_at = false === $mtime ? 0 : (int) $mtime;
 			} catch ( InvalidPathException $e ) {
-				$exists = false;
-			} catch ( MissingPathException $e ) {
+				// Covers MissingPathException too (it extends InvalidPathException).
 				$exists = false;
 			}
 		}

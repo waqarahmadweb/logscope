@@ -42,8 +42,9 @@ final class LogRotator {
 	private FileLogSource $source;
 
 	/**
-	 * Path validator scoped to the caller's allowlist; gates both the
-	 * pre-rename writability check and the prune `unlink` loop.
+	 * Path validator scoped to the caller's allowlist; gates the
+	 * pre-rename writability check. The prune loop operates on paths
+	 * built internally from the validated directory, not on it.
 	 *
 	 * @var PathGuard
 	 */

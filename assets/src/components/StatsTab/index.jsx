@@ -67,7 +67,7 @@ export default function StatsTab() {
 		useDispatch( STORE_KEY );
 
 	useEffect( () => {
-		fetchStats();
+		fetchStats( range, bucket );
 	}, [ range, bucket, fetchStats ] );
 
 	return (

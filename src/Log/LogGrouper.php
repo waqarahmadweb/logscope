@@ -34,6 +34,16 @@ final class LogGrouper {
 	private const WP_TIMESTAMP_FORMAT = 'd-M-Y H:i:s';
 
 	/**
+	 * Per-Entry signature memo. When any signature is muted, list-mode
+	 * queries recompute the signature for every entry pre-pagination and
+	 * again at serialisation — the WeakMap makes the second pass free
+	 * without widening the Entry DTO, and entries garbage-collect out.
+	 *
+	 * @var \WeakMap<Entry, string>|null
+	 */
+	private static ?\WeakMap $signature_memo = null;
+
+	/**
 	 * Computes the signature for one entry. Exposed so the future
 	 * repository can key on signatures without first running the full
 	 * group reduction.
@@ -42,6 +52,14 @@ final class LogGrouper {
 	 * @return string md5 hex digest.
 	 */
 	public static function signature( Entry $entry ): string {
+		if ( null === self::$signature_memo ) {
+			self::$signature_memo = new \WeakMap();
+		}
+
+		if ( isset( self::$signature_memo[ $entry ] ) ) {
+			return self::$signature_memo[ $entry ];
+		}
+
 		$key = implode(
 			'|',
 			array(
@@ -52,7 +70,11 @@ final class LogGrouper {
 			)
 		);
 
-		return md5( $key );
+		$signature = md5( $key );
+
+		self::$signature_memo[ $entry ] = $signature;
+
+		return $signature;
 	}
 
 	/**
@@ -66,11 +88,16 @@ final class LogGrouper {
 	public static function group( array $entries ): array {
 		$groups = array();
 
+		// Unix first/last per signature, tracked alongside the Group so
+		// each occurrence costs one timestamp parse (not a re-parse of the
+		// group's stored strings) and the sort below is integer compares.
+		$windows = array();
+
 		foreach ( $entries as $entry ) {
 			$signature = self::signature( $entry );
 
 			if ( ! isset( $groups[ $signature ] ) ) {
-				$groups[ $signature ] = new Group(
+				$groups[ $signature ]  = new Group(
 					$signature,
 					$entry->severity,
 					$entry->file,
@@ -80,13 +107,29 @@ final class LogGrouper {
 					null,
 					null
 				);
+				$windows[ $signature ] = array(
+					'first' => null,
+					'last'  => null,
+				);
 			}
 
 			$group = $groups[ $signature ];
 			++$group->count;
 
 			if ( null !== $entry->timestamp ) {
-				self::extend_window( $group, $entry->timestamp );
+				$incoming = self::parse_timestamp_unix( $entry->timestamp );
+				if ( null !== $incoming ) {
+					$window = $windows[ $signature ];
+					if ( null === $window['first'] || $incoming < $window['first'] ) {
+						$window['first']   = $incoming;
+						$group->first_seen = $entry->timestamp;
+					}
+					if ( null === $window['last'] || $incoming > $window['last'] ) {
+						$window['last']   = $incoming;
+						$group->last_seen = $entry->timestamp;
+					}
+					$windows[ $signature ] = $window;
+				}
 			}
 		}
 
@@ -94,13 +137,13 @@ final class LogGrouper {
 
 		usort(
 			$groups,
-			static function ( Group $a, Group $b ): int {
+			static function ( Group $a, Group $b ) use ( $windows ): int {
 				if ( $a->count !== $b->count ) {
 					return $b->count <=> $a->count;
 				}
 
-				$a_last = self::parse_timestamp( $a->last_seen );
-				$b_last = self::parse_timestamp( $b->last_seen );
+				$a_last = $windows[ $a->signature ]['last'] ?? null;
+				$b_last = $windows[ $b->signature ]['last'] ?? null;
 
 				if ( null !== $a_last && null !== $b_last && $a_last !== $b_last ) {
 					return $b_last <=> $a_last;
@@ -133,49 +176,21 @@ final class LogGrouper {
 	}
 
 	/**
-	 * Updates a group's first/last window with a freshly observed
-	 * timestamp. Skips silently when the timestamp can't be parsed in
-	 * the WP format — keeps the group count accurate without
-	 * polluting the window with garbage.
+	 * Parses a WP-format timestamp into unix seconds, or returns null
+	 * when the input doesn't match the format. The lexical order of the
+	 * WP format is not the calendar order (months sort alphabetically),
+	 * so raw string comparison is unsafe and we go through the parser.
 	 *
-	 * @param Group  $group     Group to update in place.
-	 * @param string $timestamp Raw WP-format timestamp string.
+	 * @param string $timestamp Raw timestamp text.
+	 * @return int|null
 	 */
-	private static function extend_window( Group $group, string $timestamp ): void {
-		$incoming = self::parse_timestamp( $timestamp );
-		if ( null === $incoming ) {
-			return;
-		}
-
-		$current_first = self::parse_timestamp( $group->first_seen );
-		$current_last  = self::parse_timestamp( $group->last_seen );
-
-		if ( null === $current_first || $incoming < $current_first ) {
-			$group->first_seen = $timestamp;
-		}
-
-		if ( null === $current_last || $incoming > $current_last ) {
-			$group->last_seen = $timestamp;
-		}
-	}
-
-	/**
-	 * Parses a WP-format timestamp into a DateTimeImmutable, or
-	 * returns null when the input is null or doesn't match the format.
-	 * The lexical order of the WP format is not the calendar order
-	 * (Apr / Aug sort as A-B but March/May sort differently), so raw
-	 * string comparison is unsafe and we go through the date parser.
-	 *
-	 * @param string|null $timestamp Raw timestamp text.
-	 * @return DateTimeImmutable|null
-	 */
-	private static function parse_timestamp( ?string $timestamp ): ?DateTimeImmutable {
-		if ( null === $timestamp || '' === $timestamp ) {
+	private static function parse_timestamp_unix( string $timestamp ): ?int {
+		if ( '' === $timestamp ) {
 			return null;
 		}
 
 		$parsed = DateTimeImmutable::createFromFormat( self::WP_TIMESTAMP_FORMAT, $timestamp );
 
-		return false === $parsed ? null : $parsed;
+		return false === $parsed ? null : $parsed->getTimestamp();
 	}
 }
