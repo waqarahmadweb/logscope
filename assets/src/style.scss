@@ -1817,7 +1817,11 @@ body.tools_page_logscope {
 }
 
 .logscope-debug-constants {
+	// Symmetric vertical spacing: the card now sits between the tail
+	// interval and the rotation toggle, so it needs a bottom gap too
+	// (previously it was the last element in the section and 0 was fine).
 	margin-top: 24px;
+	margin-bottom: 24px;
 	padding: 14px 16px;
 	background: var( --logscope-bg-sunken );
 	border: 1px solid var( --logscope-border );

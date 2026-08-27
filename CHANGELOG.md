@@ -15,6 +15,8 @@ UX + a11y fixes from live browser testing on a real WordPress install.
 ### Changed
 
 -   The log-file setting is relabelled "Live refresh interval (seconds)" (was "Tail interval"), and its help text plus the section lead now describe it in terms of "Live mode" to match the toolbar's Live button rather than the old "tail" vocabulary.
+-   The "Default rows per page" Display setting is relabelled "Rows loaded per batch" with clearer help — it sets the infinite-scroll fetch batch size, not a hard cap on rows shown (more load automatically as you scroll), which the old label wrongly implied.
+-   Fixed cramped spacing under the "WordPress debug constants" card: it now carries a bottom margin so the log-rotation toggle below it isn't flush against the card.
 
 Pre-submission fix pass from the fresh three-agent review ([docs/v1.0-submission-report.md](docs/v1.0-submission-report.md)) — the fix-before-shipping bugs, the one security tightening worth closing, and the Plugin Check ERROR-level annotations. 350 tests green.
 

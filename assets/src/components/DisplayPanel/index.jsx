@@ -99,7 +99,7 @@ export default function DisplayPanel() {
 			<div className="logscope-display-panel__field">
 				<TextControl
 					type="number"
-					label={ __( 'Default rows per page', 'logscope' ) }
+					label={ __( 'Rows loaded per batch', 'logscope' ) }
 					value={ String( draft.default_per_page ?? '' ) }
 					min={ PER_PAGE_MIN }
 					max={ PER_PAGE_MAX }
@@ -109,7 +109,7 @@ export default function DisplayPanel() {
 						} )
 					}
 					help={ __(
-						'How many entries the log viewer fetches per page. 10–500.',
+						'How many entries the viewer loads at a time. More load automatically as you scroll, until the log ends — this is the batch size, not a cap on rows shown. 10–500.',
 						'logscope'
 					) }
 					__next40pxDefaultSize

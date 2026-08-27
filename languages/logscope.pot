@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-27T15:35:54+00:00\n"
+"POT-Creation-Date: 2026-08-27T16:06:55+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: logscope\n"
@@ -445,11 +445,11 @@ msgid "Defaults applied when the log viewer first loads. Changes take effect on 
 msgstr ""
 
 #: assets/src/components/DisplayPanel/index.jsx:102
-msgid "Default rows per page"
+msgid "Rows loaded per batch"
 msgstr ""
 
 #: assets/src/components/DisplayPanel/index.jsx:111
-msgid "How many entries the log viewer fetches per page. 10–500."
+msgid "How many entries the viewer loads at a time. More load automatically as you scroll, until the log ends — this is the batch size, not a cap on rows shown. 10–500."
 msgstr ""
 
 #: assets/src/components/DisplayPanel/index.jsx:130
