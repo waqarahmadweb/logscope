@@ -12,11 +12,16 @@ namespace Logscope\Admin;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The PHP side of the admin screen is intentionally bare: a heading for
- * a11y / SEO scrapers and a single mount node. Everything else — tabs,
- * filters, viewer — is rendered by React on top of this skeleton. Keeping
- * the HTML this thin means a JS bundle failure surfaces as a visible
- * empty page rather than a half-rendered hybrid that's harder to debug.
+ * The PHP side of the admin screen is intentionally bare: just the mount
+ * node. Everything else — the page heading, tabs, filters, viewer — is
+ * rendered by React on top of this skeleton. Keeping the HTML this thin
+ * means a JS bundle failure surfaces as a visible empty page rather than
+ * a half-rendered hybrid that's harder to debug.
+ *
+ * No server-side `<h1>` here: the React app renders the visible page
+ * heading (the prominent "Logscope" title) as the single `<h1>`. A
+ * server-side screen-reader h1 would duplicate it, giving the page two
+ * level-1 headings.
  */
 final class PageRenderer {
 
@@ -35,7 +40,6 @@ final class PageRenderer {
 	public function render(): void {
 		?>
 		<div class="wrap logscope-wrap">
-			<h1 class="screen-reader-text"><?php echo esc_html__( 'Logscope', 'logscope' ); ?></h1>
 			<div id="<?php echo esc_attr( self::ROOT_ELEMENT_ID ); ?>"></div>
 		</div>
 		<?php

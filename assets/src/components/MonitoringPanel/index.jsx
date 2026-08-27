@@ -44,15 +44,21 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  */
 export function validateMonitoring( draft ) {
 	const errors = {};
+	// `soft` marks messages that are setup guidance ("add a recipient")
+	// rather than a mistake the user made ("that email is malformed").
+	// The panel renders soft messages as amber hints, hard ones as red
+	// errors — so enabling a channel doesn't immediately flash red before
+	// the user has had a chance to fill anything in. Both still block Save.
+	const soft = {};
 	if ( ! draft ) {
-		return { valid: true, errors };
+		return { valid: true, errors, soft };
 	}
 
 	const enabled = Number( draft.cron_scan_enabled ) === 1;
 	if ( ! enabled ) {
 		// Master off: channel/interval values are preserved on disk but
 		// not exercised. Nothing to validate.
-		return { valid: true, errors };
+		return { valid: true, errors, soft };
 	}
 
 	const interval = Number( draft.cron_scan_interval_minutes );
@@ -75,20 +81,25 @@ export function validateMonitoring( draft ) {
 	const emailOn = Number( draft.alert_email_enabled ) === 1;
 	const webhookOn = Number( draft.alert_webhook_enabled ) === 1;
 	if ( ! emailOn && ! webhookOn ) {
+		// Soft: just enabled monitoring, hasn't picked a channel yet.
 		errors.master = __(
-			'Enable at least one channel — email or webhook — so alerts have somewhere to go.',
+			'Turn on email or webhook below so alerts have somewhere to go.',
 			'logscope'
 		);
+		soft.master = true;
 	}
 
 	if ( emailOn ) {
 		const value = ( draft.alert_email_to || '' ).trim();
 		if ( '' === value ) {
+			// Soft: field not filled in yet, not a mistake.
 			errors.alert_email_to = __(
-				'Recipient email is required when email alerts are on.',
+				'Add a recipient email address to receive alerts.',
 				'logscope'
 			);
+			soft.alert_email_to = true;
 		} else if ( ! EMAIL_RE.test( value ) ) {
+			// Hard: they typed something that isn't a valid address.
 			errors.alert_email_to = __(
 				'Enter a valid email address.',
 				'logscope'
@@ -99,11 +110,14 @@ export function validateMonitoring( draft ) {
 	if ( webhookOn ) {
 		const value = ( draft.alert_webhook_url || '' ).trim();
 		if ( '' === value ) {
+			// Soft: field not filled in yet.
 			errors.alert_webhook_url = __(
-				'Webhook URL is required when webhook alerts are on.',
+				'Add a webhook URL to receive alerts.',
 				'logscope'
 			);
+			soft.alert_webhook_url = true;
 		} else if ( ! /^https?:\/\//i.test( value ) ) {
+			// Hard: a URL was entered but with the wrong scheme.
 			errors.alert_webhook_url = __(
 				'URL must start with http:// or https://.',
 				'logscope'
@@ -120,7 +134,7 @@ export function validateMonitoring( draft ) {
 		);
 	}
 
-	return { valid: Object.keys( errors ).length === 0, errors };
+	return { valid: Object.keys( errors ).length === 0, errors, soft };
 }
 
 function outcomeLabel( outcome ) {
@@ -230,7 +244,7 @@ export default function MonitoringPanel() {
 	const webhookEnabled = Number( draft.alert_webhook_enabled ) === 1;
 	const anyChannel = emailEnabled || webhookEnabled;
 
-	const { errors } = validateMonitoring( draft );
+	const { errors, soft } = validateMonitoring( draft );
 
 	const handleSendTest = () => {
 		clearAlertTestResults();
@@ -282,7 +296,10 @@ export default function MonitoringPanel() {
 				) }
 				{ errors.master && (
 					<div style={ { marginTop: 10 } }>
-						<Notice status="error" isDismissible={ false }>
+						<Notice
+							status={ soft.master ? 'warning' : 'error' }
+							isDismissible={ false }
+						>
 							{ errors.master }
 						</Notice>
 					</div>
@@ -366,7 +383,11 @@ export default function MonitoringPanel() {
 								{ errors.alert_email_to && (
 									<div style={ { marginTop: 10 } }>
 										<Notice
-											status="error"
+											status={
+												soft.alert_email_to
+													? 'warning'
+													: 'error'
+											}
 											isDismissible={ false }
 										>
 											{ errors.alert_email_to }
@@ -411,7 +432,11 @@ export default function MonitoringPanel() {
 								{ errors.alert_webhook_url && (
 									<div style={ { marginTop: 10 } }>
 										<Notice
-											status="error"
+											status={
+												soft.alert_webhook_url
+													? 'warning'
+													: 'error'
+											}
 											isDismissible={ false }
 										>
 											{ errors.alert_webhook_url }

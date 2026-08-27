@@ -15,8 +15,7 @@ use Logscope\Tests\TestCase;
 
 final class PageRendererTest extends TestCase {
 
-	public function test_render_outputs_wrap_with_heading_and_root_element(): void {
-		Functions\when( 'esc_html__' )->returnArg( 1 );
+	public function test_render_outputs_wrap_with_root_element(): void {
 		Functions\when( 'esc_attr' )->returnArg( 1 );
 
 		$renderer = new PageRenderer();
@@ -26,8 +25,21 @@ final class PageRendererTest extends TestCase {
 		$html = (string) ob_get_clean();
 
 		$this->assertStringContainsString( '<div class="wrap logscope-wrap">', $html );
-		$this->assertStringContainsString( '<h1 class="screen-reader-text">Logscope</h1>', $html );
 		$this->assertStringContainsString( 'id="' . PageRenderer::ROOT_ELEMENT_ID . '"', $html );
+	}
+
+	public function test_render_emits_no_server_side_h1(): void {
+		// The React app owns the single page <h1>; a server-side one would
+		// make the page have two level-1 headings.
+		Functions\when( 'esc_attr' )->returnArg( 1 );
+
+		$renderer = new PageRenderer();
+
+		ob_start();
+		$renderer->render();
+		$html = (string) ob_get_clean();
+
+		$this->assertStringNotContainsString( '<h1', $html );
 	}
 
 	public function test_root_element_id_constant_matches_react_entry_contract(): void {

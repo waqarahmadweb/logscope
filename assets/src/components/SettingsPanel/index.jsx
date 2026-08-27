@@ -287,7 +287,7 @@ export default function SettingsPanel() {
 						</h2>
 						<p className="logscope-settings-panel__section-lead">
 							{ __(
-								'Where Logscope reads PHP errors from, and how often the live tail polls.',
+								'Where Logscope reads PHP errors from, and how often Live mode refreshes.',
 								'logscope'
 							) }
 						</p>
@@ -371,11 +371,11 @@ export default function SettingsPanel() {
 							<TextControl
 								type="number"
 								label={ __(
-									'Tail interval (seconds)',
+									'Live refresh interval (seconds)',
 									'logscope'
 								) }
 								help={ __(
-									'How often the live tail polls for new entries. Minimum 1 second.',
+									'How often Live mode checks the log for new entries while it is on. Minimum 1 second.',
 									'logscope'
 								) }
 								value={ String( draft.tail_interval ?? '' ) }
@@ -402,6 +402,12 @@ export default function SettingsPanel() {
 								</div>
 							) }
 						</div>
+
+						{ /* Debug-constants card sits ABOVE the retention
+						     controls so toggling rotation only expands fields
+						     at the bottom of the section — the card stays put
+						     instead of appearing to jump/vanish. */ }
+						<DebugConstantsCard />
 
 						<div className="logscope-settings-panel__field">
 							<ToggleControl
@@ -514,8 +520,6 @@ export default function SettingsPanel() {
 								</div>
 							</>
 						) }
-
-						<DebugConstantsCard />
 					</section>
 
 					<section

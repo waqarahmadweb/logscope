@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+UX + a11y fixes from live browser testing on a real WordPress install.
+
+### Fixed
+
+-   The admin page now has exactly one `<h1>`. The server host page dropped its screen-reader `<h1>` so the React app's visible "Logscope" title is the sole level-1 heading (previously both rendered, giving the page two h1s).
+-   The read-only "WordPress debug constants" card no longer appears to jump/vanish when the log-rotation toggle is switched on. The card now sits above the rotation controls, so enabling rotation only expands the size/archives fields below it instead of pushing the card out of view.
+-   Enabling alerts no longer flashes red errors before the user has filled anything in. An empty-but-required recipient email or webhook URL (and the "pick a channel" prompt) now render as amber guidance; only genuinely invalid input (a malformed email, a non-http(s) URL) shows a red error. Both still block Save.
+
+### Changed
+
+-   The log-file setting is relabelled "Live refresh interval (seconds)" (was "Tail interval"), and its help text plus the section lead now describe it in terms of "Live mode" to match the toolbar's Live button rather than the old "tail" vocabulary.
+
 Pre-submission fix pass from the fresh three-agent review ([docs/v1.0-submission-report.md](docs/v1.0-submission-report.md)) — the fix-before-shipping bugs, the one security tightening worth closing, and the Plugin Check ERROR-level annotations. 350 tests green.
 
 ### Security

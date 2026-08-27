@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-27T14:26:35+00:00\n"
+"POT-Creation-Date: 2026-08-27T15:35:54+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: logscope\n"
@@ -19,7 +19,6 @@ msgstr ""
 #: src/Admin/AdminBar.php:183
 #: src/Admin/Menu.php:75
 #: src/Admin/Menu.php:76
-#: src/Admin/PageRenderer.php:38
 #: src/Admin/SiteHealthTest.php:125
 #: src/Admin/SiteHealthTest.php:167
 #: src/Admin/SiteHealthTest.php:202
@@ -994,55 +993,55 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: minimum minutes, 2: maximum minutes.
-#: assets/src/components/MonitoringPanel/index.jsx:66
+#: assets/src/components/MonitoringPanel/index.jsx:72
 #, js-format
 msgid "Scan interval must be between %1$d and %2$d minutes."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:78
-msgid "Enable at least one channel — email or webhook — so alerts have somewhere to go."
+#: assets/src/components/MonitoringPanel/index.jsx:85
+msgid "Turn on email or webhook below so alerts have somewhere to go."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:87
-msgid "Recipient email is required when email alerts are on."
+#: assets/src/components/MonitoringPanel/index.jsx:96
+msgid "Add a recipient email address to receive alerts."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:92
+#: assets/src/components/MonitoringPanel/index.jsx:103
 msgid "Enter a valid email address."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:102
-msgid "Webhook URL is required when webhook alerts are on."
+#: assets/src/components/MonitoringPanel/index.jsx:114
+msgid "Add a webhook URL to receive alerts."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:107
+#: assets/src/components/MonitoringPanel/index.jsx:121
 msgid "URL must start with http:// or https://."
 msgstr ""
 
 #. translators: %d: minimum dedup window in seconds.
-#: assets/src/components/MonitoringPanel/index.jsx:118
+#: assets/src/components/MonitoringPanel/index.jsx:132
 #, js-format
 msgid "Dedup window must be at least %d seconds."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:129
+#: assets/src/components/MonitoringPanel/index.jsx:143
 msgid "Sent"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:131
+#: assets/src/components/MonitoringPanel/index.jsx:145
 msgid "Skipped (disabled)"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:133
+#: assets/src/components/MonitoringPanel/index.jsx:147
 msgid "Failed"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:135
+#: assets/src/components/MonitoringPanel/index.jsx:149
 msgid "Rate-limited"
 msgstr ""
 
 #. translators: %d: seconds.
-#: assets/src/components/MonitoringPanel/index.jsx:155
+#: assets/src/components/MonitoringPanel/index.jsx:169
 #, js-format
 msgid "%d second ago"
 msgid_plural "%d seconds ago"
@@ -1050,7 +1049,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: minutes.
-#: assets/src/components/MonitoringPanel/index.jsx:163
+#: assets/src/components/MonitoringPanel/index.jsx:177
 #, js-format
 msgid "%d minute ago"
 msgid_plural "%d minutes ago"
@@ -1058,7 +1057,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: hours.
-#: assets/src/components/MonitoringPanel/index.jsx:171
+#: assets/src/components/MonitoringPanel/index.jsx:185
 #, js-format
 msgid "%d hour ago"
 msgid_plural "%d hours ago"
@@ -1066,19 +1065,19 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: days.
-#: assets/src/components/MonitoringPanel/index.jsx:178
+#: assets/src/components/MonitoringPanel/index.jsx:192
 #, js-format
 msgid "%d day ago"
 msgid_plural "%d days ago"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:186
+#: assets/src/components/MonitoringPanel/index.jsx:200
 msgid "Last scan: never"
 msgstr ""
 
 #. translators: %d: number of fatal-error groups dispatched on the last scan.
-#: assets/src/components/MonitoringPanel/index.jsx:193
+#: assets/src/components/MonitoringPanel/index.jsx:207
 #, js-format
 msgid "%d fatal dispatched"
 msgid_plural "%d fatals dispatched"
@@ -1086,74 +1085,74 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: relative time since the last scan, 2: dispatch count fragment.
-#: assets/src/components/MonitoringPanel/index.jsx:203
+#: assets/src/components/MonitoringPanel/index.jsx:217
 #, js-format
 msgid "Last scan: %1$s · %2$s"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:255
+#: assets/src/components/MonitoringPanel/index.jsx:269
 #: assets/src/components/SettingsPanel/index.jsx:100
 msgid "Monitoring & alerts"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:258
+#: assets/src/components/MonitoringPanel/index.jsx:272
 msgid "Periodically scan the debug log for new fatal errors and notify you through the channels below. Off by default — turn this on after configuring at least one channel."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:266
+#: assets/src/components/MonitoringPanel/index.jsx:280
 msgid "Watch the log and send alerts"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:296
+#: assets/src/components/MonitoringPanel/index.jsx:313
 msgid "Scan interval (minutes)"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:312
+#: assets/src/components/MonitoringPanel/index.jsx:329
 msgid "How often the log is checked. A repeating fatal will not email you per scan — see Dedup window below. Minimum 1 minute, maximum 24 hours (1440)."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:329
+#: assets/src/components/MonitoringPanel/index.jsx:346
 msgid "Channels"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:334
+#: assets/src/components/MonitoringPanel/index.jsx:351
 msgid "Email"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:346
+#: assets/src/components/MonitoringPanel/index.jsx:363
 msgid "Recipient email address"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:357
+#: assets/src/components/MonitoringPanel/index.jsx:374
 msgid "Where alert emails are sent. Uses your site email transport (wp_mail), so SMTP plugins apply."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:382
+#: assets/src/components/MonitoringPanel/index.jsx:403
 msgid "Webhook"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:394
+#: assets/src/components/MonitoringPanel/index.jsx:415
 msgid "Webhook URL"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:402
+#: assets/src/components/MonitoringPanel/index.jsx:423
 msgid "Receives a JSON POST per fatal. Must start with https:// (or http://). Use the logscope/webhook_payload filter to reshape for Slack, Discord, or Teams."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:427
+#: assets/src/components/MonitoringPanel/index.jsx:452
 msgid "Dedup window (seconds)"
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:437
+#: assets/src/components/MonitoringPanel/index.jsx:462
 msgid "Minimum gap between repeat alerts of the same error. If a fatal keeps firing across many scans, this controls how often Logscope re-notifies you. Default 1800 (30 min); minimum 60."
 msgstr ""
 
-#: assets/src/components/MonitoringPanel/index.jsx:460
+#: assets/src/components/MonitoringPanel/index.jsx:485
 msgid "Send test alert"
 msgstr ""
 
 #. translators: %s is the underlying error message.
-#: assets/src/components/MonitoringPanel/index.jsx:468
+#: assets/src/components/MonitoringPanel/index.jsx:493
 #, js-format
 msgid "Could not send test alert: %s"
 msgstr ""
@@ -1219,7 +1218,7 @@ msgid "Could not load settings: %s"
 msgstr ""
 
 #: assets/src/components/SettingsPanel/index.jsx:289
-msgid "Where Logscope reads PHP errors from, and how often the live tail polls."
+msgid "Where Logscope reads PHP errors from, and how often Live mode refreshes."
 msgstr ""
 
 #: assets/src/components/SettingsPanel/index.jsx:298
@@ -1241,140 +1240,140 @@ msgid "Could not test the path: %s"
 msgstr ""
 
 #: assets/src/components/SettingsPanel/index.jsx:373
-msgid "Tail interval (seconds)"
+msgid "Live refresh interval (seconds)"
 msgstr ""
 
 #: assets/src/components/SettingsPanel/index.jsx:377
-msgid "How often the live tail polls for new entries. Minimum 1 second."
+msgid "How often Live mode checks the log for new entries while it is on. Minimum 1 second."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:408
+#: assets/src/components/SettingsPanel/index.jsx:414
 msgid "Rotate the log when it grows too large"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:412
+#: assets/src/components/SettingsPanel/index.jsx:418
 msgid "Once a day, archives the log to a timestamped sibling file when it exceeds the size below, then prunes the oldest archives beyond the cap. Off by default."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:433
+#: assets/src/components/SettingsPanel/index.jsx:439
 msgid "Max size before rotation (MB)"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:437
+#: assets/src/components/SettingsPanel/index.jsx:443
 msgid "The daily check rotates the log once it exceeds this size. Minimum 1, maximum 1024."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:476
+#: assets/src/components/SettingsPanel/index.jsx:482
 msgid "Archives to keep"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:480
+#: assets/src/components/SettingsPanel/index.jsx:486
 msgid "Oldest archives beyond this count are deleted after each rotation. Minimum 1, maximum 50."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:569
+#: assets/src/components/SettingsPanel/index.jsx:573
 msgid "WP_DEBUG"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:572
+#: assets/src/components/SettingsPanel/index.jsx:576
 msgid "Master debug switch. Must be on for WordPress to record errors anywhere."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:579
+#: assets/src/components/SettingsPanel/index.jsx:583
 msgid "WP_DEBUG_LOG"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:582
+#: assets/src/components/SettingsPanel/index.jsx:586
 msgid "Writes errors to wp-content/debug.log so Logscope has something to read. Required."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:589
+#: assets/src/components/SettingsPanel/index.jsx:593
 msgid "WP_DEBUG_DISPLAY"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:593
+#: assets/src/components/SettingsPanel/index.jsx:597
 msgid "Echoes errors into the page response. Should be off on a public site — leaks paths and may break layouts."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:605
+#: assets/src/components/SettingsPanel/index.jsx:609
 msgid "WordPress debug constants"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:608
+#: assets/src/components/SettingsPanel/index.jsx:612
 msgid "Read-only view of how WordPress is configured for debug logging. Change these by editing wp-config.php."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:632
-#: assets/src/components/SettingsPanel/index.jsx:640
+#: assets/src/components/SettingsPanel/index.jsx:636
+#: assets/src/components/SettingsPanel/index.jsx:644
 msgid "true"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:633
-#: assets/src/components/SettingsPanel/index.jsx:641
+#: assets/src/components/SettingsPanel/index.jsx:637
+#: assets/src/components/SettingsPanel/index.jsx:645
 msgid "false"
 msgstr ""
 
 #. translators: %s: 'true' or 'false'
-#: assets/src/components/SettingsPanel/index.jsx:638
+#: assets/src/components/SettingsPanel/index.jsx:642
 #, js-format
 msgid "recommended: %s"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:654
+#: assets/src/components/SettingsPanel/index.jsx:658
 msgid "One or more debug constants are not at the recommended setting. Edit wp-config.php to change them — Logscope does not modify your WordPress configuration."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:718
+#: assets/src/components/SettingsPanel/index.jsx:722
 msgid "Settings sections"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:756
+#: assets/src/components/SettingsPanel/index.jsx:760
 msgid "Saving…"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:757
+#: assets/src/components/SettingsPanel/index.jsx:761
 msgid "Save settings"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:761
+#: assets/src/components/SettingsPanel/index.jsx:765
 msgid "Unsaved changes"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:766
+#: assets/src/components/SettingsPanel/index.jsx:770
 msgid "Fix the highlighted fields to enable Save."
 msgstr ""
 
 #. translators: %s is the canonicalised absolute path.
-#: assets/src/components/SettingsPanel/index.jsx:782
+#: assets/src/components/SettingsPanel/index.jsx:786
 #, js-format
 msgid "Resolved: %s"
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:785
+#: assets/src/components/SettingsPanel/index.jsx:789
 msgid "Path is allowed. The file does not exist yet — it will be created on first write."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:791
+#: assets/src/components/SettingsPanel/index.jsx:795
 msgid "Path looks good."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:796
+#: assets/src/components/SettingsPanel/index.jsx:800
 msgid "Not currently readable."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:804
+#: assets/src/components/SettingsPanel/index.jsx:808
 msgid "Not currently writable."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:813
+#: assets/src/components/SettingsPanel/index.jsx:817
 msgid "Path rejected."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:815
+#: assets/src/components/SettingsPanel/index.jsx:819
 msgid "Path is outside the allowed directories."
 msgstr ""
 
-#: assets/src/components/SettingsPanel/index.jsx:819
+#: assets/src/components/SettingsPanel/index.jsx:823
 msgid "Allowed roots:"
 msgstr ""
 
