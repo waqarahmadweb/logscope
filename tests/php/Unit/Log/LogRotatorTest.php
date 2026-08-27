@@ -35,6 +35,9 @@ final class LogRotatorTest extends TestCase {
 				@unlink( $file );
 			}
 		);
+		// Archive names carry a random token; fixed stub keeps assertions
+		// deterministic.
+		Functions\when( 'wp_generate_password' )->justReturn( 'abc123' );
 
 		$base = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'logscope-rotator-' . bin2hex( random_bytes( 6 ) );
 		mkdir( $base, 0777, true );
@@ -91,7 +94,7 @@ final class LogRotatorTest extends TestCase {
 		$this->assertFileExists( $result['archived_to'] );
 		$this->assertFileDoesNotExist( $path );
 		$this->assertMatchesRegularExpression(
-			'/debug\.log\.archived-\d{8}-\d{6}$/',
+			'/debug\.log\.archived-\d{8}-\d{6}-[A-Za-z0-9]{6}$/',
 			$result['archived_to']
 		);
 		$this->assertSame( array(), $result['pruned'] );

@@ -287,20 +287,23 @@ final class LogsController extends RestController {
 			);
 		}
 
-		$archive_path = self::archive_path_for( $path, gmdate( 'Ymd-His' ) );
+		// Random token after the timestamp so a cleared archive is not
+		// guessable/enumerable over the web (the file is served as plain
+		// text on default server configs). The random suffix also makes a
+		// same-second double-clear collision astronomically unlikely; the
+		// file_exists loop stays as a belt-and-braces guard against reuse.
+		$archive_path = self::archive_path_for( $path, gmdate( 'Ymd-His' ) . '-' . wp_generate_password( 6, false, false ) );
 
-		// Same-second double-clear must not overwrite the first archive —
-		// rename() replaces an existing target on most filesystems.
 		$bump = 1;
 		while ( file_exists( $archive_path ) && $bump < 100 ) {
-			$archive_path = self::archive_path_for( $path, gmdate( 'Ymd-His' ) . '-' . $bump );
+			$archive_path = self::archive_path_for( $path, gmdate( 'Ymd-His' ) . '-' . wp_generate_password( 6, false, false ) );
 			++$bump;
 		}
 
 		// PathGuard validated the parent directory; the suffix is built
-		// internally from gmdate() and the existing basename, so the
-		// rename target sits inside the same allowlisted directory and
-		// cannot be influenced by the request.
+		// internally from gmdate() + a server-generated token and the
+		// existing basename, so the rename target sits inside the same
+		// allowlisted directory and cannot be influenced by the request.
 		if ( ! @rename( $path, $archive_path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions
 			return $this->error(
 				'logscope_rest_clear_failed',

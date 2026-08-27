@@ -21,10 +21,11 @@ use Logscope\Support\PathGuard;
  * concurrent writes by WordPress between ticks cannot leave the rotator
  * holding a stale view.
  *
- * Archive naming: `<basename>.archived-YYYYMMDD-HHMMSS` in UTC. Second
- * resolution is sufficient because the cron cadence is daily-or-slower
- * (Phase 14.3) and a same-second collision would only cause a noop on
- * the colliding tick — the next run picks up the still-oversized file.
+ * Archive naming: `<basename>.archived-YYYYMMDD-HHMMSS-<rand>` in UTC.
+ * The random token keeps archive names unguessable so an anonymous
+ * visitor cannot enumerate them over the web on a server that serves the
+ * log directory as plain files; it also removes the same-second collision
+ * risk (the `file_exists` guard remains as belt-and-braces).
  *
  * The rotator never throws on filesystem failure: a missing file, a
  * non-writable parent, or a failed `rename` all return a noop result so
@@ -115,7 +116,12 @@ final class LogRotator {
 		$path     = $this->source->path();
 		$dir      = dirname( $path );
 		$basename = basename( $path );
-		$target   = $dir . DIRECTORY_SEPARATOR . $basename . '.archived-' . gmdate( 'Ymd-His' );
+		// Random token after the timestamp so archive names are not
+		// guessable — a second-granularity stamp alone lets an anonymous
+		// visitor enumerate `debug.log.archived-<ts>` over the web on a
+		// server that serves the directory as plain files.
+		$suffix = gmdate( 'Ymd-His' ) . '-' . wp_generate_password( 6, false, false );
+		$target = $dir . DIRECTORY_SEPARATOR . $basename . '.archived-' . $suffix;
 
 		if ( ! $this->guard->is_writable_parent_of( $target ) ) {
 			return $noop;

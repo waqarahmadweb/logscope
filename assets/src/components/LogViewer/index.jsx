@@ -300,6 +300,19 @@ export default function LogViewer() {
 		fetchLogs( buildQueryParams( filters, viewMode, 1, perPage ) );
 	}, [ fetchLogs, viewMode, filters, perPage ] );
 
+	// When Live stops, refetch page 1. A tail session prepends rows, which
+	// shifts the newest-first server pages — without this, the next
+	// infinite-scroll fetch would re-serve on-screen rows as duplicates.
+	// Guarded on the true→false transition so it does not double-fetch
+	// alongside the filter/viewMode effect above.
+	const wasTailingRef = useRef( isTailing );
+	useEffect( () => {
+		if ( wasTailingRef.current && ! isTailing ) {
+			fetchLogs( buildQueryParams( filters, viewMode, 1, perPage ) );
+		}
+		wasTailingRef.current = isTailing;
+	}, [ isTailing, fetchLogs, filters, viewMode, perPage ] );
+
 	// Diagnostics powers the onboarding banner and the reason-aware
 	// empty state. Fetched once on mount — the snapshot is cheap
 	// server-side and the host's debug-flag state does not change

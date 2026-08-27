@@ -38,6 +38,9 @@ final class LogsControllerTest extends TestCase {
 		// The clear route additionally gates on full admin; grant it here
 		// so route behavior (confirm, 404, rename) stays testable.
 		Functions\when( 'current_user_can' )->justReturn( true );
+		// Archive names carry a random token; a fixed stub keeps the rename
+		// assertions deterministic.
+		Functions\when( 'wp_generate_password' )->justReturn( 'abc123' );
 
 		$base = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'logscope-rest-' . bin2hex( random_bytes( 6 ) );
 		mkdir( $base, 0777, true );
@@ -350,7 +353,7 @@ final class LogsControllerTest extends TestCase {
 
 		$this->assertTrue( $body['cleared'] );
 		$this->assertMatchesRegularExpression(
-			'/^debug\.log\.cleared-\d{8}-\d{6}$/',
+			'/^debug\.log\.cleared-\d{8}-\d{6}-[A-Za-z0-9]{6}$/',
 			$body['archived_as']
 		);
 
