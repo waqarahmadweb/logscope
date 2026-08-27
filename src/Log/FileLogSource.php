@@ -70,6 +70,13 @@ final class FileLogSource implements LogSourceInterface {
 			throw new InvalidPathException( 'Path does not name a file.' );
 		}
 
+		// Leaf restriction: directory containment alone would let the
+		// configured path point at any file in the install (wp-config.php),
+		// turning read/download/clear into an arbitrary-file primitive.
+		if ( ! PathGuard::is_log_basename( $basename ) ) {
+			throw new InvalidPathException( 'Path must name a log file (*.log or debug.log*).' );
+		}
+
 		$dirname = dirname( $raw_path );
 		if ( '' === $dirname || '.' === $dirname ) {
 			throw new InvalidPathException( 'Path has no parent directory.' );

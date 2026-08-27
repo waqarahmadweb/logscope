@@ -89,9 +89,11 @@ export default function useTailPolling( scrollElementRef ) {
 				const el = scrollElementRef.current;
 				const atTop = el ? el.scrollTop <= SCROLL_THRESHOLD_PX : true;
 				const rotated = !! res.rotated;
+				// `??`, not `||`: a legitimate `last_byte: 0` after rotation
+				// must reset the cursor, not fall back to the stale offset.
 				appendTailEntries(
 					res.items || [],
-					res.last_byte || lastByteRef.current,
+					res.last_byte ?? lastByteRef.current,
 					atTop,
 					rotated
 				);

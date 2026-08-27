@@ -16,8 +16,14 @@ const SHORTCUTS = [
 		keys: [ '/' ],
 		description: __( 'Focus the regex search field', 'logscope' ),
 	},
-	{ keys: [ 'g' ], description: __( 'Toggle grouped view', 'logscope' ) },
-	{ keys: [ 't' ], description: __( 'Toggle tail mode', 'logscope' ) },
+	{
+		keys: [ 'g' ],
+		description: __( 'Toggle Unique errors view', 'logscope' ),
+	},
+	{
+		keys: [ 't' ],
+		description: __( 'Toggle Live auto-refresh', 'logscope' ),
+	},
 	{ keys: [ '?' ], description: __( 'Open this help dialog', 'logscope' ) },
 ];
 

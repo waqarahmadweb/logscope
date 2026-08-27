@@ -65,9 +65,18 @@ class SettingsSchema {
 
 					// Strip null bytes defense-in-depth; PathGuard validates
 					// the actual filesystem semantics on use.
-					$value = str_replace( "\0", '', $value );
+					$value = trim( str_replace( "\0", '', $value ) );
 
-					return trim( $value );
+					// Leaf restriction backstop: a non-log filename would be
+					// an arbitrary-file-read primitive (the allowlist roots
+					// span the whole install). SettingsController 400s this
+					// first with a message; blanking here covers any other
+					// schema-mediated writer. Empty falls back to debug.log.
+					if ( '' !== $value && ! \Logscope\Support\PathGuard::is_log_basename( $value ) ) {
+						return '';
+					}
+
+					return $value;
 				},
 			),
 			'tail_interval'              => array(

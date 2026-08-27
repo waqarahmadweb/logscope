@@ -4,6 +4,35 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+Pre-submission punchlist pass ([docs/v1.0-release-punchlist.md](docs/v1.0-release-punchlist.md)): all §1 blockers and §2 high-severity items. Screenshots still need re-capturing on the renamed toolbar before the zip is built.
+
+### Security
+
+-   **Log-path leaf restriction** (punchlist 1.1): the configured `log_path` must now name a log file (`*.log` or a `debug.log*` rotation sibling) — directory containment alone spanned the whole install, so a holder of the grantable `logscope_manage` cap could point the plugin at `wp-config.php` and read it via `GET /logs` / `/logs/download`, or rename it to a publicly-served plaintext file via `DELETE /logs`. Enforced at every layer: a new `PathGuard::is_log_basename()` predicate, a construction-time throw in `FileLogSource`, a 400 on `POST /settings`, a sanitizer backstop in `SettingsSchema`, defence-in-depth refusals on the download and clear routes, and the same restriction on `POST /settings/test-path` so the probe stops being an existence/readability oracle for arbitrary files. `DELETE /logs` (clear) is additionally gated on `manage_options` — renaming the live log is a full-admin action, not a plugin-cap one.
+-   **CSV formula/DDE injection** (2.6): both exports now neutralise cells starting with `=`, `+`, `-`, `@`, tab, or CR by prefixing a literal quote — log messages are attacker-influenced and the BOM steers the file into Excel. Fixed once in a new shared `assets/src/utils/csv.js` (also deduplicating `csvCell`/`timestampForFilename`/the blob-download helper out of `LogViewer` and `GroupedView`, punchlist 4.1).
+-   **Tail read-budget bypass** (2.7): `GET /logs?since=0` on a multi-GB log previously `fread` the entire file past the 50 MB budget; the tail offset is now clamped to `max(since, size − MAX_BYTES_PER_QUERY)`.
+-   **Test seam gated out of production** (2.3): the `_logscope_skip_exit_for_tests` download param now only functions when the PHPUnit bootstrap defines `LOGSCOPE_RUNNING_TESTS`; in production it is inert.
+
+### Fixed
+
+-   Live tail now honours muted signatures (2.4): the mute filter ran only on the paginated branch, so muted entries re-appeared on every poll tick while tailing.
+-   Tail rotation reset no longer dropped (2.5): `useTailPolling` used `||` on `last_byte`, discarding a legitimate `0` after rotation so the cursor never re-baselined; now `??`.
+-   `unknown` severity no longer vanishes from the Stats tab (2.8): `KpiGrid` / `VolumeChart` / `BreakdownBar` each forked a 6-token severity list while the server counts 7; they now import the canonical `SEVERITY_TOKENS` from `utils/severity.js`, so an unknown-only log no longer renders "Total 0" tiles and a null chart.
+-   Log download works on plain-permalink sites (2.9): `downloadLogsUrl()` appended `?…` onto a root that already carries `?rest_route=/`, corrupting the route; extra params now join with `&` when the root has a query.
+-   Keyboard shortcuts fired from the Settings/Stats tab (2.10): `g` / `t` / `/` dispatched synchronously before the Logs tab mounted its listeners; the shortcut is now parked and emitted from an effect after the LogViewer renders.
+-   Segmented controls no longer claim to be tabs (1.4): the All entries / Unique errors toggle and the Stats range/bucket pickers used `role="tablist"`/`role="tab"` with no tabpanel; both now use `role="group"` + `aria-pressed`.
+-   `uninstall.php` removes the `logscope_muted_signatures` option (2.1) — previously orphaned on delete and silently re-filtering entries on reinstall.
+-   `languages/logscope.pot` regenerated for 1.0.0 (1.2): the shipped file was frozen at 0.8.0 with placeholder copyright, deleted strings, and ~200 missing call sites; `bin/make-pot.mjs` now excludes `assets/build` and friends so minified-bundle refs stay out (1.3).
+-   PHPUnit suite repaired: the bootstrap never defined `ABSPATH`, so the first autoloaded `src/` class hit its `defined( 'ABSPATH' ) || exit` guard and killed the run silently with exit 0 — the suite has not actually executed locally since the guards landed in 0.18.0. With the constant defined, the accumulated stale expectations surfaced and were updated (webhook tests still stubbed pre-0.18.0 `wp_remote_post`, `LogRotator` prune needed a `wp_delete_file` stub, settings-shape tests predated `admin_bar_enabled`, `PageRenderer` markup drift), plus new coverage for the leaf restriction and the clear-route admin gate. 345 tests green.
+
+### Added
+
+-   Retention / log-rotation settings UI (2.2): the server side (`retention_enabled`, `retention_max_size_mb`, `retention_max_archives`, daily cron, uninstall cleanup) was fully wired but unreachable — no Settings field existed and Save never sent the keys. The Log file section now carries the rotation toggle plus max-size (1–1024 MB) and archives-to-keep (1–50) fields with validation mirroring the schema clamps.
+
+### Changed
+
+-   Docs vocabulary aligned with the shipped toolbar (1.5): readme.txt, README.md, and the `.wordpress-org` spec now say **All entries / Unique errors / Live** instead of List / Grouped / Tail; screenshot captions reordered to lead with the Stats dashboard (screenshot 2) and the spec corrected from `.png` to the shipped `.jpg`, with a re-capture note for the renamed toolbar.
+
 ## [1.0.0] - 2026-06-23
 
 First public release on the WordPress.org plugin directory — Phase 21 of the [roadmap](ROADMAP.md). No functional changes from 0.18.0; this is the public 1.0 cut. The complete feature set built across the pre-1.0 cycle (log viewer, filters, grouped view + bulk actions, tail mode, stats dashboard, email/webhook alerts, scheduled scanner, log rotation, mute, presets, admin-bar / Dashboard widget / Site Health surfaces) ships hardened by the full Phase 20 security and privacy review.

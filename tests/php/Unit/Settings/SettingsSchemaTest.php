@@ -34,6 +34,7 @@ final class SettingsSchemaTest extends TestCase {
 				'retention_max_size_mb',
 				'default_per_page',
 				'default_severity_filter',
+				'admin_bar_enabled',
 				'timestamp_tz',
 				'retention_max_archives',
 			),

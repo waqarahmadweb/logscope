@@ -46,14 +46,14 @@ final class WebhookAlerterTest extends TestCase {
 	}
 
 	public function test_dispatch_short_circuits_when_disabled(): void {
-		Functions\expect( 'wp_remote_post' )->never();
+		Functions\expect( 'wp_safe_remote_post' )->never();
 		$alerter = new WebhookAlerter( false, 'https://example.com/hook' );
 		$this->assertFalse( $alerter->dispatch( $this->fixture_group() ) );
 	}
 
 	public function test_dispatch_refuses_invalid_url(): void {
 		Functions\when( 'wp_http_validate_url' )->justReturn( false );
-		Functions\expect( 'wp_remote_post' )->never();
+		Functions\expect( 'wp_safe_remote_post' )->never();
 
 		$alerter = new WebhookAlerter( true, 'not a url' );
 		$this->assertFalse( $alerter->dispatch( $this->fixture_group() ) );
@@ -65,13 +65,13 @@ final class WebhookAlerterTest extends TestCase {
 		// still reject it.
 		Functions\when( 'wp_http_validate_url' )->justReturn( 'file:///etc/passwd' );
 		Functions\when( 'wp_parse_url' )->justReturn( 'file' );
-		Functions\expect( 'wp_remote_post' )->never();
+		Functions\expect( 'wp_safe_remote_post' )->never();
 
 		$alerter = new WebhookAlerter( true, 'file:///etc/passwd' );
 		$this->assertFalse( $alerter->dispatch( $this->fixture_group() ) );
 	}
 
-	public function test_dispatch_calls_wp_remote_post_with_expected_shape(): void {
+	public function test_dispatch_calls_wp_safe_remote_post_with_expected_shape(): void {
 		Functions\when( 'wp_http_validate_url' )->returnArg();
 		Functions\when( 'wp_parse_url' )->justReturn( 'https' );
 		Functions\when( 'get_bloginfo' )->justReturn( 'Acme' );
@@ -85,7 +85,7 @@ final class WebhookAlerterTest extends TestCase {
 		Functions\when( 'wp_remote_retrieve_response_code' )->justReturn( 200 );
 
 		$captured = array();
-		Functions\when( 'wp_remote_post' )->alias(
+		Functions\when( 'wp_safe_remote_post' )->alias(
 			function ( $url, $args ) use ( &$captured ) {
 				$captured['url']  = $url;
 				$captured['args'] = $args;
@@ -131,7 +131,7 @@ final class WebhookAlerterTest extends TestCase {
 			->andReturn( array( 'text' => 'slack-shaped' ) );
 
 		$captured = '';
-		Functions\when( 'wp_remote_post' )->alias(
+		Functions\when( 'wp_safe_remote_post' )->alias(
 			function ( $url, $args ) use ( &$captured ) {
 				$captured = $args['body'];
 				return array( 'response' => array( 'code' => 200 ) );
@@ -163,7 +163,7 @@ final class WebhookAlerterTest extends TestCase {
 			->andReturn( 'oops not an array' );
 
 		$captured = '';
-		Functions\when( 'wp_remote_post' )->alias(
+		Functions\when( 'wp_safe_remote_post' )->alias(
 			function ( $url, $args ) use ( &$captured ) {
 				$captured = $args['body'];
 				return array( 'response' => array( 'code' => 200 ) );
@@ -187,7 +187,7 @@ final class WebhookAlerterTest extends TestCase {
 				return json_encode( $data );
 			}
 		);
-		Functions\when( 'wp_remote_post' )->justReturn( 'wp_error_sentinel' );
+		Functions\when( 'wp_safe_remote_post' )->justReturn( 'wp_error_sentinel' );
 		Functions\when( 'is_wp_error' )->justReturn( true );
 
 		$alerter = new WebhookAlerter( true, 'https://example.com/hook' );
@@ -204,7 +204,7 @@ final class WebhookAlerterTest extends TestCase {
 				return json_encode( $data );
 			}
 		);
-		Functions\when( 'wp_remote_post' )->justReturn( array( 'response' => array( 'code' => 500 ) ) );
+		Functions\when( 'wp_safe_remote_post' )->justReturn( array( 'response' => array( 'code' => 500 ) ) );
 		Functions\when( 'is_wp_error' )->justReturn( false );
 		Functions\when( 'wp_remote_retrieve_response_code' )->justReturn( 500 );
 

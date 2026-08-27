@@ -85,10 +85,18 @@ final class LogRepository {
 		$entries = $this->load_entries( $since, $last_byte );
 		$entries = $this->apply_filters( $entries, $query );
 
+		// Resolved before the tail branch so Live polling honours mutes
+		// too — otherwise a muted signature re-appears on every tick.
+		$muted_signatures = $this->resolve_muted_signatures( $query );
+
 		// Tail mode: skip grouping and pagination — the client wants
 		// every newly-appended entry in chronological order, smallest
 		// possible response so polling stays cheap.
 		if ( null !== $query->since_byte ) {
+			if ( array() !== $muted_signatures ) {
+				$entries = $this->filter_entries_by_mute( $entries, $muted_signatures );
+			}
+
 			$count = count( $entries );
 			return new PagedResult(
 				$entries,
@@ -100,8 +108,6 @@ final class LogRepository {
 				$rotated
 			);
 		}
-
-		$muted_signatures = $this->resolve_muted_signatures( $query );
 
 		if ( $query->grouped ) {
 			$groups = LogGrouper::group( $entries );
@@ -257,7 +263,9 @@ final class LogRepository {
 			if ( $since >= $size ) {
 				return array();
 			}
-			$offset = $since;
+			// Clamp to the same read budget as full reads — an ancient or
+			// zero cursor on a multi-GB log must not fread the whole file.
+			$offset = max( $since, $size - self::MAX_BYTES_PER_QUERY );
 		} else {
 			$offset = $size > self::MAX_BYTES_PER_QUERY
 				? $size - self::MAX_BYTES_PER_QUERY

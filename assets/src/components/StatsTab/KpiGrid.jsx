@@ -9,16 +9,15 @@
  */
 import { __ } from '@wordpress/i18n';
 
-import { severityLabel, severityTone } from '../../utils/severity';
+import {
+	SEVERITY_TOKENS,
+	severityLabel,
+	severityTone,
+} from '../../utils/severity';
 
-const SEVERITY_ORDER = [
-	'fatal',
-	'parse',
-	'warning',
-	'notice',
-	'deprecated',
-	'strict',
-];
+// Canonical 7-token list (incl. `unknown`) — a local fork here once
+// dropped `unknown` and zeroed the Total tile on unknown-only logs.
+const SEVERITY_ORDER = SEVERITY_TOKENS;
 
 function valuesFor( buckets, severity ) {
 	return buckets.map( ( b ) => Number( b?.[ severity ] || 0 ) );

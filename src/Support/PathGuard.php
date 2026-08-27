@@ -83,6 +83,30 @@ final class PathGuard {
 	}
 
 	/**
+	 * True when the path's basename looks like a log file: `*.log` or a
+	 * `debug.log*` rotation sibling (`debug.log.1`, `debug.log-20260101`).
+	 *
+	 * Directory containment alone is not enough: ABSPATH/WP_CONTENT_DIR
+	 * cover the whole install, so without a leaf restriction the log-path
+	 * setting doubles as an arbitrary-file read (wp-config.php) for any
+	 * holder of the plugin cap. Static and WP-free so the settings layer,
+	 * REST controllers, and FileLogSource can share the one predicate.
+	 *
+	 * @param string $path Path or bare filename to test.
+	 * @return bool
+	 */
+	public static function is_log_basename( string $path ): bool {
+		$basename = strtolower( basename( str_replace( '\\', '/', $path ) ) );
+
+		if ( 0 === strpos( $basename, 'debug.log' ) ) {
+			return true;
+		}
+
+		// Require a non-empty stem so a bare `.log` dotfile does not pass.
+		return strlen( $basename ) > 4 && '.log' === substr( $basename, -4 );
+	}
+
+	/**
 	 * Returns the canonicalised absolute path, or throws if the candidate
 	 * is malformed, missing, or escapes the allowlist.
 	 *

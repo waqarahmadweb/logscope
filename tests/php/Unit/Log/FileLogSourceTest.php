@@ -172,12 +172,30 @@ final class FileLogSourceTest extends TestCase {
 		);
 	}
 
-	public function test_constructor_rejects_path_naming_only_a_directory(): void {
-		// basename of "/foo/" is "foo" on PHP — that would point at the
-		// directory rather than a file. Once the source is constructed,
-		// exists() correctly reports false because is_file() will fail.
-		$source = new FileLogSource( $this->root . DIRECTORY_SEPARATOR . 'somefile', $this->guard );
-		$this->assertFalse( $source->exists() );
+	public function test_constructor_rejects_non_log_basename(): void {
+		// Leaf restriction: directory containment alone would let the
+		// configured path point at any file in the install (wp-config.php),
+		// so a basename that is not `*.log` / `debug.log*` is rejected at
+		// construction.
+		$this->expectException( InvalidPathException::class );
+		new FileLogSource( $this->root . DIRECTORY_SEPARATOR . 'somefile', $this->guard );
+	}
+
+	public function test_constructor_rejects_php_file_basename(): void {
+		$this->expectException( InvalidPathException::class );
+		new FileLogSource( $this->root . DIRECTORY_SEPARATOR . 'wp-config.php', $this->guard );
+	}
+
+	public function test_constructor_accepts_rotated_debug_log_sibling(): void {
+		$source = new FileLogSource( $this->root . DIRECTORY_SEPARATOR . 'debug.log.1', $this->guard );
+
+		$this->assertSame( $this->root . DIRECTORY_SEPARATOR . 'debug.log.1', $source->path() );
+	}
+
+	public function test_constructor_accepts_custom_log_extension(): void {
+		$source = new FileLogSource( $this->root . DIRECTORY_SEPARATOR . 'php-errors.log', $this->guard );
+
+		$this->assertSame( $this->root . DIRECTORY_SEPARATOR . 'php-errors.log', $source->path() );
 	}
 
 	private function write_pattern( string $path, int $bytes ): void {

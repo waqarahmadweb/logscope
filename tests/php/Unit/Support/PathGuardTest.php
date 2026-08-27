@@ -218,11 +218,10 @@ final class PathGuardTest extends TestCase {
 		$roots = PathGuard::default_roots();
 
 		$this->assertIsArray( $roots );
-		// In the unit-test bootstrap neither WP constant is defined, so the
-		// list is empty. The method's contract is "return whatever is
-		// defined", which for the test environment is nothing. Production
-		// integration covers the populated case.
-		$this->assertSame( array(), $roots );
+		// The unit-test bootstrap defines ABSPATH (the src file guards
+		// require it) but not WP_CONTENT_DIR, so the contract — "return
+		// whatever is defined" — yields exactly the ABSPATH entry here.
+		$this->assertSame( array( (string) constant( 'ABSPATH' ) ), $roots );
 	}
 
 	public function test_is_writable_parent_of_returns_true_when_parent_is_writable(): void {

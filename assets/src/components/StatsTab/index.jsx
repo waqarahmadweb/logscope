@@ -32,13 +32,13 @@ const BUCKETS = [
 
 function Seg( { options, value, onChange, ariaLabel } ) {
 	return (
-		<div className="logscope-seg" role="tablist" aria-label={ ariaLabel }>
+		// Toggle group, not tabs — there is no tabpanel to control.
+		<div className="logscope-seg" role="group" aria-label={ ariaLabel }>
 			{ options.map( ( opt ) => (
 				<button
 					key={ opt.value }
 					type="button"
-					role="tab"
-					aria-selected={ value === opt.value }
+					aria-pressed={ value === opt.value }
 					className={
 						'logscope-seg__btn' +
 						( value === opt.value ? ' logscope-seg__btn--on' : '' )

@@ -159,6 +159,21 @@ final class SettingsController extends RestController {
 			);
 		}
 
+		// Leaf restriction on the log path: the allowlist roots cover the
+		// whole install, so a non-log filename here would be an arbitrary
+		// file-read primitive. Reject loudly rather than letting the
+		// sanitizer blank it silently, so the UI can show why.
+		if ( isset( $body['log_path'] ) && is_string( $body['log_path'] ) ) {
+			$candidate = trim( $body['log_path'] );
+			if ( '' !== $candidate && ! PathGuard::is_log_basename( $candidate ) ) {
+				return $this->error(
+					'logscope_rest_invalid_setting',
+					__( 'The log path must point to a log file (*.log or debug.log*).', 'logscope' ),
+					400
+				);
+			}
+		}
+
 		// Two-phase apply so a sanitiser failure on a later key cannot
 		// leave earlier keys partially persisted. Phase 1 sanitises the
 		// whole body; phase 2 only writes once every value is known to
@@ -241,6 +256,13 @@ final class SettingsController extends RestController {
 
 		if ( '' === $raw ) {
 			$verdict['reason'] = 'Path is empty.';
+			return new WP_REST_Response( $verdict );
+		}
+
+		// Same leaf restriction as save: without it this probe is an
+		// existence/readability oracle for arbitrary files in the install.
+		if ( ! PathGuard::is_log_basename( $raw ) ) {
+			$verdict['reason'] = 'Path must name a log file (*.log or debug.log*).';
 			return new WP_REST_Response( $verdict );
 		}
 

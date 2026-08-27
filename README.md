@@ -18,24 +18,24 @@
 
 ---
 
-Logscope turns `wp-content/debug.log` into a real admin tool. Instead of SSHing in to `tail -f` a file, you open **Tools → Logscope** and get a virtualized viewer that handles thousands of lines, severity and regex filters, error grouping by signature, stack-trace expansion, a live tail, and alerts for new fatals over email or webhook.
+Logscope turns `wp-content/debug.log` into a real admin tool. Instead of SSHing in to `tail -f` a file, you open **Tools → Logscope** and get a virtualized viewer that handles thousands of lines, severity and regex filters, duplicate-error collapsing, stack-trace expansion, a Live mode that follows new entries, and alerts for new fatals over email or webhook.
 
 > **Free forever.** No paid tier, no telemetry, no upsells.
 
 ## Screenshots
 
-|                                                           Log viewer                                                           |                                           Grouped view + bulk actions                                            |
-| :----------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------: |
-|        <img src=".wordpress-org/screenshot-1.jpg" alt="Log viewer with severity filters and regex search" width="420">         |     <img src=".wordpress-org/screenshot-2.jpg" alt="Grouped view with bulk mute and CSV export" width="420">     |
-|                                                      **Stats dashboard**                                                       |                                               **Alerts settings**                                                |
-| <img src=".wordpress-org/screenshot-3.jpg" alt="Stats dashboard — severity breakdown, sparklines, top signatures" width="420"> | <img src=".wordpress-org/screenshot-4.jpg" alt="Alerts settings — email and webhook with test send" width="420"> |
+|                                                           Log viewer                                                           |                                                        Stats dashboard                                                         |
+| :----------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------: |
+|        <img src=".wordpress-org/screenshot-1.jpg" alt="Log viewer (All entries) with severity filters and regex search" width="420">         | <img src=".wordpress-org/screenshot-2.jpg" alt="Stats dashboard — severity breakdown, sparklines, top signatures" width="420"> |
+|                                                  **Unique errors + bulk actions**                                                  |                                               **Alerts settings**                                                |
+|     <img src=".wordpress-org/screenshot-3.jpg" alt="Unique errors view with bulk mute and CSV export" width="420">     | <img src=".wordpress-org/screenshot-4.jpg" alt="Alerts settings — email and webhook with test send" width="420"> |
 
 ## Features
 
 -   **Log viewer** — virtualized list (10k+ lines without lag) with severity pills, timestamp, `file:line`, message, and stack-trace expansion for fatals.
 -   **Filters** — severity multi-select, debounced server-side regex search, date range, and a source dropdown (plugins / themes / mu-plugins / core). Filter state is mirrored to the URL.
--   **Grouped view** — collapses duplicate errors by signature (`file:line` + normalised message), showing count and first/last seen. Multi-select rows to mute or export the selection to CSV in one batch.
--   **Tail mode** — toolbar toggle that polls for new entries. Detects log rotation; shows an "N new entries" pill when you've scrolled away.
+-   **Unique errors view** — collapses duplicate errors by signature (`file:line` + normalised message), showing count and first/last seen. Multi-select rows to mute or export the selection to CSV in one batch.
+-   **Live mode** — toolbar toggle that polls for new entries. Detects log rotation; shows an "N new entries" pill when you've scrolled away.
 -   **Stats dashboard** — severity breakdown bar, per-severity sparklines over 24h / 7d / 30d, and a top-10 signatures table with click-through to a pre-filtered Logs view.
 -   **Alerts** — email and/or generic webhook on new fatals, with per-dispatcher dedup and a "Send test alert" button to verify wiring.
 -   **Scheduled scanner** — opt-in WP-Cron job (1–1440 min) that reads new bytes since the last tick, filters to fatal/parse, groups, and feeds the alert pipeline.

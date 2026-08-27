@@ -19,7 +19,12 @@
 import { useEffect, useRef, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
-import { Button, Notice, TextControl } from '@wordpress/components';
+import {
+	Button,
+	Notice,
+	TextControl,
+	ToggleControl,
+} from '@wordpress/components';
 
 import { STORE_KEY } from '../../store';
 import { FormSkeleton } from '../Skeleton';
@@ -31,6 +36,58 @@ const TAIL_INTERVAL_MIN = 1;
 const DEDUP_WINDOW_MIN = 60;
 const SCAN_INTERVAL_MIN = 1;
 const PER_PAGE_MIN = 10;
+// Mirror the SettingsSchema clamps so the UI rejects what the server would.
+const RETENTION_SIZE_MIN = 1;
+const RETENTION_SIZE_MAX = 1024;
+const RETENTION_SIZE_DEFAULT = 50;
+const RETENTION_ARCHIVES_MIN = 1;
+const RETENTION_ARCHIVES_MAX = 50;
+const RETENTION_ARCHIVES_DEFAULT = 5;
+
+/**
+ * Pure validator for the retention fields, active only when the toggle is
+ * on (off preserves stored values without exercising them — same posture
+ * as validateMonitoring).
+ *
+ * @param {object} draft Settings draft from the store.
+ * @return {{valid: boolean, errors: object}}
+ */
+export function validateRetention( draft ) {
+	const errors = {};
+	if ( ! draft || Number( draft.retention_enabled ) !== 1 ) {
+		return { valid: true, errors };
+	}
+
+	const size = Number( draft.retention_max_size_mb );
+	if (
+		! Number.isFinite( size ) ||
+		size < RETENTION_SIZE_MIN ||
+		size > RETENTION_SIZE_MAX
+	) {
+		errors.retention_max_size_mb = sprintf(
+			/* translators: 1: minimum size in MB, 2: maximum size in MB. */
+			__( 'Max size must be between %1$d and %2$d MB.', 'logscope' ),
+			RETENTION_SIZE_MIN,
+			RETENTION_SIZE_MAX
+		);
+	}
+
+	const archives = Number( draft.retention_max_archives );
+	if (
+		! Number.isFinite( archives ) ||
+		archives < RETENTION_ARCHIVES_MIN ||
+		archives > RETENTION_ARCHIVES_MAX
+	) {
+		errors.retention_max_archives = sprintf(
+			/* translators: 1: minimum archive count, 2: maximum archive count. */
+			__( 'Archives to keep must be between %1$d and %2$d.', 'logscope' ),
+			RETENTION_ARCHIVES_MIN,
+			RETENTION_ARCHIVES_MAX
+		);
+	}
+
+	return { valid: Object.keys( errors ).length === 0, errors };
+}
 
 const SECTIONS = [
 	{
@@ -128,6 +185,7 @@ export default function SettingsPanel() {
 
 	const monitoringValidation = validateMonitoring( draft );
 	const displayValidation = validateDisplay( draft );
+	const retentionValidation = validateRetention( draft );
 
 	// Trim before compare so a trailing space on log_path doesn't toggle
 	// the Save button into a dirty state for a no-op edit.
@@ -158,9 +216,15 @@ export default function SettingsPanel() {
 		isFieldDirty( 'default_per_page', false ) ||
 		isFieldDirty( 'default_severity_filter', true ) ||
 		isFieldDirty( 'timestamp_tz', true ) ||
-		isFieldDirty( 'admin_bar_enabled', false );
+		isFieldDirty( 'admin_bar_enabled', false ) ||
+		isFieldDirty( 'retention_enabled', false ) ||
+		isFieldDirty( 'retention_max_size_mb', false ) ||
+		isFieldDirty( 'retention_max_archives', false );
 
-	const validationOk = monitoringValidation.valid && displayValidation.valid;
+	const validationOk =
+		monitoringValidation.valid &&
+		displayValidation.valid &&
+		retentionValidation.valid;
 
 	const handleSave = () => {
 		saveSettings( {
@@ -181,6 +245,12 @@ export default function SettingsPanel() {
 			default_severity_filter: draft.default_severity_filter || '',
 			timestamp_tz: draft.timestamp_tz === 'utc' ? 'utc' : 'site',
 			admin_bar_enabled: Number( draft.admin_bar_enabled ) === 1 ? 1 : 0,
+			retention_enabled: Number( draft.retention_enabled ) === 1 ? 1 : 0,
+			retention_max_size_mb:
+				Number( draft.retention_max_size_mb ) || RETENTION_SIZE_DEFAULT,
+			retention_max_archives:
+				Number( draft.retention_max_archives ) ||
+				RETENTION_ARCHIVES_DEFAULT,
 		} );
 	};
 
@@ -332,6 +402,118 @@ export default function SettingsPanel() {
 								</div>
 							) }
 						</div>
+
+						<div className="logscope-settings-panel__field">
+							<ToggleControl
+								label={ __(
+									'Rotate the log when it grows too large',
+									'logscope'
+								) }
+								help={ __(
+									'Once a day, archives the log to a timestamped sibling file when it exceeds the size below, then prunes the oldest archives beyond the cap. Off by default.',
+									'logscope'
+								) }
+								checked={
+									Number( draft.retention_enabled ) === 1
+								}
+								onChange={ ( next ) =>
+									setSettingsDraft( {
+										retention_enabled: next ? 1 : 0,
+									} )
+								}
+								__nextHasNoMarginBottom
+							/>
+						</div>
+
+						{ Number( draft.retention_enabled ) === 1 && (
+							<>
+								<div className="logscope-settings-panel__field">
+									<TextControl
+										type="number"
+										label={ __(
+											'Max size before rotation (MB)',
+											'logscope'
+										) }
+										help={ __(
+											'The daily check rotates the log once it exceeds this size. Minimum 1, maximum 1024.',
+											'logscope'
+										) }
+										value={ String(
+											draft.retention_max_size_mb ?? ''
+										) }
+										min={ RETENTION_SIZE_MIN }
+										max={ RETENTION_SIZE_MAX }
+										onChange={ ( next ) =>
+											setSettingsDraft( {
+												retention_max_size_mb:
+													next === ''
+														? ''
+														: Number( next ),
+											} )
+										}
+										__next40pxDefaultSize
+										__nextHasNoMarginBottom
+									/>
+									{ retentionValidation.errors
+										.retention_max_size_mb && (
+										<div style={ { marginTop: 10 } }>
+											<Notice
+												status="error"
+												isDismissible={ false }
+											>
+												{
+													retentionValidation.errors
+														.retention_max_size_mb
+												}
+											</Notice>
+										</div>
+									) }
+								</div>
+
+								<div className="logscope-settings-panel__field">
+									<TextControl
+										type="number"
+										label={ __(
+											'Archives to keep',
+											'logscope'
+										) }
+										help={ __(
+											'Oldest archives beyond this count are deleted after each rotation. Minimum 1, maximum 50.',
+											'logscope'
+										) }
+										value={ String(
+											draft.retention_max_archives ?? ''
+										) }
+										min={ RETENTION_ARCHIVES_MIN }
+										max={ RETENTION_ARCHIVES_MAX }
+										onChange={ ( next ) =>
+											setSettingsDraft( {
+												retention_max_archives:
+													next === ''
+														? ''
+														: Number( next ),
+											} )
+										}
+										__next40pxDefaultSize
+										__nextHasNoMarginBottom
+									/>
+									{ retentionValidation.errors
+										.retention_max_archives && (
+										<div style={ { marginTop: 10 } }>
+											<Notice
+												status="error"
+												isDismissible={ false }
+											>
+												{
+													retentionValidation.errors
+														.retention_max_archives
+												}
+											</Notice>
+										</div>
+									) }
+								</div>
+							</>
+						) }
 
 						<DebugConstantsCard />
 					</section>

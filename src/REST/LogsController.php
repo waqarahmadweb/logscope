@@ -239,6 +239,27 @@ final class LogsController extends RestController {
 	 * @return WP_REST_Response|\WP_Error
 	 */
 	public function handle_clear( WP_REST_Request $request ) {
+		// Destructive verb: renaming the live log can take a site down if
+		// the path were ever mis-resolved, so require full admin rather
+		// than the grantable plugin cap alone.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return $this->error(
+				'logscope_rest_forbidden',
+				__( 'Clearing the log requires administrator privileges.', 'logscope' ),
+				403
+			);
+		}
+
+		// Defense-in-depth: FileLogSource enforces the log-leaf restriction
+		// at construction, but never rename anything that is not a log file.
+		if ( ! PathGuard::is_log_basename( $this->source->path() ) ) {
+			return $this->error(
+				'logscope_rest_not_a_log',
+				__( 'The configured path is not a log file.', 'logscope' ),
+				403
+			);
+		}
+
 		if ( true !== (bool) $request->get_param( 'confirm' ) ) {
 			return $this->error(
 				'logscope_rest_confirmation_required',
@@ -294,17 +315,26 @@ final class LogsController extends RestController {
 	 * response serialiser.
 	 *
 	 * @internal The `_logscope_skip_exit_for_tests` request parameter is
-	 *           honoured as an in-process testing seam so the unit suite
-	 *           can drive the streaming path under PHPUnit's already-
-	 *           flushed output buffer. The route is gated by the
-	 *           `logscope_manage` capability, but if that gate is ever
-	 *           weakened this seam must be removed or hidden behind a
-	 *           build-time guard — it is not a public contract.
+	 *           an in-process testing seam so the unit suite can drive the
+	 *           streaming path under PHPUnit's already-flushed output
+	 *           buffer. It only functions when the test bootstrap defines
+	 *           `LOGSCOPE_RUNNING_TESTS`; in production the param is inert
+	 *           and the handler always exits after streaming.
 	 *
 	 * @param WP_REST_Request $request Incoming request.
 	 * @return WP_REST_Response|\WP_Error|null
 	 */
 	public function handle_download( WP_REST_Request $request ) {
+		// Defense-in-depth mirror of the clear route: only ever stream a
+		// log-named file, whatever the source was constructed with.
+		if ( ! PathGuard::is_log_basename( $this->source->path() ) ) {
+			return $this->error(
+				'logscope_rest_not_a_log',
+				__( 'The configured path is not a log file.', 'logscope' ),
+				403
+			);
+		}
+
 		if ( ! $this->source->exists() ) {
 			return $this->error(
 				'logscope_rest_log_missing',
@@ -315,7 +345,8 @@ final class LogsController extends RestController {
 
 		$path      = $this->source->path();
 		$size      = $this->source->size();
-		$test_mode = true === $request->get_param( '_logscope_skip_exit_for_tests' );
+		$test_mode = defined( 'LOGSCOPE_RUNNING_TESTS' )
+			&& true === $request->get_param( '_logscope_skip_exit_for_tests' );
 
 		if ( ! $test_mode ) {
 			foreach ( self::download_headers_for( $path, $size ) as $name => $value ) {

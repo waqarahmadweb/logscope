@@ -184,6 +184,11 @@ final class SettingsTest extends TestCase {
 			->with( 'logscope_timestamp_tz', 'site' )
 			->andReturn( 'site' );
 
+		Functions\expect( 'get_option' )
+			->once()
+			->with( 'logscope_admin_bar_enabled', 1 )
+			->andReturn( 1 );
+
 		$settings = new Settings( new SettingsSchema() );
 
 		$this->assertSame(
@@ -201,6 +206,7 @@ final class SettingsTest extends TestCase {
 				'retention_max_size_mb'      => 50,
 				'default_per_page'           => 50,
 				'default_severity_filter'    => '',
+				'admin_bar_enabled'          => 1,
 				'timestamp_tz'               => 'site',
 				'retention_max_archives'     => 5,
 			),

@@ -29,6 +29,7 @@ import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
 import { STORE_KEY } from '../../store';
 import { client } from '../../api/client';
 import buildFilterParams from '../../utils/filterParams';
+import { csvCell, downloadCsv, timestampForFilename } from '../../utils/csv';
 import hiddenSig from '../../utils/hiddenSig';
 import EmptyState from '../EmptyState';
 import EntryRow, { entryKey, ROW_HEIGHT_BASE, rowHeightFor } from '../EntryRow';
@@ -363,39 +364,59 @@ export default function LogViewer() {
 			<FilterBar />
 
 			<div className="logscope-toolbar">
+				{ /* A two-state toggle, not tabs: no tabpanel exists, so
+				     group + aria-pressed is the correct pattern. */ }
 				<div
 					className="logscope-mode-toggle"
-					role="tablist"
+					role="group"
 					aria-label={ __( 'View mode', 'logscope' ) }
 				>
 					<Button
 						variant={
 							viewMode === 'list' ? 'primary' : 'secondary'
 						}
-						role="tab"
-						aria-selected={ viewMode === 'list' }
+						aria-pressed={ viewMode === 'list' }
 						onClick={ () => handleSetMode( 'list' ) }
+						title={ __(
+							'Every log line in chronological order.',
+							'logscope'
+						) }
 					>
-						{ __( 'List', 'logscope' ) }
+						{ __( 'All entries', 'logscope' ) }
 					</Button>
 					<Button
 						variant={
 							viewMode === 'grouped' ? 'primary' : 'secondary'
 						}
-						role="tab"
-						aria-selected={ viewMode === 'grouped' }
+						aria-pressed={ viewMode === 'grouped' }
 						onClick={ () => handleSetMode( 'grouped' ) }
+						title={ __(
+							'Duplicate errors collapsed into one row per signature, with counts.',
+							'logscope'
+						) }
 					>
-						{ __( 'Grouped', 'logscope' ) }
+						{ __( 'Unique errors', 'logscope' ) }
 					</Button>
+				</div>
+				<div className="logscope-toolbar__actions">
 					<Button
-						variant={ isTailing ? 'primary' : 'tertiary' }
+						className={
+							isTailing
+								? 'logscope-live logscope-live--on'
+								: 'logscope-live'
+						}
 						onClick={ handleToggleTail }
 						aria-pressed={ isTailing }
+						title={ __(
+							'Auto-refresh as new lines are written to the log. Switches to All entries.',
+							'logscope'
+						) }
 					>
-						{ isTailing
-							? __( 'Stop tail', 'logscope' )
-							: __( 'Tail', 'logscope' ) }
+						<span
+							className="logscope-live__dot"
+							aria-hidden="true"
+						/>
+						{ __( 'Live', 'logscope' ) }
 					</Button>
 					<span
 						className="logscope-toolbar__divider"
@@ -1001,40 +1022,5 @@ function downloadEntriesCsv( entries ) {
 	} );
 	const csv = lines.join( '\r\n' ) + '\r\n';
 
-	const blob = new Blob( [ '﻿', csv ], {
-		type: 'text/csv;charset=utf-8',
-	} );
-	const url = URL.createObjectURL( blob );
-	const anchor = document.createElement( 'a' );
-	anchor.href = url;
-	anchor.download = `logscope-entries-${ timestampForFilename() }.csv`;
-	document.body.appendChild( anchor );
-	anchor.click();
-	document.body.removeChild( anchor );
-	setTimeout( () => URL.revokeObjectURL( url ), 1000 );
-}
-
-function csvCell( value ) {
-	if ( value === undefined || value === null ) {
-		return '';
-	}
-	const str = String( value );
-	if ( /[",\r\n]/.test( str ) ) {
-		return '"' + str.replace( /"/g, '""' ) + '"';
-	}
-	return str;
-}
-
-function timestampForFilename() {
-	const now = new Date();
-	const pad = ( n ) => String( n ).padStart( 2, '0' );
-	return (
-		now.getFullYear() +
-		pad( now.getMonth() + 1 ) +
-		pad( now.getDate() ) +
-		'-' +
-		pad( now.getHours() ) +
-		pad( now.getMinutes() ) +
-		pad( now.getSeconds() )
-	);
+	downloadCsv( csv, `logscope-entries-${ timestampForFilename() }.csv` );
 }

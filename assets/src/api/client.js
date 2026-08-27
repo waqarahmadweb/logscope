@@ -142,13 +142,18 @@ export const client = {
 	downloadLogsUrl() {
 		const root = bootstrap.restRoot || '/wp-json/';
 		const sep = root.endsWith( '/' ) ? '' : '/';
+		const base = root + sep + 'logscope/v1/logs/download';
 		// Cache-busting query so the browser does not serve a previous
 		// response after a Clear → write cycle. Nonce is required
 		// because the route is gated by the `logscope_manage` cap.
-		const nonce = bootstrap.nonce
-			? '&_wpnonce=' + encodeURIComponent( bootstrap.nonce )
-			: '';
-		return root + sep + 'logscope/v1/logs/download?_=' + Date.now() + nonce;
+		const params = [ '_=' + Date.now() ];
+		if ( bootstrap.nonce ) {
+			params.push( '_wpnonce=' + encodeURIComponent( bootstrap.nonce ) );
+		}
+		// Plain-permalink roots already carry a query (`?rest_route=/`), so
+		// extra params must join with `&` — a second `?` corrupts the route.
+		const joiner = root.includes( '?' ) ? '&' : '?';
+		return base + joiner + params.join( '&' );
 	},
 };
 

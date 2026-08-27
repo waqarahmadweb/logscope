@@ -86,6 +86,9 @@ execFileSync(
 		'--slug=logscope',
 		'--domain=logscope',
 		'--package-name=Logscope',
+		// Scan sources only — minified bundles would pollute the POT with
+		// assets/build/index.js source refs and duplicate every string.
+		'--exclude=assets/build,node_modules,vendor,tools,dist,build',
 	],
 	{ stdio: 'inherit' }
 );

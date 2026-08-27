@@ -25,6 +25,7 @@ import { STORE_KEY } from '../../store';
 import { severityLabel, severityTone } from '../../utils/severity';
 import { formatEntryTimestamp } from '../../utils/formatTimestamp';
 import buildFilterParams from '../../utils/filterParams';
+import { csvCell, downloadCsv, timestampForFilename } from '../../utils/csv';
 
 export default function GroupedView() {
 	const { groups, filters, isSavingMutes, perPage } = useSelect(
@@ -406,46 +407,5 @@ function downloadGroupsCsv( rows ) {
 	} );
 	const csv = lines.join( '\r\n' ) + '\r\n';
 
-	// Prepend a UTF-8 BOM so Excel auto-detects the encoding instead of
-	// rendering UTF-8 byte sequences as Latin-1 mojibake — common pain
-	// point with logs that contain non-ASCII characters in messages.
-	const blob = new Blob( [ '﻿', csv ], {
-		type: 'text/csv;charset=utf-8',
-	} );
-	const url = URL.createObjectURL( blob );
-
-	const anchor = document.createElement( 'a' );
-	anchor.href = url;
-	anchor.download = `logscope-groups-${ timestampForFilename() }.csv`;
-	document.body.appendChild( anchor );
-	anchor.click();
-	document.body.removeChild( anchor );
-	// Defer the revoke so Safari has time to start the download — same
-	// pattern used by file-saver and other CSV exporters.
-	setTimeout( () => URL.revokeObjectURL( url ), 1000 );
-}
-
-function csvCell( value ) {
-	if ( value === undefined || value === null ) {
-		return '';
-	}
-	const str = String( value );
-	if ( /[",\r\n]/.test( str ) ) {
-		return '"' + str.replace( /"/g, '""' ) + '"';
-	}
-	return str;
-}
-
-function timestampForFilename() {
-	const now = new Date();
-	const pad = ( n ) => String( n ).padStart( 2, '0' );
-	return (
-		now.getFullYear() +
-		pad( now.getMonth() + 1 ) +
-		pad( now.getDate() ) +
-		'-' +
-		pad( now.getHours() ) +
-		pad( now.getMinutes() ) +
-		pad( now.getSeconds() )
-	);
+	downloadCsv( csv, `logscope-groups-${ timestampForFilename() }.csv` );
 }

@@ -12,7 +12,7 @@ View, filter, group, and get alerts on your WordPress debug log without leaving 
 
 == Description ==
 
-Logscope turns `wp-content/debug.log` into a real admin tool. Instead of SSHing into the server to `tail -f` a file, you open **Tools → Logscope** and get a virtualized log viewer that handles thousands of lines, severity and regex filters, error grouping by signature, stack-trace expansion, a tail mode that polls for new entries, alerts for new fatals over email or webhook, a scheduled scanner that drives those alerts on a cron, opt-in size-based log rotation, mute for noisy known-and-accepted signatures, saved filter presets, a stats dashboard, and an onboarding banner that walks you through enabling `WP_DEBUG_LOG` if it's off.
+Logscope turns `wp-content/debug.log` into a real admin tool. Instead of SSHing into the server to `tail -f` a file, you open **Tools → Logscope** and get a virtualized log viewer that handles thousands of lines, severity and regex filters, error grouping by signature, stack-trace expansion, a Live mode that polls for new entries, alerts for new fatals over email or webhook, a scheduled scanner that drives those alerts on a cron, opt-in size-based log rotation, mute for noisy known-and-accepted signatures, saved filter presets, a stats dashboard, and an onboarding banner that walks you through enabling `WP_DEBUG_LOG` if it's off.
 
 **Free forever.** No paid tier, no telemetry, no upsells.
 
@@ -20,9 +20,9 @@ Logscope turns `wp-content/debug.log` into a real admin tool. Instead of SSHing 
 
 * **Log viewer** — virtualized list (10k+ lines without lag) with severity pills, timestamp, file:line, message, and stack-trace expansion for fatals.
 * **Filters** — severity multi-select, debounced regex search (server-side, message-scoped), date range, source dropdown (plugins / themes / mu-plugins / core). Filter state is mirrored to the URL.
-* **Grouped view** — collapses duplicate errors by signature (file:line + normalised message). Each group shows count, sample message, first/last seen.
-* **Bulk actions in grouped view** — multi-select rows, then mute the selection in one batch or export to CSV.
-* **Tail mode** — toolbar toggle that polls for new entries on the configured interval. Detects log rotation; "N new entries" pill when you've scrolled away.
+* **Unique errors view** — collapses duplicate errors by signature (file:line + normalised message). Each group shows count, sample message, first/last seen.
+* **Bulk actions in Unique errors view** — multi-select rows, then mute the selection in one batch or export to CSV.
+* **Live mode** — toolbar toggle that polls for new entries on the configured interval. Detects log rotation; "N new entries" pill when you've scrolled away.
 * **Stats dashboard** — severity breakdown bar, sparkline grid per severity over 24h / 7d / 30d windows, top-10 signatures table with click-through to a pre-filtered Logs view.
 * **Alerts** — email and/or generic webhook on new fatals. Per-dispatcher dedup so silencing email on a noisy fatal does not silence the webhook on the same fatal. "Send test alert" button to verify wiring.
 * **Scheduled scanner** — opt-in WP-Cron job (1–1440 minute interval) that reads new bytes since the last tick, filters to fatal/parse, groups, and feeds the alert pipeline.
@@ -32,8 +32,8 @@ Logscope turns `wp-content/debug.log` into a real admin tool. Instead of SSHing 
 * **Onboarding** — first-time admins on a host with `WP_DEBUG_LOG` off see an actionable banner with the exact `wp-config.php` lines to add.
 * **Reason-aware empty state** — "No entries" never lies; the empty screen names the underlying cause (file missing, file empty, all entries muted, filters too narrow).
 * **Diagnostics** — `GET /diagnostics` REST endpoint reports `WP_DEBUG`, `WP_DEBUG_LOG`, the resolved log path, file existence, size, and mtime.
-* **Keyboard shortcuts** — `/` focuses search, `g` toggles list ↔ grouped, `t` toggles tail mode, `?` opens the help modal.
-* **Accessibility** — WAI-ARIA tablist, roving tabindex, `role="status"` / `role="alert"` live regions, focus-visible ring, WCAG AA-contrast severity pills.
+* **Keyboard shortcuts** — `/` focuses search, `g` toggles All entries ↔ Unique errors, `t` toggles Live mode, `?` opens the help modal.
+* **Accessibility** — WAI-ARIA roles on tabs and toggles, `role="status"` / `role="alert"` live regions, focus-visible ring, WCAG AA-contrast severity pills.
 * **i18n** — every user-facing string is translatable. `languages/logscope.pot` ships in the zip.
 
 = Architecture =
@@ -80,9 +80,9 @@ Logscope is built and tested for single-site WordPress. Multisite is not officia
 
 == Screenshots ==
 
-1. Log viewer with severity filters and regex search.
-2. Grouped view with bulk actions (mute / export CSV).
-3. Stats dashboard — severity breakdown, sparkline grid, top signatures.
+1. Log viewer (All entries) with severity filters and regex search.
+2. Stats dashboard — severity breakdown, sparkline grid, top signatures.
+3. Unique errors view with bulk actions (mute / export CSV).
 4. Alerts settings — email and webhook configuration with test send.
 5. Mute panel for unmuting silenced signatures.
 6. Onboarding banner shown when `WP_DEBUG_LOG` is missing.
@@ -102,7 +102,7 @@ Diagnostics data exposed through the `GET /diagnostics` REST endpoint (gated by 
 
 = 1.0.0 =
 First public release of Logscope on WordPress.org.
-* The 1.0 milestone ships the complete feature set from the pre-1.0 cycle — virtualized log viewer; severity, regex, date, and source filters; grouped view with bulk mute and CSV export; tail mode; stats dashboard; email and webhook alerts; the scheduled fatal scanner; opt-in log rotation; signature mute; filter presets; and the admin-bar, Dashboard widget, and Site Health surfaces.
+* The 1.0 milestone ships the complete feature set from the pre-1.0 cycle — virtualized log viewer; severity, regex, date, and source filters; Unique errors view with bulk mute and CSV export; Live mode; stats dashboard; email and webhook alerts; the scheduled fatal scanner; opt-in log rotation; signature mute; filter presets; and the admin-bar, Dashboard widget, and Site Health surfaces.
 * Backed by a full security and privacy review: PathGuard path allowlisting, capability-gated REST routes, anti-SSRF webhook transport, and zero telemetry.
 * No functional changes from 0.18.0 — this release marks the public debut.
 

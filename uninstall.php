@@ -36,6 +36,7 @@ $logscope_options = array(
 	'logscope_default_severity_filter',
 	'logscope_timestamp_tz',
 	'logscope_admin_bar_enabled',
+	'logscope_muted_signatures',
 	'logscope_last_scanned_byte',
 	'logscope_last_scanned_at',
 	'logscope_last_scanned_dispatched',

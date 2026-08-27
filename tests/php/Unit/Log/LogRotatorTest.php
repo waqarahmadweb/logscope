@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Logscope\Tests\Unit\Log;
 
+use Brain\Monkey\Functions;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogRotator;
 use Logscope\Support\PathGuard;
@@ -27,6 +28,13 @@ final class LogRotatorTest extends TestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
+		// Prune path uses WP's deletion wrapper; plain unlink is the
+		// faithful stand-in for tmp fixtures.
+		Functions\when( 'wp_delete_file' )->alias(
+			static function ( string $file ): void {
+				@unlink( $file );
+			}
+		);
 
 		$base = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'logscope-rotator-' . bin2hex( random_bytes( 6 ) );
 		mkdir( $base, 0777, true );

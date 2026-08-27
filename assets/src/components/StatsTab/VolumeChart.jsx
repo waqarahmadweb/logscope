@@ -10,16 +10,15 @@
  */
 import { __ } from '@wordpress/i18n';
 
-import { severityLabel, severityTone } from '../../utils/severity';
+import {
+	SEVERITY_TOKENS,
+	severityLabel,
+	severityTone,
+} from '../../utils/severity';
 
-const SEVERITY_ORDER = [
-	'fatal',
-	'parse',
-	'warning',
-	'notice',
-	'deprecated',
-	'strict',
-];
+// Canonical 7-token list (incl. `unknown`) — a local fork here once
+// dropped `unknown` and nulled the chart on unknown-only logs.
+const SEVERITY_ORDER = SEVERITY_TOKENS;
 
 const SEVERITY_STROKE = {
 	fatal: '#e5484d',
@@ -28,6 +27,7 @@ const SEVERITY_STROKE = {
 	notice: '#3e63dd',
 	deprecated: '#8347b9',
 	strict: '#29a383',
+	unknown: '#8b8d98',
 };
 
 const W = 700;

@@ -114,6 +114,7 @@ final class SettingsControllerTest extends TestCase {
 				'retention_max_size_mb'      => 50,
 				'default_per_page'           => 50,
 				'default_severity_filter'    => '',
+				'admin_bar_enabled'          => 1,
 				'timestamp_tz'               => 'site',
 				'retention_max_archives'     => 5,
 			),
@@ -150,6 +151,7 @@ final class SettingsControllerTest extends TestCase {
 				'retention_max_size_mb'      => 50,
 				'default_per_page'           => 50,
 				'default_severity_filter'    => '',
+				'admin_bar_enabled'          => 1,
 				'timestamp_tz'               => 'site',
 				'retention_max_archives'     => 5,
 			),
@@ -224,6 +226,7 @@ final class SettingsControllerTest extends TestCase {
 				'retention_max_size_mb'      => 50,
 				'default_per_page'           => 50,
 				'default_severity_filter'    => '',
+				'admin_bar_enabled'          => 1,
 				'timestamp_tz'               => 'site',
 				'retention_max_archives'     => 5,
 			),
@@ -364,15 +367,54 @@ final class SettingsControllerTest extends TestCase {
 	}
 
 	public function test_test_path_rejects_path_outside_allowlist(): void {
-		$outside = (string) realpath( sys_get_temp_dir() );
+		// Log-named and existing, so the leaf restriction and the missing-
+		// path fallback don't fire first — the allowlist is what rejects it.
+		$outside_dir = (string) realpath( sys_get_temp_dir() ) . DIRECTORY_SEPARATOR . 'logscope-outside-' . bin2hex( random_bytes( 4 ) );
+		mkdir( $outside_dir, 0777, true );
+		$outside = $outside_dir . DIRECTORY_SEPARATOR . 'debug.log';
+		file_put_contents( $outside, 'x' );
+
+		try {
+			$response = $this->controller->handle_test_path(
+				new WP_REST_Request( array( 'path' => $outside ) )
+			);
+
+			$data = $response->get_data();
+			$this->assertFalse( $data['ok'] );
+			$this->assertStringContainsString( 'outside', strtolower( (string) $data['reason'] ) );
+		} finally {
+			@unlink( $outside );
+			@rmdir( $outside_dir );
+		}
+	}
+
+	public function test_test_path_rejects_non_log_leaf(): void {
+		// A non-log filename must be rejected before any filesystem probe —
+		// otherwise the endpoint is an existence/readability oracle for
+		// arbitrary files (wp-config.php) inside the install.
+		$candidate = $this->sandbox . DIRECTORY_SEPARATOR . 'wp-config.php';
+		file_put_contents( $candidate, 'x' );
 
 		$response = $this->controller->handle_test_path(
-			new WP_REST_Request( array( 'path' => $outside ) )
+			new WP_REST_Request( array( 'path' => $candidate ) )
 		);
 
 		$data = $response->get_data();
 		$this->assertFalse( $data['ok'] );
-		$this->assertStringContainsString( 'outside', strtolower( (string) $data['reason'] ) );
+		$this->assertFalse( $data['exists'] );
+		$this->assertStringContainsString( 'log file', (string) $data['reason'] );
+	}
+
+	public function test_post_rejects_non_log_log_path_with_400(): void {
+		$request = new WP_REST_Request(
+			array( 'log_path' => $this->sandbox . DIRECTORY_SEPARATOR . 'wp-config.php' )
+		);
+		$result  = $this->controller->handle_post( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'logscope_rest_invalid_setting', $result->get_error_code() );
+		$this->assertSame( 400, $result->get_error_data()['status'] );
+		$this->assertSame( '', $this->store['logscope_log_path'] );
 	}
 
 	public function test_test_path_rejects_empty_string(): void {

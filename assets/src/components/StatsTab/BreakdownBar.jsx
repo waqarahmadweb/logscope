@@ -6,16 +6,15 @@
  */
 import { __, sprintf } from '@wordpress/i18n';
 
-import { severityLabel, severityTone } from '../../utils/severity';
+import {
+	SEVERITY_TOKENS,
+	severityLabel,
+	severityTone,
+} from '../../utils/severity';
 
-const SEVERITY_ORDER = [
-	'fatal',
-	'parse',
-	'warning',
-	'notice',
-	'deprecated',
-	'strict',
-];
+// Canonical 7-token list (incl. `unknown`) — a local fork here once
+// dropped `unknown` and hid its rows from the mix.
+const SEVERITY_ORDER = SEVERITY_TOKENS;
 
 export default function BreakdownBar( { totals } ) {
 	const segments = SEVERITY_ORDER.map( ( severity ) => ( {

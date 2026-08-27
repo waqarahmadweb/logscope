@@ -95,26 +95,47 @@ export default function App() {
 
 	// Shortcuts that target the Logs view ensure the tab is active first
 	// — pressing `g` or `t` from the Settings tab should still do the
-	// expected thing, not silently drop the keystroke.
-	const ensureLogsTab = useCallback( () => {
-		if ( activeTab !== 'logs' ) {
+	// expected thing, not silently drop the keystroke. The tab switch and
+	// the LogViewer mount are async, so a synchronous emit would fire
+	// before anything subscribes; park the shortcut and emit it from the
+	// effect below once the Logs tab has actually rendered.
+	const [ pendingShortcut, setPendingShortcut ] = useState( null );
+
+	const fireOnLogsTab = useCallback(
+		( name ) => {
+			if ( activeTab === 'logs' ) {
+				emitShortcut( name );
+				return;
+			}
 			handleSelect( 'logs' );
+			setPendingShortcut( name );
+		},
+		[ activeTab ]
+	);
+
+	// Child effects run before parent effects, so by the time this fires
+	// on the commit that mounted LogViewer, its shortcut subscription is
+	// already in place.
+	useEffect( () => {
+		if ( pendingShortcut && activeTab === 'logs' ) {
+			emitShortcut( pendingShortcut );
+			setPendingShortcut( null );
 		}
-	}, [ activeTab ] );
+	}, [ pendingShortcut, activeTab ] );
 
 	useKeyboardShortcuts( {
-		onFocusSearch: useCallback( () => {
-			ensureLogsTab();
-			emitShortcut( SHORTCUT.FOCUS_SEARCH );
-		}, [ ensureLogsTab ] ),
-		onToggleGrouped: useCallback( () => {
-			ensureLogsTab();
-			emitShortcut( SHORTCUT.TOGGLE_GROUPED );
-		}, [ ensureLogsTab ] ),
-		onToggleTail: useCallback( () => {
-			ensureLogsTab();
-			emitShortcut( SHORTCUT.TOGGLE_TAIL );
-		}, [ ensureLogsTab ] ),
+		onFocusSearch: useCallback(
+			() => fireOnLogsTab( SHORTCUT.FOCUS_SEARCH ),
+			[ fireOnLogsTab ]
+		),
+		onToggleGrouped: useCallback(
+			() => fireOnLogsTab( SHORTCUT.TOGGLE_GROUPED ),
+			[ fireOnLogsTab ]
+		),
+		onToggleTail: useCallback(
+			() => fireOnLogsTab( SHORTCUT.TOGGLE_TAIL ),
+			[ fireOnLogsTab ]
+		),
 		onShowHelp: useCallback( () => setHelpOpen( true ), [] ),
 	} );
 

@@ -1,27 +1,36 @@
-# Copyright (C) 2026 Your Name
-# This file is distributed under the GPL v2 or later.
+# Copyright (C) 2026 Waqar Ahmad
+# This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Logscope 0.8.0\n"
+"Project-Id-Version: Logscope 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/logscope\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-27T20:08:10+00:00\n"
+"POT-Creation-Date: 2026-08-20T17:55:33+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: logscope\n"
 
 #. Plugin Name of the plugin
 #: logscope.php
-msgid "Logscope — Debug Log Viewer for WordPress"
+#: src/Admin/AdminBar.php:183
+#: src/Admin/Menu.php:75
+#: src/Admin/Menu.php:76
+#: src/Admin/PageRenderer.php:38
+#: src/Admin/SiteHealthTest.php:125
+#: src/Admin/SiteHealthTest.php:167
+#: src/Admin/SiteHealthTest.php:202
+#: src/Admin/SiteHealthTest.php:230
+#: assets/src/components/App.jsx:189
+msgid "Logscope"
 msgstr ""
 
 #. Plugin URI of the plugin
 #: logscope.php
-msgid "https://example.com/logscope"
+msgid "https://github.com/waqarahmadweb/logscope"
 msgstr ""
 
 #. Description of the plugin
@@ -31,431 +40,1541 @@ msgstr ""
 
 #. Author of the plugin
 #: logscope.php
-msgid "Your Name"
+msgid "Waqar Ahmad"
 msgstr ""
 
 #. Author URI of the plugin
 #: logscope.php
-msgid "https://example.com"
+msgid "https://github.com/waqarahmadweb"
 msgstr ""
 
-#: src/Admin/Menu.php:73
-#: src/Admin/Menu.php:74
-#: src/Admin/PageRenderer.php:36
-msgid "Logscope"
+#: src/Admin/AdminBar.php:205
+msgid "Logscope: WP_DEBUG_LOG is off — the log file is not being written."
 msgstr ""
 
-#: src/REST/LogsController.php:237
-msgid "Pass confirm=true to clear the log."
-msgstr ""
-
-#: src/REST/LogsController.php:245
-msgid "There is no log file to clear."
-msgstr ""
-
-#: src/REST/LogsController.php:254
-msgid "The log directory is not writable by the server."
-msgstr ""
-
-#: src/REST/LogsController.php:268
-msgid "The log could not be archived."
-msgstr ""
-
-#: src/REST/LogsController.php:303
-msgid "There is no log file to download."
-msgstr ""
-
-#: src/REST/RestController.php:60
-msgid "You must be authenticated to access this endpoint."
-msgstr ""
-
-#: src/REST/RestController.php:68
-msgid "You do not have permission to access Logscope."
-msgstr ""
-
-#. translators: %s is a comma-separated list of unknown setting keys.
-#: src/REST/SettingsController.php:142
+#. translators: %d is today's log entry count.
+#: src/Admin/AdminBar.php:210
 #, php-format
-msgid "Unknown setting(s): %s."
+msgid "Logscope: %d log entry today."
+msgid_plural "Logscope: %d log entries today."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/DashboardWidget.php:85
+msgid "Logscope · Recent errors"
 msgstr ""
 
-#: assets/build/index.js:1
-#: assets/build/index.js:2
-#: assets/src/components/EmptyState/index.jsx:17
-#: assets/src/store/index.js:148
-msgid "Could not load logs."
+#: src/Admin/DashboardWidget.php:130
+msgid "No recent log entries. The log file may be empty, missing, or WP_DEBUG_LOG may be off."
 msgstr ""
 
-#: assets/build/index.js:1
-#: assets/src/store/index.js:207
-msgid "Settings saved."
+#: src/Admin/DashboardWidget.php:172
+msgid "View all log entries →"
 msgstr ""
 
-#: assets/build/index.js:1
-#: assets/src/store/index.js:232
-msgid "Could not save settings."
+#: src/Admin/DashboardWidget.php:205
+msgid "Fatal"
 msgstr ""
 
-#: assets/build/index.js:1
-#: assets/src/store/index.js:250
-msgid "Could not test the path."
+#: src/Admin/DashboardWidget.php:207
+msgid "Parse"
 msgstr ""
 
-#: assets/build/index.js:1
-#: assets/src/utils/severity.js:37
-msgid "Fatal error"
-msgstr ""
-
-#: assets/build/index.js:1
-#: assets/src/utils/severity.js:39
-msgid "Parse error"
-msgstr ""
-
-#: assets/build/index.js:1
+#: src/Admin/DashboardWidget.php:209
+#: src/Log/Severity.php:63
 #: assets/src/utils/severity.js:41
 msgid "Warning"
 msgstr ""
 
-#: assets/build/index.js:1
+#: src/Admin/DashboardWidget.php:211
+#: src/Log/Severity.php:65
 #: assets/src/utils/severity.js:43
 msgid "Notice"
 msgstr ""
 
-#: assets/build/index.js:1
+#: src/Admin/DashboardWidget.php:213
+#: src/Log/Severity.php:67
 #: assets/src/utils/severity.js:45
 msgid "Deprecated"
 msgstr ""
 
-#: assets/build/index.js:1
-#: assets/src/utils/severity.js:47
-msgid "Strict Standards"
+#: src/Admin/DashboardWidget.php:215
+msgid "Strict"
 msgstr ""
 
-#: assets/build/index.js:1
+#: src/Admin/DashboardWidget.php:217
+#: src/Log/Severity.php:71
 #: assets/src/utils/severity.js:49
 msgid "Unknown"
 msgstr ""
 
-#. translators: %d is the frame index.
-#: assets/build/index.js:2
-#: assets/src/components/StackTracePanel/index.jsx:63
-#, js-format
-msgid "Frame %d"
+#: src/Admin/DashboardWidget.php:267
+msgid "just now"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/StackTracePanel/index.jsx:74
-msgid "Copy file:line to clipboard"
+#. translators: %s is a human-readable time difference like "5 mins".
+#: src/Admin/DashboardWidget.php:271
+#, php-format
+msgid "%s ago"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/StackTracePanel/index.jsx:79
-msgid "Copied"
+#: src/Admin/SiteHealthTest.php:75
+msgid "Logscope: recent PHP errors"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/StackTracePanel/index.jsx:86
-msgid "[internal]"
+#: src/Admin/SiteHealthTest.php:122
+msgid "No fatal or parse errors in the last 24 hours"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/EntryRow/index.jsx:90
-msgid "Hide stack trace"
+#: src/Admin/SiteHealthTest.php:129
+msgid "Logscope did not detect any PHP fatal or parse errors in the configured debug log over the last 24 hours."
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/EntryRow/index.jsx:91
-msgid "Show stack trace"
+#: src/Admin/SiteHealthTest.php:137
+msgid "Open Logscope"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/EmptyState/index.jsx:27
-msgid "No entries match the current filters."
+#. translators: %d is the warning count.
+#: src/Admin/SiteHealthTest.php:154
+#, php-format
+msgid "Logscope detected %d PHP warning in the configured debug log over the last 24 hours, but no fatal or parse errors. Warnings often hint at deprecations or misconfigurations worth a closer look."
+msgid_plural "Logscope detected %d PHP warnings in the configured debug log over the last 24 hours, but no fatal or parse errors. Warnings often hint at deprecations or misconfigurations worth a closer look."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/SiteHealthTest.php:164
+msgid "Recent PHP warnings on this site"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/EmptyState/index.jsx:28
-msgid "No log entries to show."
+#: src/Admin/SiteHealthTest.php:174
+msgid "Review warnings in Logscope"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/EmptyState/index.jsx:32
-msgid "Try widening the date range or clearing the regex."
+#. translators: %d is the fatal-error count.
+#: src/Admin/SiteHealthTest.php:189
+#, php-format
+msgid "Logscope detected %d PHP fatal or parse error in the configured debug log over the last 24 hours. A fatal stops the request that triggered it — visitors will have seen a blank page, a PHP error, or an admin-ajax failure depending on where it landed."
+msgid_plural "Logscope detected %d PHP fatal or parse errors in the configured debug log over the last 24 hours. A fatal stops the request that triggered it — visitors will have seen a blank page, a PHP error, or an admin-ajax failure depending on where it landed."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/SiteHealthTest.php:199
+msgid "Recent PHP fatals on this site"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/EmptyState/index.jsx:36
-msgid "When WordPress writes to debug.log, entries will appear here."
+#: src/Admin/SiteHealthTest.php:209
+msgid "Investigate fatals in Logscope"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/FilterBar/index.jsx:95
-msgid "Log filters"
+#: src/Admin/SiteHealthTest.php:227
+msgid "Logscope could not check the debug log"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/FilterBar/index.jsx:98
+#: src/Admin/SiteHealthTest.php:234
+msgid "Logscope was unable to read or parse the configured debug log. The log path may be missing, unreadable, or pointing outside the WordPress install."
+msgstr ""
+
+#: src/Admin/SiteHealthTest.php:242
+msgid "Open Logscope settings"
+msgstr ""
+
+#. translators: 1: severity label (e.g. "Fatal error"), 2: site name, 3: short message snippet.
+#: src/Alerts/EmailAlerter.php:194
+#, php-format
+msgid "[Logscope] %1$s on %2$s: %3$s"
+msgstr ""
+
+#: src/Alerts/EmailAlerter.php:214
+#: src/Alerts/EmailAlerter.php:249
+#: assets/src/components/StatsTab/TopSignaturesTable.jsx:71
 msgid "Severity"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/FilterBar/index.jsx:115
-msgid "From"
+#: src/Alerts/EmailAlerter.php:215
+#: src/Alerts/EmailAlerter.php:250
+msgid "Message"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/FilterBar/index.jsx:124
-msgid "To"
+#: src/Alerts/EmailAlerter.php:216
+#: src/Alerts/EmailAlerter.php:251
+#: assets/src/components/GroupedView/index.jsx:358
+msgid "Location"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/FilterBar/index.jsx:133
-msgid "Search (regex)"
+#: src/Alerts/EmailAlerter.php:217
+#: src/Alerts/EmailAlerter.php:252
+msgid "Occurrences"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/FilterBar/index.jsx:140
-msgid "e.g. wpdb::query"
+#: src/Alerts/EmailAlerter.php:218
+#: src/Alerts/EmailAlerter.php:253
+#: assets/src/components/GroupedView/index.jsx:344
+msgid "First seen"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/FilterBar/index.jsx:141
-msgid "Search log messages (regex)"
+#: src/Alerts/EmailAlerter.php:219
+#: src/Alerts/EmailAlerter.php:254
+#: assets/src/components/GroupedView/index.jsx:350
+msgid "Last seen"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/FilterBar/index.jsx:149
-msgid "Source"
+#: src/Alerts/EmailAlerter.php:220
+#: src/Alerts/EmailAlerter.php:255
+msgid "Site"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/FilterBar/index.jsx:157
+#: src/Log/Severity.php:59
+#: assets/src/utils/severity.js:37
+msgid "Fatal error"
+msgstr ""
+
+#: src/Log/Severity.php:61
+#: assets/src/utils/severity.js:39
+msgid "Parse error"
+msgstr ""
+
+#: src/Log/Severity.php:69
+msgid "Strict standards"
+msgstr ""
+
+#. translators: %d: scan interval in minutes.
+#: src/Plugin.php:594
+#, php-format
+msgid "Every %d minute (Logscope)"
+msgid_plural "Every %d minutes (Logscope)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/REST/AlertsController.php:102
+msgid "Enable at least one alert backend (email or webhook) before sending a test alert."
+msgstr ""
+
+#: src/REST/AlertsController.php:133
+msgid "This is a test alert from Logscope. If you can read this, the alert pipeline is working."
+msgstr ""
+
+#: src/REST/LogsController.php:248
+msgid "Clearing the log requires administrator privileges."
+msgstr ""
+
+#: src/REST/LogsController.php:258
+#: src/REST/LogsController.php:333
+msgid "The configured path is not a log file."
+msgstr ""
+
+#: src/REST/LogsController.php:266
+msgid "Pass confirm=true to clear the log."
+msgstr ""
+
+#: src/REST/LogsController.php:274
+msgid "There is no log file to clear."
+msgstr ""
+
+#: src/REST/LogsController.php:283
+msgid "The log directory is not writable by the server."
+msgstr ""
+
+#: src/REST/LogsController.php:297
+msgid "The log could not be archived."
+msgstr ""
+
+#: src/REST/LogsController.php:341
+msgid "There is no log file to download."
+msgstr ""
+
+#: src/REST/MuteController.php:131
+msgid "A non-empty `signature` is required to mute an entry."
+msgstr ""
+
+#: src/REST/MuteController.php:158
+msgid "A non-empty signature is required."
+msgstr ""
+
+#: src/REST/MuteController.php:166
+msgid "No mute record exists for that signature."
+msgstr ""
+
+#: src/REST/PresetsController.php:119
+msgid "You must be authenticated to access presets."
+msgstr ""
+
+#: src/REST/PresetsController.php:138
+msgid "You must be authenticated to save presets."
+msgstr ""
+
+#: src/REST/PresetsController.php:147
+msgid "A non-empty `name` is required to save a preset."
+msgstr ""
+
+#: src/REST/PresetsController.php:160
+#: assets/src/store/index.js:615
+msgid "Could not save the preset."
+msgstr ""
+
+#: src/REST/PresetsController.php:180
+msgid "You must be authenticated to delete presets."
+msgstr ""
+
+#: src/REST/PresetsController.php:189
+msgid "A non-empty preset name is required."
+msgstr ""
+
+#: src/REST/PresetsController.php:197
+msgid "No preset by that name."
+msgstr ""
+
+#: src/REST/RestController.php:62
+msgid "You must be authenticated to access this endpoint."
+msgstr ""
+
+#: src/REST/RestController.php:70
+msgid "You do not have permission to access Logscope."
+msgstr ""
+
+#. translators: %s is a comma-separated list of unknown setting keys.
+#: src/REST/SettingsController.php:154
+#, php-format
+msgid "Unknown setting(s): %s."
+msgstr ""
+
+#: src/REST/SettingsController.php:171
+msgid "The log path must point to a log file (*.log or debug.log*)."
+msgstr ""
+
+#: assets/src/components/App.jsx:33
+msgid "Logs"
+msgstr ""
+
+#: assets/src/components/App.jsx:34
+msgid "Stats"
+msgstr ""
+
+#: assets/src/components/App.jsx:35
+msgid "Settings"
+msgstr ""
+
+#: assets/src/components/App.jsx:192
+msgid "PHP error log viewer for WordPress."
+msgstr ""
+
+#: assets/src/components/App.jsx:202
+msgid "Entries matching the current filters · fatal count grows as more entries stream in while you scroll."
+msgstr ""
+
+#: assets/src/components/App.jsx:214
+msgid "entry"
+msgid_plural "entries"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d is the number of fatal errors among the entries currently loaded into the view.
+#: assets/src/components/App.jsx:224
+#, js-format
+msgid "%d fatal"
+msgid_plural "%d fatal"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/components/App.jsx:240
+msgid "Logscope sections"
+msgstr ""
+
+#: assets/src/components/App.jsx:269
+#: assets/src/components/HelpModal/index.jsx:33
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: assets/src/components/App.jsx:271
+msgid "Shortcuts (?)"
+msgstr ""
+
+#. translators: 1: minimum rows, 2: maximum rows.
+#: assets/src/components/DisplayPanel/index.jsx:52
+#, js-format
+msgid "Rows per page must be between %1$d and %2$d."
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:59
+msgid "Pick site time or UTC."
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:97
+#: assets/src/components/SettingsPanel/index.jsx:105
+msgid "Display"
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:100
+msgid "Defaults applied when the log viewer first loads. Changes take effect on next page load."
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:109
+msgid "Default rows per page"
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:118
+msgid "How many entries the log viewer fetches per page. 10–500."
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:137
+msgid "Default severity filter"
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:140
+msgid "Severities ticked here are pre-selected when the log viewer first loads. Leave all unticked to show every severity."
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:163
+msgid "Timestamp display"
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:167
+msgid "Site time (recommended)"
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:170
+msgid "UTC"
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:177
+msgid "Site time uses the WordPress site timezone. UTC shows raw debug.log timestamps without conversion."
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:193
+msgid "Show admin-bar status indicator"
+msgstr ""
+
+#: assets/src/components/DisplayPanel/index.jsx:197
+msgid "Adds a Logscope item to the WordPress admin bar with a green or grey dot reflecting whether WP_DEBUG_LOG is on, plus a count badge of today’s log entries. Click it to jump to the Logscope page."
+msgstr ""
+
+#: assets/src/components/EmptyState/index.jsx:29
+#: assets/src/store/index.js:239
+msgid "Could not load logs."
+msgstr ""
+
+#: assets/src/components/EmptyState/index.jsx:52
+msgid "No entries match the current filters."
+msgstr ""
+
+#: assets/src/components/EmptyState/index.jsx:53
+msgid "Try widening the date range or clearing the regex."
+msgstr ""
+
+#: assets/src/components/EmptyState/index.jsx:65
+#: assets/src/components/EmptyState/index.jsx:120
+msgid "No log entries to show."
+msgstr ""
+
+#: assets/src/components/EmptyState/index.jsx:66
+#: assets/src/components/EmptyState/index.jsx:121
+msgid "When WordPress writes to debug.log, entries will appear here."
+msgstr ""
+
+#: assets/src/components/EmptyState/index.jsx:81
+msgid "Log file does not yet exist."
+msgstr ""
+
+#. translators: %s is the absolute path the plugin would tail.
+#: assets/src/components/EmptyState/index.jsx:84
+#, js-format
+msgid "Logscope is watching %s — entries will appear here once WordPress writes its first error."
+msgstr ""
+
+#: assets/src/components/EmptyState/index.jsx:96
+msgid "Log file is empty."
+msgstr ""
+
+#: assets/src/components/EmptyState/index.jsx:97
+msgid "WordPress has not written to debug.log yet. New errors will appear here as they happen."
+msgstr ""
+
+#: assets/src/components/EmptyState/index.jsx:111
+msgid "All recent entries are muted."
+msgstr ""
+
+#: assets/src/components/EmptyState/index.jsx:112
+msgid "Visit the Mute panel under Settings to review or remove muted signatures."
+msgstr ""
+
+#: assets/src/components/EntryRow/index.jsx:134
+msgid "Select this log entry"
+msgstr ""
+
+#: assets/src/components/EntryRow/index.jsx:169
+msgid "Hide stack trace"
+msgstr ""
+
+#: assets/src/components/EntryRow/index.jsx:170
+msgid "Show stack trace"
+msgstr ""
+
+#: assets/src/components/EntryRow/index.jsx:182
+msgid "Row actions"
+msgstr ""
+
+#: assets/src/components/EntryRow/index.jsx:183
+msgid "Row actions (right-click row)"
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:53
+msgid "Nothing to copy."
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:63
+#: assets/src/components/LogViewer/index.jsx:168
+#: assets/src/components/LogViewer/index.jsx:212
+msgid "Could not copy to clipboard."
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:160
+msgid "Raw line copied."
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:165
+#: assets/src/components/LogViewer/index.jsx:577
+msgid "Copy raw"
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:177
+msgid "Message copied."
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:182
+msgid "Copy message"
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:194
+msgid "Path copied."
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:199
+msgid "Copy file:line"
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:211
+msgid "Stack trace copied."
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:216
+msgid "Copy stack trace"
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:228
+msgid "Entry JSON copied."
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:233
+msgid "Copy as JSON"
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:245
+msgid "Filtered to this source."
+msgstr ""
+
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:254
+msgid "Filter to this source"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:162
+msgid "Save current filters as preset:"
+msgstr ""
+
+#. translators: confirmation prompt before deleting a saved filter preset.
+#: assets/src/components/FilterBar/index.jsx:199
+msgid "Delete this preset?"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:209
+msgid "Any date"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:213
+#: assets/src/components/FilterBar/index.jsx:380
 msgid "All sources"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/build/index.js:6
-#: assets/src/components/FilterBar/index.jsx:174
-#: assets/src/components/SettingsPanel/index.jsx:228
-msgid "Reset"
+#: assets/src/components/FilterBar/index.jsx:231
+msgid "Log filters"
 msgstr ""
 
-#: assets/build/index.js:2
-#: assets/src/components/GroupedView/index.jsx:27
+#: assets/src/components/FilterBar/index.jsx:274
+msgid "Search regex…   e.g. wpdb::query"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:278
+msgid "Search log messages (regex)"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:285
+msgid "Press / to focus the search input"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:319
+msgid "Date range"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:322
+msgid "From"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:332
+msgid "To"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:370
+msgid "Source file"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:384
+msgid "No sources in current page."
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:427
+msgid "Preset"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:434
+msgid "Filter presets"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:443
+msgid "Save current as preset…"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:447
+msgid "No saved presets."
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:471
+#: assets/src/components/FilterBar/index.jsx:476
+msgid "Delete preset"
+msgstr ""
+
+#. translators: 1: visible entries on the page, 2: total matching filters across pagination.
+#: assets/src/components/FilterBar/index.jsx:549
+#, js-format
+msgid "Showing %1$d of %2$d"
+msgstr ""
+
+#. translators: %d is the total number of log entries.
+#: assets/src/components/FilterBar/index.jsx:555
+#, js-format
+msgid "%d entries · no filters"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:587
+msgid "Remove filter"
+msgstr ""
+
+#: assets/src/components/FilterBar/index.jsx:609
+msgid "Clear filters"
+msgstr ""
+
+#: assets/src/components/GroupedView/index.jsx:129
 msgid "No grouped errors match the current filters."
 msgstr ""
 
+#: assets/src/components/GroupedView/index.jsx:146
+#: assets/src/components/LogViewer/index.jsx:511
+msgid "Bulk actions"
+msgstr ""
+
+#: assets/src/components/GroupedView/index.jsx:162
+msgid "Select all visible groups"
+msgstr ""
+
+#. translators: %d is the number of selected groups.
+#: assets/src/components/GroupedView/index.jsx:171
+#, js-format
+msgid "%d selected"
+msgid_plural "%d selected"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/components/GroupedView/index.jsx:179
+msgid "Select all"
+msgstr ""
+
+#: assets/src/components/GroupedView/index.jsx:196
+#: assets/src/components/LogViewer/index.jsx:563
+msgid "Mute"
+msgstr ""
+
+#: assets/src/components/GroupedView/index.jsx:202
+#: assets/src/components/LogViewer/index.jsx:584
+msgid "Export"
+msgstr ""
+
+#: assets/src/components/GroupedView/index.jsx:210
+#: assets/src/components/LogViewer/index.jsx:603
+msgid "Clear selection"
+msgstr ""
+
+#: assets/src/components/GroupedView/index.jsx:255
+msgid "Optional reason for muting this signature (visible in Settings → Muted signatures):"
+msgstr ""
+
+#. translators: %s is the sample error message for the group.
+#: assets/src/components/GroupedView/index.jsx:281
+#, js-format
+msgid "Select group: %s"
+msgstr ""
+
 #. translators: %d is the number of times this error occurred.
-#: assets/build/index.js:3
-#: assets/src/components/GroupedView/index.jsx:78
+#: assets/src/components/GroupedView/index.jsx:307
 #, js-format
 msgid "%d occurrence"
 msgid_plural "%d occurrences"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/build/index.js:3
-#: assets/src/components/GroupedView/index.jsx:103
+#: assets/src/components/GroupedView/index.jsx:332
+#: assets/src/components/GroupedView/index.jsx:333
+msgid "Mute this signature"
+msgstr ""
+
+#: assets/src/components/GroupedView/index.jsx:341
 msgid "Group details"
 msgstr ""
 
-#: assets/build/index.js:3
-#: assets/src/components/GroupedView/index.jsx:106
-msgid "First seen"
+#: assets/src/components/HelpModal/index.jsx:17
+msgid "Focus the regex search field"
 msgstr ""
 
-#: assets/build/index.js:3
-#: assets/src/components/GroupedView/index.jsx:108
-msgid "Last seen"
+#: assets/src/components/HelpModal/index.jsx:21
+msgid "Toggle Unique errors view"
 msgstr ""
 
-#: assets/build/index.js:3
-#: assets/src/components/GroupedView/index.jsx:112
-msgid "Location"
+#: assets/src/components/HelpModal/index.jsx:25
+msgid "Toggle Live auto-refresh"
 msgstr ""
 
-#: assets/build/index.js:3
-#: assets/src/components/Skeleton/index.jsx:16
-msgid "Loading log entries…"
+#: assets/src/components/HelpModal/index.jsx:27
+msgid "Open this help dialog"
 msgstr ""
 
-#: assets/build/index.js:3
-#: assets/src/components/Skeleton/index.jsx:35
-msgid "Loading settings…"
+#: assets/src/components/HelpModal/index.jsx:56
+msgid "Shortcuts are ignored while typing in an input."
 msgstr ""
 
-#: assets/build/index.js:3
-#: assets/src/components/LogViewer/index.jsx:113
+#. translators: %d is the number of file paths copied.
+#: assets/src/components/LogViewer/index.jsx:156
+#, js-format
+msgid "Copied %d path to clipboard."
+msgid_plural "Copied %d paths to clipboard."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/components/LogViewer/index.jsx:187
+msgid "Selected entries have no raw content."
+msgstr ""
+
+#. translators: %d is the number of raw log lines copied.
+#: assets/src/components/LogViewer/index.jsx:200
+#, js-format
+msgid "Copied %d raw entry to clipboard."
+msgid_plural "Copied %d raw entries to clipboard."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/components/LogViewer/index.jsx:244
+msgid "Selected entries have no mute signature."
+msgstr ""
+
+#. translators: %d is the number of entries hidden in this session.
+#: assets/src/components/LogViewer/index.jsx:273
+#, js-format
+msgid "Hid %d entry in this session."
+msgid_plural "Hid %d entries in this session."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/components/LogViewer/index.jsx:372
 msgid "View mode"
 msgstr ""
 
-#: assets/build/index.js:3
-#: assets/src/components/LogViewer/index.jsx:121
-msgid "List"
+#: assets/src/components/LogViewer/index.jsx:380
+msgid "Every log line in chronological order."
 msgstr ""
 
-#: assets/build/index.js:3
-#: assets/src/components/LogViewer/index.jsx:129
-msgid "Grouped"
+#: assets/src/components/LogViewer/index.jsx:385
+msgid "All entries"
 msgstr ""
 
-#: assets/build/index.js:3
-#: assets/src/components/LogViewer/index.jsx:137
-msgid "Stop tail"
+#: assets/src/components/LogViewer/index.jsx:393
+msgid "Duplicate errors collapsed into one row per signature, with counts."
 msgstr ""
 
-#: assets/build/index.js:3
-#: assets/src/components/LogViewer/index.jsx:138
-msgid "Tail"
+#: assets/src/components/LogViewer/index.jsx:398
+msgid "Unique errors"
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:410
+msgid "Auto-refresh as new lines are written to the log. Switches to All entries."
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:419
+msgid "Live"
+msgstr ""
+
+#. translators: %s is the file size, e.g. "1.2 MB".
+#: assets/src/components/LogViewer/index.jsx:433
+#, js-format
+msgid "Download raw debug.log (%s)"
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:439
+msgid "No log file to download."
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:442
+msgid "Download"
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:451
+msgid "Archive the current log and start a new one"
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:455
+msgid "No log file to clear."
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:458
+#: assets/src/components/LogViewer/index.jsx:682
+msgid "Clear log"
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:466
+#: assets/src/components/LogViewer/index.jsx:558
+msgid "Mute the signatures of the selected entries — they will stop appearing in the viewer."
+msgstr ""
+
+#. translators: %d is the number of selected entries.
+#: assets/src/components/LogViewer/index.jsx:475
+#, js-format
+msgid "Mute (%d)"
+msgid_plural "Mute (%d)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/components/LogViewer/index.jsx:483
+msgid "Mute selected"
+msgstr ""
+
+#. translators: %d is the number of selected entries.
+#: assets/src/components/LogViewer/index.jsx:494
+#, js-format
+msgid "Export (%d)"
+msgid_plural "Export (%d)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/components/LogViewer/index.jsx:502
+msgid "Export selected"
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:537
+msgid "Select all entries"
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:543
+msgid "selected"
+msgid_plural "selected"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/components/LogViewer/index.jsx:570
+msgid "Copy paths"
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:590
+msgid "Hide these entries for the rest of this session (does not modify the log file)."
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:595
+msgid "Hide"
+msgstr ""
+
+#. translators: %d is the number of entries hidden via the session-only Hide action.
+#: assets/src/components/LogViewer/index.jsx:617
+#, js-format
+msgid "%d entry hidden in this session."
+msgid_plural "%d entries hidden in this session."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/components/LogViewer/index.jsx:631
+msgid "Show all"
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:647
+msgid "Clear the debug log?"
+msgstr ""
+
+#. translators: %s is the file size, e.g. "1.2 MB".
+#: assets/src/components/LogViewer/index.jsx:654
+#, js-format
+msgid "Logscope will rename the active log to a timestamped archive (.cleared-YYYYMMDD-HHMMSS) so it stays recoverable on disk. Current size: %s."
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:662
+msgid "Tip: download a copy first if you need to keep the entries close at hand."
+msgstr ""
+
+#: assets/src/components/LogViewer/index.jsx:672
+msgid "Cancel"
 msgstr ""
 
 #. translators: %d is the number of new log entries since the user scrolled away.
-#: assets/build/index.js:4
-#: assets/src/components/LogViewer/index.jsx:252
+#: assets/src/components/LogViewer/index.jsx:899
 #, js-format
 msgid "%d new entry"
 msgid_plural "%d new entries"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/build/index.js:4
-#: assets/src/components/SettingsPanel/index.jsx:36
+#: assets/src/components/LogViewer/index.jsx:926
+msgid "Loading more…"
+msgstr ""
+
+#. translators: 1: loaded entries, 2: total matching entries.
+#: assets/src/components/LogViewer/index.jsx:929
+#, js-format
+msgid "Showing %1$d of %2$d — scroll for more."
+msgstr ""
+
+#. translators: %d is the total number of entries loaded.
+#: assets/src/components/LogViewer/index.jsx:946
+#, js-format
+msgid "End of log · %d entry loaded."
+msgid_plural "End of log · %d entries loaded."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: minimum minutes, 2: maximum minutes.
+#: assets/src/components/MonitoringPanel/index.jsx:76
+#, js-format
+msgid "Scan interval must be between %1$d and %2$d minutes."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:88
+msgid "Enable at least one channel — email or webhook — so alerts have somewhere to go."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:97
+msgid "Recipient email is required when email alerts are on."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:102
+msgid "Enter a valid email address."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:112
+msgid "Webhook URL is required when webhook alerts are on."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:117
+msgid "URL must start with http:// or https://."
+msgstr ""
+
+#. translators: %d: minimum dedup window in seconds.
+#: assets/src/components/MonitoringPanel/index.jsx:128
+#, js-format
+msgid "Dedup window must be at least %d seconds."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:139
+msgid "Sent"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:141
+msgid "Skipped (disabled)"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:143
+msgid "Failed"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:145
+msgid "Rate-limited"
+msgstr ""
+
+#. translators: %d: seconds.
+#: assets/src/components/MonitoringPanel/index.jsx:165
+#, js-format
+msgid "%d second ago"
+msgid_plural "%d seconds ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: minutes.
+#: assets/src/components/MonitoringPanel/index.jsx:173
+#, js-format
+msgid "%d minute ago"
+msgid_plural "%d minutes ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: hours.
+#: assets/src/components/MonitoringPanel/index.jsx:181
+#, js-format
+msgid "%d hour ago"
+msgid_plural "%d hours ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: days.
+#: assets/src/components/MonitoringPanel/index.jsx:188
+#, js-format
+msgid "%d day ago"
+msgid_plural "%d days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:196
+msgid "Last scan: never"
+msgstr ""
+
+#. translators: %d: number of fatal-error groups dispatched on the last scan.
+#: assets/src/components/MonitoringPanel/index.jsx:203
+#, js-format
+msgid "%d fatal dispatched"
+msgid_plural "%d fatals dispatched"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: relative time since the last scan, 2: dispatch count fragment.
+#: assets/src/components/MonitoringPanel/index.jsx:213
+#, js-format
+msgid "Last scan: %1$s · %2$s"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:265
+#: assets/src/components/SettingsPanel/index.jsx:100
+msgid "Monitoring & alerts"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:268
+msgid "Periodically scan the debug log for new fatal errors and notify you through the channels below. Off by default — turn this on after configuring at least one channel."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:276
+msgid "Watch the log and send alerts"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:306
+msgid "Scan interval (minutes)"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:322
+msgid "How often the log is checked. A repeating fatal will not email you per scan — see Dedup window below. Minimum 1 minute, maximum 24 hours (1440)."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:339
+msgid "Channels"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:344
+msgid "Email"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:356
+msgid "Recipient email address"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:367
+msgid "Where alert emails are sent. Uses your site email transport (wp_mail), so SMTP plugins apply."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:392
+msgid "Webhook"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:404
+msgid "Webhook URL"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:412
+msgid "Receives a JSON POST per fatal. Must start with https:// (or http://). Use the logscope/webhook_payload filter to reshape for Slack, Discord, or Teams."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:437
+msgid "Dedup window (seconds)"
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:447
+msgid "Minimum gap between repeat alerts of the same error. If a fatal keeps firing across many scans, this controls how often Logscope re-notifies you. Default 1800 (30 min); minimum 60."
+msgstr ""
+
+#: assets/src/components/MonitoringPanel/index.jsx:470
+msgid "Send test alert"
+msgstr ""
+
+#. translators: %s is the underlying error message.
+#: assets/src/components/MonitoringPanel/index.jsx:478
+#, js-format
+msgid "Could not send test alert: %s"
+msgstr ""
+
+#: assets/src/components/MutedSignaturesPanel/index.jsx:33
+#: assets/src/components/SettingsPanel/index.jsx:110
+msgid "Muted signatures"
+msgstr ""
+
+#: assets/src/components/MutedSignaturesPanel/index.jsx:35
+msgid "Muted signatures are hidden from the default Logs view. They still accumulate in the file — unmute to surface them again."
+msgstr ""
+
+#: assets/src/components/MutedSignaturesPanel/index.jsx:47
+msgid "No muted signatures."
+msgstr ""
+
+#: assets/src/components/MutedSignaturesPanel/index.jsx:75
+msgid "Unmute"
+msgstr ""
+
+#: assets/src/components/OnboardingBanner/index.jsx:92
+msgid "WordPress debug logging is not enabled."
+msgstr ""
+
+#: assets/src/components/OnboardingBanner/index.jsx:97
+msgid "Logscope reads the file WordPress writes to when WP_DEBUG_LOG is on. Until logging is enabled, no entries will appear here."
+msgstr ""
+
+#: assets/src/components/OnboardingBanner/index.jsx:103
+msgid "Add the following lines to your wp-config.php (above the “That’s all, stop editing!” comment):"
+msgstr ""
+
+#: assets/src/components/OnboardingBanner/index.jsx:119
+msgid "WordPress handbook: Debugging in WordPress"
+msgstr ""
+
+#. translators: 1: minimum size in MB, 2: maximum size in MB.
+#: assets/src/components/SettingsPanel/index.jsx:69
+#, js-format
+msgid "Max size must be between %1$d and %2$d MB."
+msgstr ""
+
+#. translators: 1: minimum archive count, 2: maximum archive count.
+#: assets/src/components/SettingsPanel/index.jsx:83
+#, js-format
+msgid "Archives to keep must be between %1$d and %2$d."
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:95
+#: assets/src/components/SettingsPanel/index.jsx:286
+msgid "Log file"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:118
 msgid "Unknown setting key."
 msgstr ""
 
 #. translators: %s is the underlying error message.
-#: assets/build/index.js:5
-#: assets/src/components/SettingsPanel/index.jsx:94
+#: assets/src/components/SettingsPanel/index.jsx:175
 #, js-format
 msgid "Could not load settings: %s"
 msgstr ""
 
-#: assets/build/index.js:5
-#: assets/src/components/SettingsPanel/index.jsx:135
+#: assets/src/components/SettingsPanel/index.jsx:289
+msgid "Where Logscope reads PHP errors from, and how often the live tail polls."
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:298
 msgid "Custom log path"
 msgstr ""
 
-#: assets/build/index.js:5
-#: assets/src/components/SettingsPanel/index.jsx:136
+#: assets/src/components/SettingsPanel/index.jsx:302
 msgid "Absolute path to your debug log. Leave empty to use the default WordPress location."
 msgstr ""
 
-#: assets/build/index.js:5
-#: assets/src/components/SettingsPanel/index.jsx:164
+#: assets/src/components/SettingsPanel/index.jsx:330
 msgid "Test path"
 msgstr ""
 
 #. translators: %s is the underlying error message from the failed REST call.
-#: assets/build/index.js:6
-#: assets/src/components/SettingsPanel/index.jsx:173
+#: assets/src/components/SettingsPanel/index.jsx:347
 #, js-format
 msgid "Could not test the path: %s"
 msgstr ""
 
-#: assets/build/index.js:6
-#: assets/src/components/SettingsPanel/index.jsx:186
+#: assets/src/components/SettingsPanel/index.jsx:373
 msgid "Tail interval (seconds)"
 msgstr ""
 
-#: assets/build/index.js:6
-#: assets/src/components/SettingsPanel/index.jsx:187
+#: assets/src/components/SettingsPanel/index.jsx:377
 msgid "How often the live tail polls for new entries. Minimum 1 second."
 msgstr ""
 
-#: assets/build/index.js:6
-#: assets/src/components/SettingsPanel/index.jsx:220
+#: assets/src/components/SettingsPanel/index.jsx:408
+msgid "Rotate the log when it grows too large"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:412
+msgid "Once a day, archives the log to a timestamped sibling file when it exceeds the size below, then prunes the oldest archives beyond the cap. Off by default."
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:433
+msgid "Max size before rotation (MB)"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:437
+msgid "The daily check rotates the log once it exceeds this size. Minimum 1, maximum 1024."
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:476
+msgid "Archives to keep"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:480
+msgid "Oldest archives beyond this count are deleted after each rotation. Minimum 1, maximum 50."
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:569
+msgid "WP_DEBUG"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:572
+msgid "Master debug switch. Must be on for WordPress to record errors anywhere."
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:579
+msgid "WP_DEBUG_LOG"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:582
+msgid "Writes errors to wp-content/debug.log so Logscope has something to read. Required."
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:589
+msgid "WP_DEBUG_DISPLAY"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:593
+msgid "Echoes errors into the page response. Should be off on a public site — leaks paths and may break layouts."
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:605
+msgid "WordPress debug constants"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:608
+msgid "Read-only view of how WordPress is configured for debug logging. Change these by editing wp-config.php."
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:632
+#: assets/src/components/SettingsPanel/index.jsx:640
+msgid "true"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:633
+#: assets/src/components/SettingsPanel/index.jsx:641
+msgid "false"
+msgstr ""
+
+#. translators: %s: 'true' or 'false'
+#: assets/src/components/SettingsPanel/index.jsx:638
+#, js-format
+msgid "recommended: %s"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:654
+msgid "One or more debug constants are not at the recommended setting. Edit wp-config.php to change them — Logscope does not modify your WordPress configuration."
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:718
+msgid "Settings sections"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:756
+msgid "Saving…"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:757
 msgid "Save settings"
 msgstr ""
 
+#: assets/src/components/SettingsPanel/index.jsx:761
+msgid "Unsaved changes"
+msgstr ""
+
+#: assets/src/components/SettingsPanel/index.jsx:766
+msgid "Fix the highlighted fields to enable Save."
+msgstr ""
+
 #. translators: %s is the canonicalised absolute path.
-#: assets/build/index.js:7
-#: assets/src/components/SettingsPanel/index.jsx:241
+#: assets/src/components/SettingsPanel/index.jsx:782
 #, js-format
 msgid "Resolved: %s"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/SettingsPanel/index.jsx:244
+#: assets/src/components/SettingsPanel/index.jsx:785
 msgid "Path is allowed. The file does not exist yet — it will be created on first write."
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/SettingsPanel/index.jsx:250
+#: assets/src/components/SettingsPanel/index.jsx:791
 msgid "Path looks good."
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/SettingsPanel/index.jsx:255
+#: assets/src/components/SettingsPanel/index.jsx:796
 msgid "Not currently readable."
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/SettingsPanel/index.jsx:263
+#: assets/src/components/SettingsPanel/index.jsx:804
 msgid "Not currently writable."
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/SettingsPanel/index.jsx:272
+#: assets/src/components/SettingsPanel/index.jsx:813
 msgid "Path rejected."
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/SettingsPanel/index.jsx:274
+#: assets/src/components/SettingsPanel/index.jsx:815
 msgid "Path is outside the allowed directories."
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/SettingsPanel/index.jsx:278
+#: assets/src/components/SettingsPanel/index.jsx:819
 msgid "Allowed roots:"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/HelpModal/index.jsx:15
-msgid "Focus the regex search field"
+#: assets/src/components/Skeleton/index.jsx:16
+msgid "Loading log entries…"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/HelpModal/index.jsx:16
-msgid "Toggle grouped view"
+#: assets/src/components/Skeleton/index.jsx:35
+msgid "Loading settings…"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/HelpModal/index.jsx:17
-msgid "Toggle tail mode"
+#: assets/src/components/StackTracePanel/index.jsx:29
+msgid "plugin"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/HelpModal/index.jsx:18
-msgid "Open this help dialog"
+#: assets/src/components/StackTracePanel/index.jsx:30
+msgid "theme"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/App.jsx:182
-#: assets/src/components/HelpModal/index.jsx:24
-msgid "Keyboard shortcuts"
+#: assets/src/components/StackTracePanel/index.jsx:31
+msgid "mu-plugin"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/HelpModal/index.jsx:47
-msgid "Shortcuts are ignored while typing in an input."
+#: assets/src/components/StackTracePanel/index.jsx:32
+msgid "core"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/App.jsx:33
-msgid "Logs"
+#: assets/src/components/StackTracePanel/index.jsx:33
+msgid "other"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/App.jsx:34
-msgid "Settings"
+#. translators: 1: source category (plugin / theme / mu-plugin / core); 2: plugin or theme folder slug.
+#: assets/src/components/StackTracePanel/index.jsx:80
+#, js-format
+msgid "%1$s — %2$s"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/App.jsx:152
-msgid "Logscope sections"
+#. translators: %d is the frame index.
+#: assets/src/components/StackTracePanel/index.jsx:94
+#, js-format
+msgid "Frame %d"
 msgstr ""
 
-#: assets/build/index.js:7
-#: assets/src/components/App.jsx:184
-msgid "Shortcuts (?)"
+#: assets/src/components/StackTracePanel/index.jsx:111
+msgid "Copy file:line to clipboard"
+msgstr ""
+
+#: assets/src/components/StackTracePanel/index.jsx:116
+msgid "Copied"
+msgstr ""
+
+#: assets/src/components/StackTracePanel/index.jsx:123
+msgid "[internal]"
+msgstr ""
+
+#: assets/src/components/StatsTab/BreakdownBar.jsx:39
+msgid "Severity mix"
+msgstr ""
+
+#. translators: 1: severity label, 2: percentage of total.
+#: assets/src/components/StatsTab/BreakdownBar.jsx:86
+#, js-format
+msgid "%1$s %2$s%%"
+msgstr ""
+
+#. translators: %s is a comma-separated list of "Severity NN%" pairs.
+#: assets/src/components/StatsTab/BreakdownBar.jsx:93
+#, js-format
+msgid "Severity breakdown over the range: %s"
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:23
+msgid "Last 24 hours"
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:24
+msgid "Last 7 days"
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:25
+msgid "Last 30 days"
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:29
+msgid "Hour"
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:30
+msgid "Day"
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:78
+#: assets/src/components/StatsTab/index.jsx:84
+msgid "Range"
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:89
+#: assets/src/components/StatsTab/index.jsx:95
+msgid "Bucket"
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:108
+msgid "Loading stats…"
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:129
+msgid "No log entries in this range."
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:152
+msgid "Top error signatures"
+msgstr ""
+
+#: assets/src/components/StatsTab/index.jsx:155
+msgid "Click row to filter Logs"
+msgstr ""
+
+#: assets/src/components/StatsTab/KpiGrid.jsx:69
+msgid "Total entries"
+msgstr ""
+
+#: assets/src/components/StatsTab/KpiGrid.jsx:75
+msgid "in selected range"
+msgstr ""
+
+#: assets/src/components/StatsTab/TopSignaturesTable.jsx:39
+msgid "No signatures in this range."
+msgstr ""
+
+#: assets/src/components/StatsTab/TopSignaturesTable.jsx:60
+msgid "Top signatures in this range. Click a row to view matching log entries."
+msgstr ""
+
+#: assets/src/components/StatsTab/TopSignaturesTable.jsx:73
+msgid "Sample"
+msgstr ""
+
+#: assets/src/components/StatsTab/TopSignaturesTable.jsx:75
+msgid "Count"
+msgstr ""
+
+#: assets/src/components/StatsTab/TopSignaturesTable.jsx:95
+msgid "View matching entries in Logs"
+msgstr ""
+
+#: assets/src/components/StatsTab/VolumeChart.jsx:121
+msgid "Volume over time"
+msgstr ""
+
+#: assets/src/components/StatsTab/VolumeChart.jsx:145
+msgid "Volume of each severity across the selected range"
+msgstr ""
+
+#: assets/src/store/index.js:261
+msgid "Could not load more logs."
+msgstr ""
+
+#: assets/src/store/index.js:336
+#: assets/src/store/index.js:341
+msgid "Could not save settings before test."
+msgstr ""
+
+#: assets/src/store/index.js:359
+msgid "Test alert sent."
+msgstr ""
+
+#: assets/src/store/index.js:360
+msgid "Test alert dispatched but no backend reported success."
+msgstr ""
+
+#: assets/src/store/index.js:371
+msgid "Could not send test alert."
+msgstr ""
+
+#: assets/src/store/index.js:394
+msgid "Settings saved."
+msgstr ""
+
+#: assets/src/store/index.js:419
+msgid "Could not save settings."
+msgstr ""
+
+#: assets/src/store/index.js:437
+msgid "Could not test the path."
+msgstr ""
+
+#: assets/src/store/index.js:476
+msgid "Signature muted."
+msgstr ""
+
+#: assets/src/store/index.js:484
+msgid "Could not mute the signature."
+msgstr ""
+
+#. translators: %d is the number of signatures muted.
+#: assets/src/store/index.js:526
+#, js-format
+msgid "Muted %d signature."
+msgid_plural "Muted %d signatures."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: number muted, 2: number that failed.
+#: assets/src/store/index.js:540
+#, js-format
+msgid "Muted %1$d of %2$d selected signatures; some failed."
+msgstr ""
+
+#: assets/src/store/index.js:560
+msgid "Signature unmuted."
+msgstr ""
+
+#: assets/src/store/index.js:568
+msgid "Could not unmute the signature."
+msgstr ""
+
+#: assets/src/store/index.js:607
+msgid "Preset saved."
+msgstr ""
+
+#: assets/src/store/index.js:629
+msgid "Preset deleted."
+msgstr ""
+
+#: assets/src/store/index.js:637
+msgid "Could not delete the preset."
+msgstr ""
+
+#. translators: %s is the archive filename.
+#: assets/src/store/index.js:699
+#, js-format
+msgid "Log cleared. Archived as %s."
+msgstr ""
+
+#: assets/src/store/index.js:702
+msgid "Log cleared."
+msgstr ""
+
+#: assets/src/store/index.js:709
+msgid "Could not clear the log."
+msgstr ""
+
+#: assets/src/utils/severity.js:47
+msgid "Strict Standards"
 msgstr ""

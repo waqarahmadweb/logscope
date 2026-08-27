@@ -35,6 +35,9 @@ final class LogsControllerTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		Functions\when( '__' )->returnArg( 1 );
+		// The clear route additionally gates on full admin; grant it here
+		// so route behavior (confirm, 404, rename) stays testable.
+		Functions\when( 'current_user_can' )->justReturn( true );
 
 		$base = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'logscope-rest-' . bin2hex( random_bytes( 6 ) );
 		mkdir( $base, 0777, true );
@@ -309,6 +312,20 @@ final class LogsControllerTest extends TestCase {
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertSame( 'logscope_rest_confirmation_required', $result->get_error_code() );
 		$this->assertSame( 400, $result->get_error_data()['status'] );
+
+		$this->assertFileExists( $this->log_path );
+	}
+
+	public function test_clear_requires_manage_options(): void {
+		file_put_contents( $this->log_path, "[27-Apr-2026 12:00:00 UTC] PHP Notice:  ok in /a.php on line 1\n" );
+		Functions\when( 'current_user_can' )->justReturn( false );
+
+		$request = new WP_REST_Request( array( 'confirm' => true ) );
+		$result  = $this->controller->handle_clear( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'logscope_rest_forbidden', $result->get_error_code() );
+		$this->assertSame( 403, $result->get_error_data()['status'] );
 
 		$this->assertFileExists( $this->log_path );
 	}

@@ -25,8 +25,8 @@ final class PageRendererTest extends TestCase {
 		$renderer->render();
 		$html = (string) ob_get_clean();
 
-		$this->assertStringContainsString( '<div class="wrap">', $html );
-		$this->assertStringContainsString( '<h1>Logscope</h1>', $html );
+		$this->assertStringContainsString( '<div class="wrap logscope-wrap">', $html );
+		$this->assertStringContainsString( '<h1 class="screen-reader-text">Logscope</h1>', $html );
 		$this->assertStringContainsString( 'id="' . PageRenderer::ROOT_ELEMENT_ID . '"', $html );
 	}
 
