@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-27T13:58:42+00:00\n"
+"POT-Creation-Date: 2026-08-27T14:26:35+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: logscope\n"
@@ -257,7 +257,7 @@ msgstr ""
 msgid "Invalid regular expression."
 msgstr ""
 
-#: src/Log/LogRepository.php:335
+#: src/Log/LogRepository.php:338
 msgid "The search pattern is too complex to run against this log — simplify the regex."
 msgstr ""
 
@@ -291,32 +291,32 @@ msgstr ""
 msgid "This is a test alert from Logscope. If you can read this, the alert pipeline is working."
 msgstr ""
 
-#: src/REST/LogsController.php:249
+#: src/REST/LogsController.php:250
 msgid "Clearing the log requires administrator privileges."
 msgstr ""
 
-#: src/REST/LogsController.php:259
-#: src/REST/LogsController.php:342
+#: src/REST/LogsController.php:260
+#: src/REST/LogsController.php:346
 msgid "The configured path is not a log file."
 msgstr ""
 
-#: src/REST/LogsController.php:267
+#: src/REST/LogsController.php:268
 msgid "Pass confirm=true to clear the log."
 msgstr ""
 
-#: src/REST/LogsController.php:275
+#: src/REST/LogsController.php:276
 msgid "There is no log file to clear."
 msgstr ""
 
-#: src/REST/LogsController.php:284
+#: src/REST/LogsController.php:285
 msgid "The log directory is not writable by the server."
 msgstr ""
 
-#: src/REST/LogsController.php:306
+#: src/REST/LogsController.php:310
 msgid "The log could not be archived."
 msgstr ""
 
-#: src/REST/LogsController.php:350
+#: src/REST/LogsController.php:354
 msgid "There is no log file to download."
 msgstr ""
 
@@ -577,7 +577,7 @@ msgid "Raw line copied."
 msgstr ""
 
 #: assets/src/components/EntryRow/RowActionsMenu.jsx:201
-#: assets/src/components/LogViewer/index.jsx:579
+#: assets/src/components/LogViewer/index.jsx:592
 msgid "Copy raw"
 msgstr ""
 
@@ -721,7 +721,7 @@ msgid "No grouped errors match the current filters."
 msgstr ""
 
 #: assets/src/components/GroupedView/index.jsx:147
-#: assets/src/components/LogViewer/index.jsx:516
+#: assets/src/components/LogViewer/index.jsx:529
 msgid "Bulk actions"
 msgstr ""
 
@@ -742,17 +742,17 @@ msgid "Select all"
 msgstr ""
 
 #: assets/src/components/GroupedView/index.jsx:198
-#: assets/src/components/LogViewer/index.jsx:564
+#: assets/src/components/LogViewer/index.jsx:577
 msgid "Mute"
 msgstr ""
 
 #: assets/src/components/GroupedView/index.jsx:205
-#: assets/src/components/LogViewer/index.jsx:587
+#: assets/src/components/LogViewer/index.jsx:600
 msgid "Export"
 msgstr ""
 
 #: assets/src/components/GroupedView/index.jsx:213
-#: assets/src/components/LogViewer/index.jsx:606
+#: assets/src/components/LogViewer/index.jsx:619
 msgid "Clear selection"
 msgstr ""
 
@@ -835,158 +835,158 @@ msgid_plural "Hid %d entries in this session."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/LogViewer/index.jsx:381
+#: assets/src/components/LogViewer/index.jsx:394
 msgid "View mode"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:389
+#: assets/src/components/LogViewer/index.jsx:402
 msgid "Every log line in chronological order."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:394
+#: assets/src/components/LogViewer/index.jsx:407
 msgid "All entries"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:402
+#: assets/src/components/LogViewer/index.jsx:415
 msgid "Duplicate errors collapsed into one row per signature, with counts."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:407
+#: assets/src/components/LogViewer/index.jsx:420
 msgid "Unique errors"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:419
+#: assets/src/components/LogViewer/index.jsx:432
 msgid "Auto-refresh as new lines are written to the log. Switches to All entries."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:428
+#: assets/src/components/LogViewer/index.jsx:441
 msgid "Live"
 msgstr ""
 
 #. translators: %s is the file size, e.g. "1.2 MB".
-#: assets/src/components/LogViewer/index.jsx:442
+#: assets/src/components/LogViewer/index.jsx:455
 #, js-format
 msgid "Download raw debug.log (%s)"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:448
+#: assets/src/components/LogViewer/index.jsx:461
 msgid "No log file to download."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:452
+#: assets/src/components/LogViewer/index.jsx:465
 msgid "Download"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:461
+#: assets/src/components/LogViewer/index.jsx:474
 msgid "Archive the current log and start a new one"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:465
+#: assets/src/components/LogViewer/index.jsx:478
 msgid "No log file to clear."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:468
-#: assets/src/components/LogViewer/index.jsx:693
+#: assets/src/components/LogViewer/index.jsx:481
+#: assets/src/components/LogViewer/index.jsx:706
 msgid "Clear log"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:476
-#: assets/src/components/LogViewer/index.jsx:558
+#: assets/src/components/LogViewer/index.jsx:489
+#: assets/src/components/LogViewer/index.jsx:571
 msgid "Mute the signatures of the selected entries — they will stop appearing in the viewer."
 msgstr ""
 
 #. translators: %d is the number of selected entries.
-#: assets/src/components/LogViewer/index.jsx:485
+#: assets/src/components/LogViewer/index.jsx:498
 #, js-format
 msgid "Mute (%d)"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:488
+#: assets/src/components/LogViewer/index.jsx:501
 msgid "Mute selected"
 msgstr ""
 
 #. translators: %d is the number of selected entries.
-#: assets/src/components/LogViewer/index.jsx:499
+#: assets/src/components/LogViewer/index.jsx:512
 #, js-format
 msgid "Export (%d)"
 msgid_plural "Export (%d)"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/LogViewer/index.jsx:507
+#: assets/src/components/LogViewer/index.jsx:520
 msgid "Export selected"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:542
+#: assets/src/components/LogViewer/index.jsx:555
 msgid "Select all entries"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:548
+#: assets/src/components/LogViewer/index.jsx:561
 msgid "selected"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:572
+#: assets/src/components/LogViewer/index.jsx:585
 msgid "Copy paths"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:593
+#: assets/src/components/LogViewer/index.jsx:606
 msgid "Hide these entries for the rest of this session (does not modify the log file)."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:598
+#: assets/src/components/LogViewer/index.jsx:611
 msgid "Hide"
 msgstr ""
 
 #. translators: %d is the number of entries hidden via the session-only Hide action.
-#: assets/src/components/LogViewer/index.jsx:620
+#: assets/src/components/LogViewer/index.jsx:633
 #, js-format
 msgid "%d entry hidden in this session."
 msgid_plural "%d entries hidden in this session."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/LogViewer/index.jsx:634
+#: assets/src/components/LogViewer/index.jsx:647
 msgid "Show all"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:651
+#: assets/src/components/LogViewer/index.jsx:664
 msgid "Clear the debug log?"
 msgstr ""
 
 #. translators: %s is the file size, e.g. "1.2 MB".
-#: assets/src/components/LogViewer/index.jsx:658
+#: assets/src/components/LogViewer/index.jsx:671
 #, js-format
 msgid "Logscope will rename the active log to a timestamped archive (.cleared-YYYYMMDD-HHMMSS) so it stays recoverable on disk. Current size: %s."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:666
+#: assets/src/components/LogViewer/index.jsx:679
 msgid "Tip: download a copy first if you need to keep the entries close at hand."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:676
+#: assets/src/components/LogViewer/index.jsx:689
 msgid "Cancel"
 msgstr ""
 
 #. translators: %d is the number of new log entries since the user scrolled away.
-#: assets/src/components/LogViewer/index.jsx:934
+#: assets/src/components/LogViewer/index.jsx:947
 #, js-format
 msgid "%d new entry"
 msgid_plural "%d new entries"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/LogViewer/index.jsx:961
+#: assets/src/components/LogViewer/index.jsx:974
 msgid "Loading more…"
 msgstr ""
 
 #. translators: 1: loaded entries, 2: total matching entries.
-#: assets/src/components/LogViewer/index.jsx:964
+#: assets/src/components/LogViewer/index.jsx:977
 #, js-format
 msgid "Showing %1$d of %2$d — scroll for more."
 msgstr ""
 
 #. translators: %d is the total number of entries loaded.
-#: assets/src/components/LogViewer/index.jsx:981
+#: assets/src/components/LogViewer/index.jsx:994
 #, js-format
 msgid "End of log · %d entry loaded."
 msgid_plural "End of log · %d entries loaded."
