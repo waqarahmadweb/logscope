@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-27T16:06:55+00:00\n"
+"POT-Creation-Date: 2026-08-27T16:39:00+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: logscope\n"
@@ -1157,20 +1157,20 @@ msgstr ""
 msgid "Could not send test alert: %s"
 msgstr ""
 
-#: assets/src/components/MutedSignaturesPanel/index.jsx:33
+#: assets/src/components/MutedSignaturesPanel/index.jsx:37
 #: assets/src/components/SettingsPanel/index.jsx:110
 msgid "Muted signatures"
 msgstr ""
 
-#: assets/src/components/MutedSignaturesPanel/index.jsx:35
+#: assets/src/components/MutedSignaturesPanel/index.jsx:40
 msgid "Muted signatures are hidden from the default Logs view. They still accumulate in the file — unmute to surface them again."
 msgstr ""
 
-#: assets/src/components/MutedSignaturesPanel/index.jsx:47
+#: assets/src/components/MutedSignaturesPanel/index.jsx:52
 msgid "No muted signatures."
 msgstr ""
 
-#: assets/src/components/MutedSignaturesPanel/index.jsx:75
+#: assets/src/components/MutedSignaturesPanel/index.jsx:80
 msgid "Unmute"
 msgstr ""
 

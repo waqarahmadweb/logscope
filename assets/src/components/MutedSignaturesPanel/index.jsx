@@ -30,7 +30,12 @@ export default function MutedSignaturesPanel() {
 
 	return (
 		<section className="logscope-muted-panel">
-			<h3>{ __( 'Muted signatures', 'logscope' ) }</h3>
+			{ /* h2 (not h3): this is a top-level settings section, peer of
+			     Log file / Monitoring / Display — matching their level keeps
+			     the heading outline flat instead of skipping a level. */ }
+			<h2 className="logscope-settings-panel__section-title">
+				{ __( 'Muted signatures', 'logscope' ) }
+			</h2>
 			<p className="logscope-muted-panel__hint">
 				{ __(
 					'Muted signatures are hidden from the default Logs view. They still accumulate in the file — unmute to surface them again.',
