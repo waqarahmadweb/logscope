@@ -340,6 +340,14 @@ export default function LogViewer() {
 		return () => window.removeEventListener( SHORTCUT_EVENT, handler );
 	}, [ viewMode, isTailing, setViewMode, setTailActive ] );
 
+	// Tail polling lives here rather than in ListScrollPane so it keeps
+	// running when the list is empty: after Clear log, on an empty log, or
+	// when a mute/filter empties the visible set, ListScrollPane unmounts,
+	// but the poll loop must survive to surface the next appended entry.
+	// The hook tolerates a null scroll element (treated as "at top").
+	const tailScrollRef = useRef( null );
+	useTailPolling( tailScrollRef );
+
 	const handleSetMode = ( mode ) => {
 		if ( mode !== viewMode ) {
 			setViewMode( mode );
@@ -636,6 +644,7 @@ export default function LogViewer() {
 				filters={ filters }
 				diagnostics={ diagnostics }
 				muteCount={ muteCount }
+				scrollRef={ tailScrollRef }
 			/>
 			{ confirmClearOpen && (
 				<Modal
@@ -671,7 +680,14 @@ export default function LogViewer() {
 							isDestructive
 							onClick={ () => {
 								setConfirmClearOpen( false );
-								clearAllLogs();
+								clearAllLogs(
+									buildQueryParams(
+										filters,
+										viewMode,
+										1,
+										perPage
+									)
+								);
 							} }
 						>
 							{ __( 'Clear log', 'logscope' ) }
@@ -710,6 +726,7 @@ function ViewerBody( {
 	filters,
 	diagnostics,
 	muteCount,
+	scrollRef,
 } ) {
 	if ( isLoading && items.length === 0 ) {
 		return <ListSkeleton />;
@@ -745,12 +762,17 @@ function ViewerBody( {
 		return <GroupedScrollPane />;
 	}
 
-	return <ListScrollPane items={ items } isLoading={ isLoading } />;
+	return (
+		<ListScrollPane
+			items={ items }
+			isLoading={ isLoading }
+			scrollElementRef={ scrollRef }
+		/>
+	);
 }
 
-function ListScrollPane( { items, isLoading } ) {
+function ListScrollPane( { items, isLoading, scrollElementRef } ) {
 	const listRef = useListRef( null );
-	const scrollElementRef = useRef( null );
 	const {
 		savedOffset,
 		expandedTraces,
@@ -815,6 +837,11 @@ function ListScrollPane( { items, isLoading } ) {
 		element.addEventListener( 'scroll', onScroll, { passive: true } );
 		return () => {
 			element.removeEventListener( 'scroll', onScroll );
+			// Null the shared ref on unmount so the hoisted tail poll does
+			// not keep scrolling a detached node once the list is empty.
+			if ( scrollElementRef.current === element ) {
+				scrollElementRef.current = null;
+			}
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [] );
@@ -864,8 +891,6 @@ function ListScrollPane( { items, isLoading } ) {
 		},
 		[ items.length, fetchNextLogsPage ]
 	);
-
-	useTailPolling( scrollElementRef );
 
 	// rowHeight closes over expandedTraces; recreating the function on
 	// every change of that map is what tells react-window to re-measure.

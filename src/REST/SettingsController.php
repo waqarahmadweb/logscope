@@ -138,6 +138,22 @@ final class SettingsController extends RestController {
 			}
 		}
 
+		// Elevated-cap gate on the sensitive keys. `logscope_manage` is a
+		// grantable sub-admin cap, but repointing the log path (arbitrary
+		// *.log read) or the alert destinations (data exfiltration to an
+		// attacker webhook/inbox) are full-admin actions — mirrors the
+		// manage_options gate on the destructive clear route.
+		$privileged = array( 'log_path', 'alert_webhook_url', 'alert_email_to' );
+		foreach ( $privileged as $key ) {
+			if ( array_key_exists( $key, $body ) && ! current_user_can( 'manage_options' ) ) {
+				return $this->error(
+					'logscope_rest_forbidden',
+					__( 'Changing the log path or alert destinations requires administrator privileges.', 'logscope' ),
+					403
+				);
+			}
+		}
+
 		$schema  = $this->settings->schema();
 		$unknown = array();
 		foreach ( array_keys( $body ) as $key ) {

@@ -36,6 +36,12 @@ final class LogRepository {
 	public const MAX_BYTES_PER_QUERY = 50 * 1024 * 1024;
 
 	/**
+	 * Window read backwards from EOF to find the last newline when a log
+	 * does not end in one. Any single log line fits well inside 64 KB.
+	 */
+	private const LINE_PROBE_BYTES = 65536;
+
+	/**
 	 * Underlying byte source.
 	 *
 	 * @var LogSourceInterface
@@ -73,6 +79,24 @@ final class LogRepository {
 	 */
 	public function query( LogQuery $query ): PagedResult {
 		$last_byte = $this->source->exists() ? $this->source->size() : 0;
+
+		// Cursor reported to the client, clamped to the end of the last
+		// COMPLETE line. WP writes \n-terminated lines, but a read that
+		// races a mid-write (or a writer that omits the final newline)
+		// would otherwise hand back a mid-line cursor — and the next tail
+		// tick's boundary probe would misread that as a rotation and force
+		// a full replace. Only the reported cursor is clamped; parsing
+		// still reads to true EOF, so a final unterminated line is not
+		// dropped from the page. Common case (ends in \n) is a 1-byte read.
+		$reported_last_byte = $last_byte;
+		if ( $last_byte > 0 && "\n" !== $this->source->read_chunk( $last_byte - 1, 1 ) ) {
+			$probe_from = max( 0, $last_byte - self::LINE_PROBE_BYTES );
+			$tail       = $this->source->read_chunk( $probe_from, $last_byte - $probe_from );
+			$newline    = strrpos( $tail, "\n" );
+			if ( false !== $newline ) {
+				$reported_last_byte = $probe_from + $newline + 1;
+			}
+		}
 
 		// File-shrink detection: if the caller's tail cursor is strictly
 		// past current EOF, the log was rotated or cleared between
@@ -117,7 +141,7 @@ final class LogRepository {
 				1,
 				max( 1, $count ),
 				1,
-				$last_byte,
+				$reported_last_byte,
 				$rotated
 			);
 		}
@@ -129,7 +153,7 @@ final class LogRepository {
 				$groups = $this->filter_groups_by_mute( $groups, $muted_signatures );
 			}
 
-			return $this->paginate( $groups, $query, $last_byte );
+			return $this->paginate( $groups, $query, $reported_last_byte );
 		}
 
 		if ( array() !== $muted_signatures ) {
@@ -140,7 +164,7 @@ final class LogRepository {
 		// approximates timestamp-desc without a per-entry sort cost.
 		$entries = array_reverse( $entries );
 
-		return $this->paginate( $entries, $query, $last_byte );
+		return $this->paginate( $entries, $query, $reported_last_byte );
 	}
 
 	/**
@@ -286,7 +310,7 @@ final class LogRepository {
 		$previous_backtrack = null;
 		if ( null !== $regex ) {
 			$previous_backtrack = ini_get( 'pcre.backtrack_limit' );
-			// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- Scoped tightening of the PCRE budget, restored in the finally.
+			// phpcs:ignore WordPress.PHP.IniSet.Risky, Squiz.PHP.DiscouragedFunctions.Discouraged -- Scoped tightening of the PCRE budget, restored in the finally block below.
 			ini_set( 'pcre.backtrack_limit', '100000' );
 		}
 
@@ -324,7 +348,7 @@ final class LogRepository {
 			}
 		} finally {
 			if ( null !== $previous_backtrack && false !== $previous_backtrack ) {
-				// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- Restoring the budget captured above.
+				// phpcs:ignore WordPress.PHP.IniSet.Risky, Squiz.PHP.DiscouragedFunctions.Discouraged -- Restoring the budget captured above.
 				ini_set( 'pcre.backtrack_limit', (string) $previous_backtrack );
 			}
 		}

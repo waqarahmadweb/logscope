@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+Pre-submission fix pass from the fresh three-agent review ([docs/v1.0-submission-report.md](docs/v1.0-submission-report.md)) — the fix-before-shipping bugs, the one security tightening worth closing, and the Plugin Check ERROR-level annotations. 350 tests green.
+
+### Security
+
+-   **POST /settings gates the sensitive keys on `manage_options`** — `log_path`, `alert_webhook_url`, and `alert_email_to`. The grantable `logscope_manage` cap could otherwise repoint the log path at any other `*.log` in the install (arbitrary read of another plugin's PII-laden log) or set the alert webhook/email to an attacker destination; those are now full-admin actions, mirroring the clear route.
+-   **Preset `severity` filter is intersected with `Severity::all()`** — the array branch previously accepted any string, bypassing the per-value length cap and allowing usermeta bloat.
+
+### Fixed
+
+-   Live mode keeps polling when the visible list is empty — `useTailPolling` was mounted only inside `ListScrollPane`, which unmounts on an empty list, so after Clear log / on an empty log / after muting the last visible rows, Live stayed lit but nothing updated. The hook now lives in `LogViewer` (always mounted) and the scroll pane feeds it a shared ref, nulled on unmount.
+-   The cron scanner clamps its read to `MAX_BYTES_PER_QUERY` — the first tick after enabling monitoring (cursor 0) and every post-rotation tick previously `fread` the entire log in one string (cron OOM/timeout risk on a large log, and a first-enable alert storm over all historical fatals).
+-   Tail appends increment `logs.total`, so `hasMoreLogs` no longer flips false after a Live session while unloaded pages remain (was causing premature "End of log", dead infinite scroll, and a stale header count).
+-   The reported tail cursor is clamped to the end of the last complete line, so a read that races a mid-write no longer hands back a mid-line cursor that the next tick misreads as a rotation (spurious full-list replace). Parsing still reads to true EOF, so a final unterminated line is not dropped.
+-   `clearAllLogs` refetches with the live filters/viewMode/perPage instead of a bare `{page:1}`, so clearing the log no longer resets a configured `default_per_page` to 50.
+
+### Changed
+
+-   Plugin Check hygiene: the four remaining `LogQuery` exception-throw sites carry correct `phpcs:disable/enable` (or inline `phpcs:ignore` on the throw line, not the closing paren); both `ini_set('pcre.backtrack_limit', …)` calls carry a justified `WordPress.PHP.IniSet.Risky` ignore; `logscope.php` guards the `vendor/autoload.php` require with a graceful admin notice so a raw git clone (no `composer install`) degrades instead of fataling.
+
 Pre-submission punchlist pass ([docs/v1.0-release-punchlist.md](docs/v1.0-release-punchlist.md)): all §1 blockers, §2 high-severity items, §3 medium items, and every small (S-effort) §4/§5 quality item. The seven M-effort §4 refactors (shared timestamp parse, PHP→JS severity emit, bulk-mute endpoint, thunk factory, /logs transient cache, derived selectors, shared tail reader) are deliberately deferred to v1.0.1 as cross-cutting refactors too risky days before submission. Screenshots still need re-capturing on the renamed toolbar before the zip is built.
 
 ### Changed (§4/§5 quality pass)

@@ -145,6 +145,7 @@ final class LogQuery {
 		// Messages are translated because the REST controller surfaces them
 		// verbatim in the 400 body, which the UI renders in a toast.
 		if ( $page < 1 ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Surfaced as a JSON 400 body, not HTML.
 			throw new LogQueryException( __( 'Page must be 1 or greater.', 'logscope' ) );
 		}
 
@@ -162,6 +163,7 @@ final class LogQuery {
 		}
 
 		if ( null !== $since_byte && $since_byte < 0 ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Surfaced as a JSON 400 body, not HTML.
 			throw new LogQueryException( __( 'since_byte must be 0 or greater.', 'logscope' ) );
 		}
 
@@ -234,6 +236,7 @@ final class LogQuery {
 			}
 		}
 
+		// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Surfaced as a JSON 400 body, not HTML.
 		throw new LogQueryException(
 			sprintf(
 				/* translators: 1: field name ('from' or 'to'), 2: the rejected value. */
@@ -241,7 +244,8 @@ final class LogQuery {
 				$label,
 				$value
 			)
-		); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Surfaced as a JSON 400 body, not HTML.
+		);
+		// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 	}
 
 	/**
@@ -277,6 +281,7 @@ final class LogQuery {
 		// the false return is the contract we care about.
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( false === @preg_match( $compiled, '' ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Surfaced as a JSON 400 body, not HTML.
 			throw new LogQueryException( __( 'Invalid regular expression.', 'logscope' ) );
 		}
 

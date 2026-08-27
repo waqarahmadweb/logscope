@@ -16,6 +16,7 @@ use Logscope\Log\Entry;
 use Logscope\Log\FileLogSource;
 use Logscope\Log\LogGrouper;
 use Logscope\Log\LogParser;
+use Logscope\Log\LogRepository;
 use Logscope\Log\Severity;
 
 /**
@@ -109,6 +110,16 @@ final class LogScanner {
 				'rotated'           => $rotated,
 				'skipped'           => true,
 			);
+		}
+
+		// Clamp the read window to the same budget the viewer uses. On
+		// first enable (cursor 0) or a post-rotation reset an unclamped
+		// read would fread a multi-GB log in one string and risk a cron
+		// OOM/timeout. Older bytes are intentionally skipped — a freshly
+		// enabled scanner should alert on new fatals, not replay the whole
+		// historical backlog.
+		if ( $size - $last > LogRepository::MAX_BYTES_PER_QUERY ) {
+			$last = $size - LogRepository::MAX_BYTES_PER_QUERY;
 		}
 
 		$max   = $size - $last;

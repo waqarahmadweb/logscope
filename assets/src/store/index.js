@@ -685,14 +685,16 @@ const actions = {
 			);
 		}
 	},
-	*clearAllLogs() {
+	*clearAllLogs( refetchParams = {} ) {
 		// Server soft-deletes by renaming the active log; on success we
 		// refetch /logs (now empty) and /diagnostics (file_size now 0,
 		// exists now false) so every consumer of those slices sees the
-		// new reality without a manual reload.
+		// new reality without a manual reload. The caller passes its live
+		// query params so the refetch preserves the configured page size
+		// and active filters instead of snapping back to the defaults.
 		try {
 			const payload = yield { type: 'API_CLEAR_LOGS' };
-			yield actions.fetchLogs( { page: 1 } );
+			yield actions.fetchLogs( { ...refetchParams, page: 1 } );
 			yield actions.fetchDiagnostics();
 			yield actions.pushToast( {
 				message: payload?.archived_as
@@ -877,7 +879,15 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					: state.logs.items;
 			return {
 				...state,
-				logs: { ...state.logs, items },
+				logs: {
+					...state.logs,
+					items,
+					// Keep total in step with the appended rows — otherwise
+					// hasMoreLogs (items.length < total) can flip false after
+					// a tail session while unloaded pages remain, killing
+					// infinite scroll and staling the header count.
+					total: state.logs.total + incoming.length,
+				},
 				tail: {
 					...state.tail,
 					lastByte: action.lastByte,

@@ -42,6 +42,9 @@ final class SettingsControllerTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		Functions\when( '__' )->returnArg( 1 );
+		// POST /settings gates log_path / alert destinations on full admin;
+		// grant it by default so the existing save cases exercise the body.
+		Functions\when( 'current_user_can' )->justReturn( true );
 
 		$this->store = array(
 			'logscope_log_path'      => '',
@@ -187,6 +190,40 @@ final class SettingsControllerTest extends TestCase {
 		// Even though log_path was a known key, the entire request must
 		// be rejected so a partial save does not silently succeed.
 		$this->assertSame( '', $this->store['logscope_log_path'] );
+	}
+
+	public function test_post_requires_manage_options_for_log_path(): void {
+		Functions\when( 'current_user_can' )->justReturn( false );
+
+		$request = new WP_REST_Request( array( 'log_path' => '/tmp/custom.log' ) );
+		$result  = $this->controller->handle_post( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'logscope_rest_forbidden', $result->get_error_code() );
+		$this->assertSame( 403, $result->get_error_data()['status'] );
+		$this->assertSame( '', $this->store['logscope_log_path'] );
+	}
+
+	public function test_post_requires_manage_options_for_webhook_url(): void {
+		Functions\when( 'current_user_can' )->justReturn( false );
+
+		$request = new WP_REST_Request( array( 'alert_webhook_url' => 'https://evil.example/hook' ) );
+		$result  = $this->controller->handle_post( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 403, $result->get_error_data()['status'] );
+	}
+
+	public function test_post_allows_non_privileged_keys_without_manage_options(): void {
+		// A logscope_manage holder without manage_options can still tune
+		// display prefs — only log_path / alert destinations are gated.
+		Functions\when( 'current_user_can' )->justReturn( false );
+
+		$request  = new WP_REST_Request( array( 'tail_interval' => 9 ) );
+		$response = $this->controller->handle_post( $request );
+
+		self::assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 9, $this->store['logscope_tail_interval'] );
 	}
 
 	public function test_post_strips_underscore_prefixed_internal_params(): void {

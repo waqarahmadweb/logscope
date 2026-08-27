@@ -232,9 +232,13 @@ final class PresetStore {
 				if ( ! is_array( $value ) ) {
 					continue;
 				}
+				// Intersect with the canonical token list so a crafted body
+				// cannot store arbitrary (or arbitrarily long) strings and
+				// bloat usermeta — bounds both the item length and count.
+				$canonical  = \Logscope\Log\Severity::all();
 				$severities = array();
 				foreach ( $value as $severity ) {
-					if ( is_string( $severity ) && '' !== $severity ) {
+					if ( is_string( $severity ) && in_array( $severity, $canonical, true ) ) {
 						$severities[] = $severity;
 					}
 				}

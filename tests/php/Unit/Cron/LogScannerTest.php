@@ -177,6 +177,26 @@ final class LogScannerTest extends TestCase {
 		$this->assertSame( 1, $store['values'][ LogScanner::OPT_LAST_DISPATCHED ] );
 	}
 
+	public function test_scan_advances_cursor_past_read_window_when_within_budget(): void {
+		// Sanity guard for the budget clamp: a normal-sized log reads fully
+		// and the cursor lands at EOF (no bytes skipped).
+		$this->write_log( "[27-Apr-2026 12:34:56 UTC] PHP Fatal error:  boom in /var/www/a.php:1\n" );
+
+		$store = $this->option_store();
+		$this->stub_options( $store );
+
+		$coordinator = Mockery::mock( AlertCoordinator::class );
+		$coordinator->shouldReceive( 'dispatch_for_groups' )
+			->once()
+			->andReturnUsing( array( self::class, 'all_sent_results' ) );
+
+		$scanner = new LogScanner( $this->make_source(), $coordinator );
+		$result  = $scanner->scan();
+
+		$this->assertFalse( $result['skipped'] );
+		$this->assertSame( filesize( $this->log_path ), $store['values'][ LogScanner::OPT_LAST_BYTE ] );
+	}
+
 	public function test_scan_holds_cursor_at_last_complete_line(): void {
 		$complete = "[27-Apr-2026 12:34:56 UTC] PHP Fatal error:  whole in /var/www/a.php:1\n";
 		$partial  = '[27-Apr-2026 12:34:57 UTC] PHP Fatal error:  half-writ';
