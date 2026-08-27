@@ -180,6 +180,9 @@ export default function FilterBar() {
 			return;
 		}
 		const f = preset.filters || {};
+		// Sync the visible input too — otherwise the box keeps the old text
+		// and its pending debounce clobbers the just-loaded regex.
+		setRegexInput( f.q || '' );
 		setFilters( {
 			severity: Array.isArray( f.severity ) ? f.severity : [],
 			from: f.from || '',
@@ -304,13 +307,14 @@ export default function FilterBar() {
 								? ' logscope-filter-bar__pill--active'
 								: '' )
 						}
-						aria-haspopup="true"
+						aria-haspopup="dialog"
 						aria-expanded={ openMenu === 'date' }
 						onClick={ () =>
 							setOpenMenu( openMenu === 'date' ? null : 'date' )
 						}
 					>
-						📅 { dateLabel } <span aria-hidden="true">▾</span>
+						<span aria-hidden="true">📅</span> { dateLabel }{ ' ' }
+						<span aria-hidden="true">▾</span>
 					</button>
 					{ openMenu === 'date' && (
 						<div
@@ -353,7 +357,7 @@ export default function FilterBar() {
 								? ' logscope-filter-bar__pill--active'
 								: '' )
 						}
-						aria-haspopup="true"
+						aria-haspopup="dialog"
 						aria-expanded={ openMenu === 'source' }
 						onClick={ () =>
 							setOpenMenu(
@@ -363,15 +367,22 @@ export default function FilterBar() {
 					>
 						{ sourceLabel } <span aria-hidden="true">▾</span>
 					</button>
+					{ /* A dialog of plain buttons, not a listbox: listbox
+					     children must be role="option" with managed
+					     aria-selected + roving focus, which native
+					     buttons already handle better on their own. */ }
 					{ openMenu === 'source' && (
 						<div
 							className="logscope-filter-bar__menu logscope-filter-bar__menu--source"
-							role="listbox"
+							role="dialog"
 							aria-label={ __( 'Source file', 'logscope' ) }
 						>
 							<button
 								type="button"
 								className="logscope-filter-bar__menu-item"
+								aria-current={
+									'' === filters.source ? 'true' : undefined
+								}
 								onClick={ () => {
 									setFilters( { source: '' } );
 									closeMenu();
@@ -397,6 +408,11 @@ export default function FilterBar() {
 											? ' logscope-filter-bar__menu-item--on'
 											: '' )
 									}
+									aria-current={
+										filters.source === path
+											? 'true'
+											: undefined
+									}
 									onClick={ () => {
 										setFilters( { source: path } );
 										closeMenu();
@@ -416,7 +432,7 @@ export default function FilterBar() {
 						type="button"
 						data-logscope-menu-anchor="preset"
 						className="logscope-filter-bar__pill logscope-filter-bar__pill--ghost"
-						aria-haspopup="true"
+						aria-haspopup="dialog"
 						aria-expanded={ openMenu === 'preset' }
 						onClick={ () =>
 							setOpenMenu(

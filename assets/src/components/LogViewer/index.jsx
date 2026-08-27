@@ -439,7 +439,8 @@ export default function LogViewer() {
 								: __( 'No log file to download.', 'logscope' )
 						}
 					>
-						⤓ { __( 'Download', 'logscope' ) }
+						<span aria-hidden="true">⤓</span>{ ' ' }
+						{ __( 'Download', 'logscope' ) }
 					</Button>
 					<Button
 						variant="tertiary"
@@ -560,14 +561,16 @@ export default function LogViewer() {
 							'logscope'
 						) }
 					>
-						🔕 { __( 'Mute', 'logscope' ) }
+						<span aria-hidden="true">🔕</span>{ ' ' }
+						{ __( 'Mute', 'logscope' ) }
 					</button>
 					<button
 						type="button"
 						className="logscope-bulk-bar__btn"
 						onClick={ onCopyPaths }
 					>
-						📋 { __( 'Copy paths', 'logscope' ) }
+						<span aria-hidden="true">📋</span>{ ' ' }
+						{ __( 'Copy paths', 'logscope' ) }
 					</button>
 					<button
 						type="button"
@@ -581,7 +584,8 @@ export default function LogViewer() {
 						className="logscope-bulk-bar__btn"
 						onClick={ onExportSelected }
 					>
-						⤓ { __( 'Export', 'logscope' ) }
+						<span aria-hidden="true">⤓</span>{ ' ' }
+						{ __( 'Export', 'logscope' ) }
 					</button>
 					<button
 						type="button"
@@ -832,16 +836,31 @@ function ListScrollPane( { items, isLoading } ) {
 	// index lands inside a small look-ahead window of `rowCount`. Tail
 	// polling owns the top-of-list growth path, so we suppress auto-
 	// pagination while it is running.
+	// Synchronous in-flight latch: stateRef.isLoading only updates in a
+	// post-render effect, so two onRowsRendered calls in the same frame
+	// could both pass the guard and append the same page twice. The ref
+	// flips at dispatch time and is released once the store catches up.
+	const pageFetchInFlightRef = useRef( false );
+	useEffect( () => {
+		pageFetchInFlightRef.current = false;
+	}, [ isLoading, page ] );
+
 	const handleRowsRendered = useCallback(
 		( visibleRows ) => {
 			const s = stateRef.current;
-			if ( s.isLoading || ! s.hasMore || s.isTailing ) {
+			if (
+				pageFetchInFlightRef.current ||
+				s.isLoading ||
+				! s.hasMore ||
+				s.isTailing
+			) {
 				return;
 			}
 			if (
 				visibleRows.stopIndex >=
 				items.length - INFINITE_SCROLL_PREFETCH_ROWS
 			) {
+				pageFetchInFlightRef.current = true;
 				fetchNextLogsPage(
 					buildQueryParams(
 						s.filters,

@@ -82,6 +82,19 @@ final class LogRepository {
 		$rotated = null !== $query->since_byte && $query->since_byte > $last_byte;
 		$since   = $rotated ? null : $query->since_byte;
 
+		// Rotated-then-regrown detection: a shrink is invisible once the
+		// new file outgrows the old cursor, but a legitimate cursor always
+		// sits just past a newline (reads end at EOF of a \n-terminated
+		// log). A mid-line boundary means the bytes under the cursor
+		// belong to a different file — replace, don't append.
+		if ( ! $rotated && null !== $since && $since > 0 && $since < $last_byte ) {
+			$boundary = $this->source->read_chunk( $since - 1, 1 );
+			if ( "\n" !== $boundary ) {
+				$rotated = true;
+				$since   = null;
+			}
+		}
+
 		$entries = $this->load_entries( $since, $last_byte );
 		$entries = $this->apply_filters( $entries, $query );
 

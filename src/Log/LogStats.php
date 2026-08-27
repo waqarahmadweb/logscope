@@ -297,9 +297,10 @@ final class LogStats {
 	}
 
 	/**
-	 * Parses an entry's WP-format timestamp into a unix timestamp,
-	 * treating bare timestamps (no TZ token) as UTC since WordPress
-	 * always logs in UTC.
+	 * Parses an entry's WP-format timestamp into a unix timestamp.
+	 * Honours the entry's own TZ token when present (early-boot fatals
+	 * are stamped in the server timezone before WP forces UTC); bare
+	 * timestamps default to UTC since WordPress logs in UTC.
 	 *
 	 * @param Entry $entry Parsed entry.
 	 * @return int|null Unix seconds or null when unparseable.
@@ -308,11 +309,17 @@ final class LogStats {
 		if ( null === $entry->timestamp ) {
 			return null;
 		}
-		$parsed = DateTimeImmutable::createFromFormat(
-			'd-M-Y H:i:s',
-			$entry->timestamp,
-			new DateTimeZone( 'UTC' )
-		);
+
+		$tz = new DateTimeZone( 'UTC' );
+		if ( null !== $entry->timezone && '' !== $entry->timezone ) {
+			try {
+				$tz = new DateTimeZone( $entry->timezone );
+			} catch ( \Exception $e ) {
+				// Unrecognised token — keep the UTC default rather than drop the entry.
+			}
+		}
+
+		$parsed = DateTimeImmutable::createFromFormat( 'd-M-Y H:i:s', $entry->timestamp, $tz );
 		if ( false === $parsed ) {
 			return null;
 		}

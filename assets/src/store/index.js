@@ -233,7 +233,7 @@ const actions = {
 			};
 			yield actions.receiveLogs( response );
 		} catch ( error ) {
-			yield actions.failLogs( error?.message || 'Unknown error' );
+			yield actions.failLogs( error?.message || __( 'Unknown error', 'logscope' ) );
 			yield actions.pushToast( {
 				message:
 					error?.message || __( 'Could not load logs.', 'logscope' ),
@@ -254,7 +254,7 @@ const actions = {
 			};
 			yield actions.appendLogs( response );
 		} catch ( error ) {
-			yield actions.failLogs( error?.message || 'Unknown error' );
+			yield actions.failLogs( error?.message || __( 'Unknown error', 'logscope' ) );
 			yield actions.pushToast( {
 				message:
 					error?.message ||
@@ -364,7 +364,7 @@ const actions = {
 				status: sent > 0 ? 'success' : 'warning',
 			} );
 		} catch ( error ) {
-			yield actions.failAlertTest( error?.message || 'Unknown error' );
+			yield actions.failAlertTest( error?.message || __( 'Unknown error', 'logscope' ) );
 			yield actions.pushToast( {
 				message:
 					error?.message ||
@@ -379,7 +379,7 @@ const actions = {
 			const payload = yield { type: 'API_FETCH_SETTINGS' };
 			yield actions.receiveSettings( payload );
 		} catch ( error ) {
-			yield actions.failLoadSettings( error?.message || 'Unknown error' );
+			yield actions.failLoadSettings( error?.message || __( 'Unknown error', 'logscope' ) );
 		}
 	},
 	*saveSettings( body ) {
@@ -410,7 +410,7 @@ const actions = {
 				} );
 			}
 			yield actions.failSaveSettings(
-				error?.message || 'Unknown error',
+				error?.message || __( 'Unknown error', 'logscope' ),
 				fieldErrors
 			);
 			yield actions.pushToast( {
@@ -430,7 +430,7 @@ const actions = {
 			};
 			yield actions.receiveTestResult( result );
 		} catch ( error ) {
-			yield actions.failTestPath( error?.message || 'Unknown error' );
+			yield actions.failTestPath( error?.message || __( 'Unknown error', 'logscope' ) );
 			yield actions.pushToast( {
 				message:
 					error?.message ||
@@ -460,7 +460,7 @@ const actions = {
 			const payload = yield { type: 'API_FETCH_MUTES' };
 			yield actions.receiveMutes( ( payload && payload.items ) || [] );
 		} catch ( error ) {
-			yield actions.failLoadMutes( error?.message || 'Unknown error' );
+			yield actions.failLoadMutes( error?.message || __( 'Unknown error', 'logscope' ) );
 		}
 	},
 	*muteSignature( signature, reason = '' ) {
@@ -477,7 +477,7 @@ const actions = {
 				status: 'success',
 			} );
 		} catch ( error ) {
-			yield actions.failSaveMutes( error?.message || 'Unknown error' );
+			yield actions.failSaveMutes( error?.message || __( 'Unknown error', 'logscope' ) );
 			yield actions.pushToast( {
 				message:
 					error?.message ||
@@ -561,7 +561,7 @@ const actions = {
 				status: 'success',
 			} );
 		} catch ( error ) {
-			yield actions.failSaveMutes( error?.message || 'Unknown error' );
+			yield actions.failSaveMutes( error?.message || __( 'Unknown error', 'logscope' ) );
 			yield actions.pushToast( {
 				message:
 					error?.message ||
@@ -591,7 +591,7 @@ const actions = {
 			const payload = yield { type: 'API_FETCH_PRESETS' };
 			yield actions.receivePresets( ( payload && payload.items ) || [] );
 		} catch ( error ) {
-			yield actions.failLoadPresets( error?.message || 'Unknown error' );
+			yield actions.failLoadPresets( error?.message || __( 'Unknown error', 'logscope' ) );
 		}
 	},
 	*savePreset( name, filters ) {
@@ -608,7 +608,7 @@ const actions = {
 				status: 'success',
 			} );
 		} catch ( error ) {
-			yield actions.failSavePresets( error?.message || 'Unknown error' );
+			yield actions.failSavePresets( error?.message || __( 'Unknown error', 'logscope' ) );
 			yield actions.pushToast( {
 				message:
 					error?.message ||
@@ -630,7 +630,7 @@ const actions = {
 				status: 'success',
 			} );
 		} catch ( error ) {
-			yield actions.failSavePresets( error?.message || 'Unknown error' );
+			yield actions.failSavePresets( error?.message || __( 'Unknown error', 'logscope' ) );
 			yield actions.pushToast( {
 				message:
 					error?.message ||
@@ -660,7 +660,7 @@ const actions = {
 			const payload = yield { type: 'API_FETCH_STATS' };
 			yield actions.receiveStats( payload );
 		} catch ( error ) {
-			yield actions.failLoadStats( error?.message || 'Unknown error' );
+			yield actions.failLoadStats( error?.message || __( 'Unknown error', 'logscope' ) );
 		}
 	},
 	startLoadingDiagnostics() {
@@ -679,7 +679,7 @@ const actions = {
 			yield actions.receiveDiagnostics( payload );
 		} catch ( error ) {
 			yield actions.failLoadDiagnostics(
-				error?.message || 'Unknown error'
+				error?.message || __( 'Unknown error', 'logscope' )
 			);
 		}
 	},
@@ -852,7 +852,15 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				const replacement = incoming.slice().reverse();
 				return {
 					...state,
-					logs: { ...state.logs, items: replacement },
+					logs: {
+						...state.logs,
+						items: replacement,
+						// The replacement IS the whole new file — carrying the
+						// old total/page over would fake a "scroll for more"
+						// tail and fire a bogus next-page fetch.
+						total: replacement.length,
+						page: 1,
+					},
 					expandedTraces: {},
 					tail: {
 						...state.tail,

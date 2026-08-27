@@ -278,22 +278,23 @@ final class EmailAlerter implements AlertDispatcherInterface {
 	}
 
 	/**
-	 * Truncates a string to `$max` chars, appending an ellipsis when
-	 * truncation actually happens. Operates on bytes — debug logs are
-	 * ASCII in the overwhelming majority of cases and avoiding `mb_*`
-	 * keeps the alerter free of an `ext-mbstring` requirement.
+	 * Truncates a string to `$max` characters, appending an ellipsis when
+	 * truncation actually happens. Character-based (`mb_*`) so a multibyte
+	 * UTF-8 character is never split mid-sequence into subject mojibake;
+	 * WP core ships `mb_substr`/`mb_strlen` fallbacks when ext-mbstring
+	 * is absent, so no new server requirement.
 	 *
 	 * @param string $value Input.
-	 * @param int    $max   Maximum length.
+	 * @param int    $max   Maximum length in characters.
 	 * @return string
 	 */
 	private function snippet( string $value, int $max ): string {
 		$value = trim( $value );
-		if ( strlen( $value ) <= $max ) {
+		if ( mb_strlen( $value, 'UTF-8' ) <= $max ) {
 			return $value;
 		}
 
-		return rtrim( substr( $value, 0, $max - 1 ) ) . '…';
+		return rtrim( mb_substr( $value, 0, $max - 1, 'UTF-8' ) ) . '…';
 	}
 
 	/**

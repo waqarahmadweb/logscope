@@ -68,9 +68,10 @@ export default function useTailPolling( scrollElementRef ) {
 
 		const tick = async () => {
 			const filtersAtSend = filtersRef.current;
+			const sinceAtSend = lastByteRef.current;
 			try {
 				const res = await client.getLogs( {
-					since: lastByteRef.current,
+					since: sinceAtSend,
 					...buildFilterParams( filtersAtSend ),
 				} );
 				if ( state.cancelled ) {
@@ -84,6 +85,13 @@ export default function useTailPolling( scrollElementRef ) {
 					JSON.stringify( filtersRef.current ) !==
 					JSON.stringify( filtersAtSend )
 				) {
+					return;
+				}
+				// Same for the byte baseline: a primary refetch (post-mute,
+				// post-clear) that rebaselined lastByte while this poll was
+				// in flight makes the delta stale — appending it would
+				// duplicate entries the refetch already delivered.
+				if ( lastByteRef.current !== sinceAtSend ) {
 					return;
 				}
 				const el = scrollElementRef.current;

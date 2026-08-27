@@ -247,6 +247,8 @@ export default function App() {
 							key={ tab.name }
 							type="button"
 							role="tab"
+							id={ `logscope-tab-${ tab.name }` }
+							aria-controls="logscope-tabpanel"
 							data-logscope-tab={ tab.name }
 							aria-selected={ isActive }
 							tabIndex={ isActive ? 0 : -1 }
@@ -271,10 +273,14 @@ export default function App() {
 					{ __( 'Shortcuts (?)', 'logscope' ) }
 				</button>
 			</div>
+			{ /* No aria-live here — announcing the entire panel body on
+			     every tab switch drowns the SR user; the live regions
+			     inside (toasts, status lines) already announce changes. */ }
 			<div
 				className="logscope-tabs__panel"
 				role="tabpanel"
-				aria-live="polite"
+				id="logscope-tabpanel"
+				aria-labelledby={ `logscope-tab-${ activeTab }` }
 			>
 				<TabContent name={ activeTab } />
 			</div>

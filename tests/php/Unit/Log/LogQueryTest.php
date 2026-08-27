@@ -9,11 +9,19 @@ declare(strict_types=1);
 
 namespace Logscope\Tests\Unit\Log;
 
+use Brain\Monkey\Functions;
 use Logscope\Log\LogQuery;
 use Logscope\Log\LogQueryException;
 use Logscope\Tests\TestCase;
 
 final class LogQueryTest extends TestCase {
+
+	protected function setUp(): void {
+		parent::setUp();
+		// Validation messages are translated (they surface in REST 400
+		// bodies), so the throwing paths need the i18n stub.
+		Functions\when( '__' )->returnArg( 1 );
+	}
 
 	public function test_since_byte_zero_is_accepted(): void {
 		$query = new LogQuery( null, null, null, null, null, false, 1, 50, 0 );

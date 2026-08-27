@@ -106,7 +106,10 @@ final class LogParser {
 	 * @return array<string, string>|null
 	 */
 	private static function match_entry_start( string $line ): ?array {
-		$pattern = '/^\[(?P<ts>\d{2}-[A-Za-z]{3}-\d{4}\s+\d{2}:\d{2}:\d{2})(?:\s+(?P<tz>[A-Za-z]+))?\]\s*(?P<rest>.*)$/';
+		// TZ token accepts IANA ids too (America/New_York, Etc/GMT+5) —
+		// early-boot fatals are stamped before WP forces UTC, and a
+		// letters-only match dropped those entries as orphan continuations.
+		$pattern = '/^\[(?P<ts>\d{2}-[A-Za-z]{3}-\d{4}\s+\d{2}:\d{2}:\d{2})(?:\s+(?P<tz>[A-Za-z][A-Za-z0-9_\/\+\-]*))?\]\s*(?P<rest>.*)$/';
 
 		if ( 1 !== preg_match( $pattern, $line, $matches ) ) {
 			return null;

@@ -193,13 +193,15 @@ export default function GroupedView() {
 								disabled={ isSavingMutes }
 								onClick={ onMuteSelected }
 							>
-								🔕 { __( 'Mute', 'logscope' ) }
+								<span aria-hidden="true">🔕</span>{ ' ' }
+								{ __( 'Mute', 'logscope' ) }
 							</Button>
 							<Button
 								variant="secondary"
 								onClick={ onExportSelected }
 							>
-								⤓ { __( 'Export', 'logscope' ) }
+								<span aria-hidden="true">⤓</span>{ ' ' }
+								{ __( 'Export', 'logscope' ) }
 							</Button>
 						</div>
 						<button

@@ -159,21 +159,28 @@ export default function EntryRow( { index, style, items } ) {
 						{ path }
 					</span>
 				) }
-				{ hasTrace && (
-					<button
-						type="button"
-						className="logscope-entry__toggle"
-						aria-expanded={ isExpanded }
-						aria-label={
-							isExpanded
+				{ /* Rendered for traceless rows too — the row-body click is
+				     mouse-only, so this button is the keyboard path to the
+				     expanded details. */ }
+				<button
+					type="button"
+					className="logscope-entry__toggle"
+					aria-expanded={ isExpanded }
+					aria-label={
+						/* eslint-disable no-nested-ternary */
+						hasTrace
+							? isExpanded
 								? __( 'Hide stack trace', 'logscope' )
 								: __( 'Show stack trace', 'logscope' )
-						}
-						onClick={ () => toggleTraceExpanded( key ) }
-					>
-						{ isExpanded ? '▾' : '⋯' }
-					</button>
-				) }
+							: isExpanded
+							? __( 'Hide entry details', 'logscope' )
+							: __( 'Show entry details', 'logscope' )
+						/* eslint-enable no-nested-ternary */
+					}
+					onClick={ () => toggleTraceExpanded( key ) }
+				>
+					{ isExpanded ? '▾' : '⋯' }
+				</button>
 				<button
 					type="button"
 					className="logscope-entry__more"

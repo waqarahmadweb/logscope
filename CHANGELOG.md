@@ -4,7 +4,32 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
-Pre-submission punchlist pass ([docs/v1.0-release-punchlist.md](docs/v1.0-release-punchlist.md)): all §1 blockers and §2 high-severity items. Screenshots still need re-capturing on the renamed toolbar before the zip is built.
+Pre-submission punchlist pass ([docs/v1.0-release-punchlist.md](docs/v1.0-release-punchlist.md)): all §1 blockers, §2 high-severity items, and §3 medium items. Screenshots still need re-capturing on the renamed toolbar before the zip is built.
+
+### Fixed (§3 medium — correctness)
+
+-   Loading a filter preset now syncs the visible search box (3.1) — previously the box kept its old text and a pending 300 ms debounce clobbered the just-loaded regex.
+-   Infinite scroll can no longer double-append a page (3.2): the guard read `isLoading` from a ref updated only post-render, so a fast scroll passed it twice; a synchronous in-flight latch now flips at dispatch time.
+-   The tail rotation branch resets `logs.total`/`page` (3.3), removing the phantom "scroll for more" tail and the bogus next-page fetch after a rotation replace.
+-   A tail poll resolving after a primary refetch rebaselined `lastByte` is now dropped (3.4) — comparing the byte baseline, not just the filter shape, prevents duplicate appends post-mute/clear.
+-   `LogParser` accepts IANA timezone tokens (`America/New_York`, `Etc/GMT+5`) in entry timestamps (3.5) — early-boot fatals stamped before WP forces UTC were being dropped as orphan continuations.
+-   The cron scanner only consumes up to the last complete line (3.6): a fatal mid-write at the scan boundary was parsed truncated and then skipped forever once the cursor jumped to EOF; the partial tail is now re-read whole on the next tick.
+-   The scanner's "N fatals dispatched" figure counts only groups with at least one `sent` outcome (3.9) — deduped/skipped/failed dispatches no longer inflate the Settings status line.
+-   `client.getMutes()` no longer sends a dead `include_muted` param the server never declared (3.7).
+-   Rotated-then-regrown logs are detected (3.8): a tail cursor that lands mid-line (legit cursors always sit past a newline) marks the response `rotated` so the client replaces instead of appending garbled partial entries.
+-   `EmailAlerter` truncates subject snippets per-character with `mb_substr` (3.10) so a multibyte UTF-8 character is never split into mojibake.
+-   `LogStats` honours each entry's own timezone token when bucketing (3.11) instead of parsing everything as UTC.
+
+### Fixed (§3 accessibility)
+
+-   `BreakdownBar` no longer collapses its subtree behind `role="img"` (3.12) — the heading and per-severity rows are now exposed to AT as real text.
+-   `TopSignaturesTable` rows are plain `<tr>`s again with a real focusable per-row button carrying a distinct label (severity + sample) (3.13) — `role="button"` on rows had destroyed the table semantics and read one identical string N times.
+-   `RowActionsMenu` moves focus to the first item on open and supports Arrow/Home/End navigation per the ARIA menu pattern (3.14).
+-   Traceless entry rows get the same expand toggle button traced rows have (3.15), making details expansion keyboard-reachable.
+-   The FilterBar source popover is a labelled dialog of native buttons with `aria-current` on the active choice (3.16), replacing an invalid `listbox` with non-option children; all three filter pills now declare `aria-haspopup="dialog"`.
+-   App tabs carry `aria-controls`/`id`, the tabpanel carries `id`/`aria-labelledby`, and the whole-panel `aria-live="polite"` is gone (3.17) — it announced the entire body on every tab switch.
+-   All 14 `'Unknown error'` toast/empty-state fallbacks in the store are translatable (3.18), as are the five `LogQuery` validation messages surfaced in REST 400 bodies (3.19).
+-   Emoji glyphs in button labels (🔕 Mute, 📋 Copy paths, ⤓ Download/Export, 📅 date pill) are wrapped in `aria-hidden` spans (3.20) so screen readers announce the action, not the glyph.
 
 ### Security
 

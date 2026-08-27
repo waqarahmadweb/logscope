@@ -2476,6 +2476,22 @@ $severity-unknown: #889096;
 	white-space: nowrap;
 }
 
+// The row's real (focusable) control — visually plain text so the a11y
+// fix doesn't change how the table reads.
+.logscope-stats__top-msg-btn {
+	background: none;
+	border: 0;
+	padding: 0;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 // Bumping specificity above the generic `th { text-align: left; }` rule
 // so the COUNT header right-aligns with the numeric cells below it.
 .logscope-stats__top-table th.logscope-stats__top-table-count,

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-20T17:55:33+00:00\n"
+"POT-Creation-Date: 2026-08-27T12:51:38+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: logscope\n"
@@ -197,7 +197,7 @@ msgstr ""
 
 #: src/Alerts/EmailAlerter.php:216
 #: src/Alerts/EmailAlerter.php:251
-#: assets/src/components/GroupedView/index.jsx:358
+#: assets/src/components/GroupedView/index.jsx:360
 msgid "Location"
 msgstr ""
 
@@ -208,19 +208,49 @@ msgstr ""
 
 #: src/Alerts/EmailAlerter.php:218
 #: src/Alerts/EmailAlerter.php:253
-#: assets/src/components/GroupedView/index.jsx:344
+#: assets/src/components/GroupedView/index.jsx:346
 msgid "First seen"
 msgstr ""
 
 #: src/Alerts/EmailAlerter.php:219
 #: src/Alerts/EmailAlerter.php:254
-#: assets/src/components/GroupedView/index.jsx:350
+#: assets/src/components/GroupedView/index.jsx:352
 msgid "Last seen"
 msgstr ""
 
 #: src/Alerts/EmailAlerter.php:220
 #: src/Alerts/EmailAlerter.php:255
 msgid "Site"
+msgstr ""
+
+#: src/Log/LogQuery.php:148
+msgid "Page must be 1 or greater."
+msgstr ""
+
+#. translators: 1: minimum page size, 2: maximum page size.
+#: src/Log/LogQuery.php:156
+#, php-format
+msgid "per_page must be between %1$d and %2$d."
+msgstr ""
+
+#: src/Log/LogQuery.php:165
+msgid "since_byte must be 0 or greater."
+msgstr ""
+
+#. translators: 1: field name ('from' or 'to'), 2: the rejected value.
+#: src/Log/LogQuery.php:240
+#, php-format
+msgid "Invalid %1$s date: %2$s"
+msgstr ""
+
+#. translators: %d: maximum regex length in characters.
+#: src/Log/LogQuery.php:267
+#, php-format
+msgid "Regex must be %d characters or fewer."
+msgstr ""
+
+#: src/Log/LogQuery.php:280
+msgid "Invalid regular expression."
 msgstr ""
 
 #: src/Log/Severity.php:59
@@ -379,12 +409,12 @@ msgstr[1] ""
 msgid "Logscope sections"
 msgstr ""
 
-#: assets/src/components/App.jsx:269
+#: assets/src/components/App.jsx:271
 #: assets/src/components/HelpModal/index.jsx:33
 msgid "Keyboard shortcuts"
 msgstr ""
 
-#: assets/src/components/App.jsx:271
+#: assets/src/components/App.jsx:273
 msgid "Shortcuts (?)"
 msgstr ""
 
@@ -500,19 +530,27 @@ msgstr ""
 msgid "Select this log entry"
 msgstr ""
 
-#: assets/src/components/EntryRow/index.jsx:169
+#: assets/src/components/EntryRow/index.jsx:173
 msgid "Hide stack trace"
 msgstr ""
 
-#: assets/src/components/EntryRow/index.jsx:170
+#: assets/src/components/EntryRow/index.jsx:174
 msgid "Show stack trace"
 msgstr ""
 
-#: assets/src/components/EntryRow/index.jsx:182
+#: assets/src/components/EntryRow/index.jsx:176
+msgid "Hide entry details"
+msgstr ""
+
+#: assets/src/components/EntryRow/index.jsx:177
+msgid "Show entry details"
+msgstr ""
+
+#: assets/src/components/EntryRow/index.jsx:189
 msgid "Row actions"
 msgstr ""
 
-#: assets/src/components/EntryRow/index.jsx:183
+#: assets/src/components/EntryRow/index.jsx:190
 msgid "Row actions (right-click row)"
 msgstr ""
 
@@ -526,52 +564,52 @@ msgstr ""
 msgid "Could not copy to clipboard."
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:160
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:201
 msgid "Raw line copied."
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:165
-#: assets/src/components/LogViewer/index.jsx:577
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:206
+#: assets/src/components/LogViewer/index.jsx:580
 msgid "Copy raw"
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:177
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:218
 msgid "Message copied."
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:182
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:223
 msgid "Copy message"
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:194
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:235
 msgid "Path copied."
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:199
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:240
 msgid "Copy file:line"
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:211
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:252
 msgid "Stack trace copied."
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:216
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:257
 msgid "Copy stack trace"
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:228
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:269
 msgid "Entry JSON copied."
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:233
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:274
 msgid "Copy as JSON"
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:245
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:286
 msgid "Filtered to this source."
 msgstr ""
 
-#: assets/src/components/EntryRow/RowActionsMenu.jsx:254
+#: assets/src/components/EntryRow/RowActionsMenu.jsx:295
 msgid "Filter to this source"
 msgstr ""
 
@@ -580,93 +618,93 @@ msgid "Save current filters as preset:"
 msgstr ""
 
 #. translators: confirmation prompt before deleting a saved filter preset.
-#: assets/src/components/FilterBar/index.jsx:199
+#: assets/src/components/FilterBar/index.jsx:202
 msgid "Delete this preset?"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:209
+#: assets/src/components/FilterBar/index.jsx:212
 msgid "Any date"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:213
-#: assets/src/components/FilterBar/index.jsx:380
+#: assets/src/components/FilterBar/index.jsx:216
+#: assets/src/components/FilterBar/index.jsx:391
 msgid "All sources"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:231
+#: assets/src/components/FilterBar/index.jsx:234
 msgid "Log filters"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:274
+#: assets/src/components/FilterBar/index.jsx:277
 msgid "Search regex…   e.g. wpdb::query"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:278
+#: assets/src/components/FilterBar/index.jsx:281
 msgid "Search log messages (regex)"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:285
+#: assets/src/components/FilterBar/index.jsx:288
 msgid "Press / to focus the search input"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:319
+#: assets/src/components/FilterBar/index.jsx:323
 msgid "Date range"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:322
+#: assets/src/components/FilterBar/index.jsx:326
 msgid "From"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:332
+#: assets/src/components/FilterBar/index.jsx:336
 msgid "To"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:370
+#: assets/src/components/FilterBar/index.jsx:378
 msgid "Source file"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:384
+#: assets/src/components/FilterBar/index.jsx:395
 msgid "No sources in current page."
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:427
+#: assets/src/components/FilterBar/index.jsx:443
 msgid "Preset"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:434
+#: assets/src/components/FilterBar/index.jsx:450
 msgid "Filter presets"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:443
+#: assets/src/components/FilterBar/index.jsx:459
 msgid "Save current as preset…"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:447
+#: assets/src/components/FilterBar/index.jsx:463
 msgid "No saved presets."
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:471
-#: assets/src/components/FilterBar/index.jsx:476
+#: assets/src/components/FilterBar/index.jsx:487
+#: assets/src/components/FilterBar/index.jsx:492
 msgid "Delete preset"
 msgstr ""
 
 #. translators: 1: visible entries on the page, 2: total matching filters across pagination.
-#: assets/src/components/FilterBar/index.jsx:549
+#: assets/src/components/FilterBar/index.jsx:565
 #, js-format
 msgid "Showing %1$d of %2$d"
 msgstr ""
 
 #. translators: %d is the total number of log entries.
-#: assets/src/components/FilterBar/index.jsx:555
+#: assets/src/components/FilterBar/index.jsx:571
 #, js-format
 msgid "%d entries · no filters"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:587
+#: assets/src/components/FilterBar/index.jsx:603
 msgid "Remove filter"
 msgstr ""
 
-#: assets/src/components/FilterBar/index.jsx:609
+#: assets/src/components/FilterBar/index.jsx:625
 msgid "Clear filters"
 msgstr ""
 
@@ -675,7 +713,7 @@ msgid "No grouped errors match the current filters."
 msgstr ""
 
 #: assets/src/components/GroupedView/index.jsx:146
-#: assets/src/components/LogViewer/index.jsx:511
+#: assets/src/components/LogViewer/index.jsx:512
 msgid "Bulk actions"
 msgstr ""
 
@@ -695,45 +733,45 @@ msgstr[1] ""
 msgid "Select all"
 msgstr ""
 
-#: assets/src/components/GroupedView/index.jsx:196
-#: assets/src/components/LogViewer/index.jsx:563
+#: assets/src/components/GroupedView/index.jsx:197
+#: assets/src/components/LogViewer/index.jsx:565
 msgid "Mute"
 msgstr ""
 
-#: assets/src/components/GroupedView/index.jsx:202
-#: assets/src/components/LogViewer/index.jsx:584
+#: assets/src/components/GroupedView/index.jsx:204
+#: assets/src/components/LogViewer/index.jsx:588
 msgid "Export"
 msgstr ""
 
-#: assets/src/components/GroupedView/index.jsx:210
-#: assets/src/components/LogViewer/index.jsx:603
+#: assets/src/components/GroupedView/index.jsx:212
+#: assets/src/components/LogViewer/index.jsx:607
 msgid "Clear selection"
 msgstr ""
 
-#: assets/src/components/GroupedView/index.jsx:255
+#: assets/src/components/GroupedView/index.jsx:257
 msgid "Optional reason for muting this signature (visible in Settings → Muted signatures):"
 msgstr ""
 
 #. translators: %s is the sample error message for the group.
-#: assets/src/components/GroupedView/index.jsx:281
+#: assets/src/components/GroupedView/index.jsx:283
 #, js-format
 msgid "Select group: %s"
 msgstr ""
 
 #. translators: %d is the number of times this error occurred.
-#: assets/src/components/GroupedView/index.jsx:307
+#: assets/src/components/GroupedView/index.jsx:309
 #, js-format
 msgid "%d occurrence"
 msgid_plural "%d occurrences"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/GroupedView/index.jsx:332
-#: assets/src/components/GroupedView/index.jsx:333
+#: assets/src/components/GroupedView/index.jsx:334
+#: assets/src/components/GroupedView/index.jsx:335
 msgid "Mute this signature"
 msgstr ""
 
-#: assets/src/components/GroupedView/index.jsx:341
+#: assets/src/components/GroupedView/index.jsx:343
 msgid "Group details"
 msgstr ""
 
@@ -827,124 +865,124 @@ msgstr ""
 msgid "No log file to download."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:442
+#: assets/src/components/LogViewer/index.jsx:443
 msgid "Download"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:451
+#: assets/src/components/LogViewer/index.jsx:452
 msgid "Archive the current log and start a new one"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:455
+#: assets/src/components/LogViewer/index.jsx:456
 msgid "No log file to clear."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:458
-#: assets/src/components/LogViewer/index.jsx:682
+#: assets/src/components/LogViewer/index.jsx:459
+#: assets/src/components/LogViewer/index.jsx:686
 msgid "Clear log"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:466
-#: assets/src/components/LogViewer/index.jsx:558
+#: assets/src/components/LogViewer/index.jsx:467
+#: assets/src/components/LogViewer/index.jsx:559
 msgid "Mute the signatures of the selected entries — they will stop appearing in the viewer."
 msgstr ""
 
 #. translators: %d is the number of selected entries.
-#: assets/src/components/LogViewer/index.jsx:475
+#: assets/src/components/LogViewer/index.jsx:476
 #, js-format
 msgid "Mute (%d)"
 msgid_plural "Mute (%d)"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/LogViewer/index.jsx:483
+#: assets/src/components/LogViewer/index.jsx:484
 msgid "Mute selected"
 msgstr ""
 
 #. translators: %d is the number of selected entries.
-#: assets/src/components/LogViewer/index.jsx:494
+#: assets/src/components/LogViewer/index.jsx:495
 #, js-format
 msgid "Export (%d)"
 msgid_plural "Export (%d)"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/LogViewer/index.jsx:502
+#: assets/src/components/LogViewer/index.jsx:503
 msgid "Export selected"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:537
+#: assets/src/components/LogViewer/index.jsx:538
 msgid "Select all entries"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:543
+#: assets/src/components/LogViewer/index.jsx:544
 msgid "selected"
 msgid_plural "selected"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/LogViewer/index.jsx:570
+#: assets/src/components/LogViewer/index.jsx:573
 msgid "Copy paths"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:590
+#: assets/src/components/LogViewer/index.jsx:594
 msgid "Hide these entries for the rest of this session (does not modify the log file)."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:595
+#: assets/src/components/LogViewer/index.jsx:599
 msgid "Hide"
 msgstr ""
 
 #. translators: %d is the number of entries hidden via the session-only Hide action.
-#: assets/src/components/LogViewer/index.jsx:617
+#: assets/src/components/LogViewer/index.jsx:621
 #, js-format
 msgid "%d entry hidden in this session."
 msgid_plural "%d entries hidden in this session."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/LogViewer/index.jsx:631
+#: assets/src/components/LogViewer/index.jsx:635
 msgid "Show all"
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:647
+#: assets/src/components/LogViewer/index.jsx:651
 msgid "Clear the debug log?"
 msgstr ""
 
 #. translators: %s is the file size, e.g. "1.2 MB".
-#: assets/src/components/LogViewer/index.jsx:654
+#: assets/src/components/LogViewer/index.jsx:658
 #, js-format
 msgid "Logscope will rename the active log to a timestamped archive (.cleared-YYYYMMDD-HHMMSS) so it stays recoverable on disk. Current size: %s."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:662
+#: assets/src/components/LogViewer/index.jsx:666
 msgid "Tip: download a copy first if you need to keep the entries close at hand."
 msgstr ""
 
-#: assets/src/components/LogViewer/index.jsx:672
+#: assets/src/components/LogViewer/index.jsx:676
 msgid "Cancel"
 msgstr ""
 
 #. translators: %d is the number of new log entries since the user scrolled away.
-#: assets/src/components/LogViewer/index.jsx:899
+#: assets/src/components/LogViewer/index.jsx:918
 #, js-format
 msgid "%d new entry"
 msgid_plural "%d new entries"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/components/LogViewer/index.jsx:926
+#: assets/src/components/LogViewer/index.jsx:945
 msgid "Loading more…"
 msgstr ""
 
 #. translators: 1: loaded entries, 2: total matching entries.
-#: assets/src/components/LogViewer/index.jsx:929
+#: assets/src/components/LogViewer/index.jsx:948
 #, js-format
 msgid "Showing %1$d of %2$d — scroll for more."
 msgstr ""
 
 #. translators: %d is the total number of entries loaded.
-#: assets/src/components/LogViewer/index.jsx:946
+#: assets/src/components/LogViewer/index.jsx:965
 #, js-format
 msgid "End of log · %d entry loaded."
 msgid_plural "End of log · %d entries loaded."
@@ -1388,20 +1426,8 @@ msgstr ""
 msgid "[internal]"
 msgstr ""
 
-#: assets/src/components/StatsTab/BreakdownBar.jsx:39
+#: assets/src/components/StatsTab/BreakdownBar.jsx:38
 msgid "Severity mix"
-msgstr ""
-
-#. translators: 1: severity label, 2: percentage of total.
-#: assets/src/components/StatsTab/BreakdownBar.jsx:86
-#, js-format
-msgid "%1$s %2$s%%"
-msgstr ""
-
-#. translators: %s is a comma-separated list of "Severity NN%" pairs.
-#: assets/src/components/StatsTab/BreakdownBar.jsx:93
-#, js-format
-msgid "Severity breakdown over the range: %s"
 msgstr ""
 
 #: assets/src/components/StatsTab/index.jsx:23
@@ -1474,8 +1500,10 @@ msgstr ""
 msgid "Count"
 msgstr ""
 
-#: assets/src/components/StatsTab/TopSignaturesTable.jsx:95
-msgid "View matching entries in Logs"
+#. translators: 1: severity label, 2: sample error message.
+#: assets/src/components/StatsTab/TopSignaturesTable.jsx:119
+#, js-format
+msgid "View matching %1$s entries in Logs: %2$s"
 msgstr ""
 
 #: assets/src/components/StatsTab/VolumeChart.jsx:121
@@ -1484,6 +1512,23 @@ msgstr ""
 
 #: assets/src/components/StatsTab/VolumeChart.jsx:145
 msgid "Volume of each severity across the selected range"
+msgstr ""
+
+#: assets/src/store/index.js:236
+#: assets/src/store/index.js:257
+#: assets/src/store/index.js:367
+#: assets/src/store/index.js:382
+#: assets/src/store/index.js:413
+#: assets/src/store/index.js:433
+#: assets/src/store/index.js:463
+#: assets/src/store/index.js:480
+#: assets/src/store/index.js:564
+#: assets/src/store/index.js:594
+#: assets/src/store/index.js:611
+#: assets/src/store/index.js:633
+#: assets/src/store/index.js:663
+#: assets/src/store/index.js:682
+msgid "Unknown error"
 msgstr ""
 
 #: assets/src/store/index.js:261

@@ -96,9 +96,49 @@ export default function RowActionsMenu( { entry, position, onClose } ) {
 		};
 	}, [ onClose ] );
 
+	// Menus must move focus in on open — without this, keyboard users can
+	// open the popover (aria-haspopup promises a menu) but reach nothing.
+	useEffect( () => {
+		if ( ! entry || ! position ) {
+			return;
+		}
+		const first = menuRef.current?.querySelector(
+			'button[role="menuitem"]:not(:disabled)'
+		);
+		first?.focus();
+	}, [ entry, position ] );
+
 	if ( ! entry || ! position ) {
 		return null;
 	}
+
+	// Arrow/Home/End navigation over the enabled items, wrapping at the
+	// ends, per the WAI-ARIA menu pattern.
+	const onMenuKeyDown = ( e ) => {
+		const items = Array.from(
+			menuRef.current?.querySelectorAll(
+				'button[role="menuitem"]:not(:disabled)'
+			) || []
+		);
+		if ( items.length === 0 ) {
+			return;
+		}
+		const idx = items.indexOf( document.activeElement );
+		let next = null;
+		if ( e.key === 'ArrowDown' ) {
+			next = items[ ( idx + 1 ) % items.length ];
+		} else if ( e.key === 'ArrowUp' ) {
+			next = items[ ( idx - 1 + items.length ) % items.length ];
+		} else if ( e.key === 'Home' ) {
+			next = items[ 0 ];
+		} else if ( e.key === 'End' ) {
+			next = items[ items.length - 1 ];
+		} else {
+			return;
+		}
+		e.preventDefault();
+		next.focus();
+	};
 
 	// Clamp the menu so it never spills off the right or bottom of the
 	// viewport. Vertical clamp uses an estimated 280px tall menu — the
@@ -140,6 +180,7 @@ export default function RowActionsMenu( { entry, position, onClose } ) {
 			ref={ menuRef }
 			className="logscope-row-menu"
 			role="menu"
+			onKeyDown={ onMenuKeyDown }
 			style={ {
 				position: 'fixed',
 				top,

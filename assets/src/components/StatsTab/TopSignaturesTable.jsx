@@ -12,7 +12,7 @@
  * error in practice while keeping the click-through readable in the
  * FilterBar — admins can refine from there.
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { useDispatch } from '@wordpress/data';
 
 import { STORE_KEY } from '../../store';
@@ -80,22 +80,15 @@ export default function TopSignaturesTable( { rows } ) {
 				{ rows.map( ( row, idx ) => {
 					const tone = severityTone( row.severity );
 					return (
+						// Plain <tr> (no role/tabIndex): overriding row
+						// semantics with role="button" collapsed the cells
+						// for AT and repeated one identical label N times.
+						// The real control is the per-row button below; the
+						// row-level onClick just widens the mouse target.
 						<tr
 							key={ row.signature }
 							className="logscope-stats__top-row"
 							onClick={ () => handleSelect( row ) }
-							onKeyDown={ ( e ) => {
-								if ( e.key === 'Enter' || e.key === ' ' ) {
-									e.preventDefault();
-									handleSelect( row );
-								}
-							} }
-							tabIndex={ 0 }
-							role="button"
-							aria-label={ __(
-								'View matching entries in Logs',
-								'logscope'
-							) }
 						>
 							<td className="logscope-stats__top-rank">
 								<span className="logscope-stats__top-rank-num">
@@ -114,7 +107,25 @@ export default function TopSignaturesTable( { rows } ) {
 								</span>
 							</td>
 							<td className="logscope-stats__top-table-msg">
-								{ row.sample }
+								<button
+									type="button"
+									className="logscope-stats__top-msg-btn"
+									onClick={ ( e ) => {
+										e.stopPropagation();
+										handleSelect( row );
+									} }
+									aria-label={ sprintf(
+										/* translators: 1: severity label, 2: sample error message. */
+										__(
+											'View matching %1$s entries in Logs: %2$s',
+											'logscope'
+										),
+										severityLabel( row.severity ),
+										row.sample
+									) }
+								>
+									{ row.sample }
+								</button>
 							</td>
 							<td className="logscope-stats__top-table-count">
 								{ Number( row.count || 0 ).toLocaleString() }

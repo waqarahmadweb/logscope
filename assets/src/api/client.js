@@ -78,10 +78,11 @@ export const client = {
 			method: 'POST',
 		} );
 	},
-	getMutes( includeMuted = false ) {
-		const qs = includeMuted ? '?include_muted=true' : '';
+	getMutes() {
+		// No params: the server's GET handler takes none (`include_muted`
+		// belongs to /logs, not the mute list).
 		return apiFetch( {
-			path: logscopePath( '/logs/mute' ) + qs,
+			path: logscopePath( '/logs/mute' ),
 		} );
 	},
 	muteSignature( signature, reason = '' ) {

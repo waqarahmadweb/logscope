@@ -142,17 +142,18 @@ final class LogQuery {
 		$this->source     = ( null === $source || '' === $source ) ? null : $source;
 		$this->grouped    = $grouped;
 
+		// Messages are translated because the REST controller surfaces them
+		// verbatim in the 400 body, which the UI renders in a toast.
 		if ( $page < 1 ) {
-			throw new LogQueryException( 'Page must be 1 or greater.' );
+			throw new LogQueryException( __( 'Page must be 1 or greater.', 'logscope' ) );
 		}
 
 		if ( $per_page < self::MIN_PER_PAGE || $per_page > self::MAX_PER_PAGE ) {
-			// LogQueryException is internal; the REST controller maps it to
-			// a sanitised 400 response rather than echoing the raw text.
-			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Surfaced as a JSON 400 body, not HTML.
 			throw new LogQueryException(
 				sprintf(
-					'per_page must be between %d and %d.',
+					/* translators: 1: minimum page size, 2: maximum page size. */
+					__( 'per_page must be between %1$d and %2$d.', 'logscope' ),
 					self::MIN_PER_PAGE,
 					self::MAX_PER_PAGE
 				)
@@ -161,7 +162,7 @@ final class LogQuery {
 		}
 
 		if ( null !== $since_byte && $since_byte < 0 ) {
-			throw new LogQueryException( 'since_byte must be 0 or greater.' );
+			throw new LogQueryException( __( 'since_byte must be 0 or greater.', 'logscope' ) );
 		}
 
 		$this->page          = $page;
@@ -233,9 +234,14 @@ final class LogQuery {
 			}
 		}
 
-		// LogQueryException is internal; the REST controller maps it to
-		// a sanitised 400 response rather than echoing the raw text.
-		throw new LogQueryException( sprintf( 'Invalid %s date: %s', $label, $value ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+		throw new LogQueryException(
+			sprintf(
+				/* translators: 1: field name ('from' or 'to'), 2: the rejected value. */
+				__( 'Invalid %1$s date: %2$s', 'logscope' ),
+				$label,
+				$value
+			)
+		); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Surfaced as a JSON 400 body, not HTML.
 	}
 
 	/**
@@ -254,11 +260,13 @@ final class LogQuery {
 		}
 
 		if ( strlen( $regex ) > self::MAX_REGEX_LENGTH ) {
-			// LogQueryException is internal; the REST controller maps it to
-			// a sanitised 400 response rather than echoing the raw text.
-			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Surfaced as a JSON 400 body, not HTML.
 			throw new LogQueryException(
-				sprintf( 'Regex must be %d characters or fewer.', self::MAX_REGEX_LENGTH )
+				sprintf(
+					/* translators: %d: maximum regex length in characters. */
+					__( 'Regex must be %d characters or fewer.', 'logscope' ),
+					self::MAX_REGEX_LENGTH
+				)
 			);
 			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
@@ -269,7 +277,7 @@ final class LogQuery {
 		// the false return is the contract we care about.
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( false === @preg_match( $compiled, '' ) ) {
-			throw new LogQueryException( 'Invalid regular expression.' );
+			throw new LogQueryException( __( 'Invalid regular expression.', 'logscope' ) );
 		}
 
 		return $regex;

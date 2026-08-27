@@ -114,22 +114,58 @@ final class LogScanner {
 		$max   = $size - $last;
 		$chunk = $this->source->read_chunk( $last, $max );
 
+		// Only consume up to the last complete line: a fatal mid-write at
+		// the scan boundary would otherwise be parsed truncated now and
+		// skipped forever once the cursor jumps to EOF. The partial tail
+		// is re-read complete on the next tick.
+		$consumed = strlen( $chunk );
+		if ( '' !== $chunk && "\n" !== substr( $chunk, -1 ) ) {
+			$cut = strrpos( $chunk, "\n" );
+			if ( false === $cut ) {
+				// No complete line yet — hold the cursor for the next tick.
+				update_option( self::OPT_LAST_AT, time() );
+				update_option( self::OPT_LAST_DISPATCHED, 0 );
+				if ( $rotated ) {
+					update_option( self::OPT_LAST_BYTE, $last );
+				}
+				return array(
+					'bytes_read'        => 0,
+					'groups_dispatched' => 0,
+					'rotated'           => $rotated,
+					'skipped'           => true,
+				);
+			}
+			$consumed = $cut + 1;
+			$chunk    = substr( $chunk, 0, $consumed );
+		}
+
 		$entries = LogParser::parse( $chunk );
 		$entries = self::filter_alertable( $entries );
 
 		$groups = LogGrouper::group( $entries );
 
+		$results = array();
 		if ( ! empty( $groups ) ) {
-			$this->coordinator->dispatch_for_groups( $groups );
+			$results = $this->coordinator->dispatch_for_groups( $groups );
 		}
 
-		$dispatched = count( $groups );
-		update_option( self::OPT_LAST_BYTE, $size );
+		// Count groups that actually went out on at least one channel —
+		// deduped/skipped/failed outcomes must not inflate the Settings
+		// "N fatals dispatched" status line.
+		$sent = array();
+		foreach ( $results as $result ) {
+			if ( 'sent' === ( $result['outcome'] ?? '' ) ) {
+				$sent[ $result['signature'] ] = true;
+			}
+		}
+		$dispatched = count( $sent );
+
+		update_option( self::OPT_LAST_BYTE, $last + $consumed );
 		update_option( self::OPT_LAST_AT, time() );
 		update_option( self::OPT_LAST_DISPATCHED, $dispatched );
 
 		return array(
-			'bytes_read'        => strlen( $chunk ),
+			'bytes_read'        => $consumed,
 			'groups_dispatched' => $dispatched,
 			'rotated'           => $rotated,
 			'skipped'           => false,

@@ -66,7 +66,7 @@ final class LogScannerTest extends TestCase {
 		$coordinator->shouldReceive( 'dispatch_for_groups' )
 			->once()
 			->with( Mockery::on( static fn( $groups ) => is_array( $groups ) && 2 === count( $groups ) ) )
-			->andReturn( array() );
+			->andReturnUsing( array( self::class, 'all_sent_results' ) );
 
 		$scanner = new LogScanner( $this->make_source(), $coordinator );
 		$result  = $scanner->scan();
@@ -110,7 +110,7 @@ final class LogScannerTest extends TestCase {
 		$coordinator->shouldReceive( 'dispatch_for_groups' )
 			->once()
 			->with( Mockery::on( static fn( $groups ) => 1 === count( $groups ) ) )
-			->andReturn( array() );
+			->andReturnUsing( array( self::class, 'all_sent_results' ) );
 
 		$scanner = new LogScanner( $this->make_source(), $coordinator );
 		$result  = $scanner->scan();
@@ -134,12 +134,91 @@ final class LogScannerTest extends TestCase {
 		$coordinator->shouldReceive( 'dispatch_for_groups' )
 			->once()
 			->with( Mockery::on( static fn( $groups ) => 1 === count( $groups ) ) )
-			->andReturn( array() );
+			->andReturnUsing( array( self::class, 'all_sent_results' ) );
 
 		$scanner = new LogScanner( $this->make_source(), $coordinator );
 		$result  = $scanner->scan();
 
 		$this->assertSame( 1, $result['groups_dispatched'] );
+	}
+
+	public function test_scan_dispatched_count_excludes_non_sent_outcomes(): void {
+		$this->write_log(
+			"[27-Apr-2026 12:34:56 UTC] PHP Fatal error:  boom in /var/www/a.php:1\n"
+			. "[27-Apr-2026 12:34:57 UTC] PHP Fatal error:  bang in /var/www/b.php:2\n"
+		);
+
+		$store = $this->option_store();
+		$this->stub_options( $store );
+
+		// One group actually sends; the other is suppressed by dedup on
+		// every channel — only the sent one may count.
+		$coordinator = Mockery::mock( AlertCoordinator::class );
+		$coordinator->shouldReceive( 'dispatch_for_groups' )
+			->once()
+			->andReturnUsing(
+				static function ( array $groups ): array {
+					$results = array();
+					foreach ( $groups as $i => $group ) {
+						$results[] = array(
+							'dispatcher' => 'email',
+							'signature'  => $group->signature,
+							'outcome'    => 0 === $i ? 'sent' : 'deduped',
+						);
+					}
+					return $results;
+				}
+			);
+
+		$scanner = new LogScanner( $this->make_source(), $coordinator );
+		$result  = $scanner->scan();
+
+		$this->assertSame( 1, $result['groups_dispatched'] );
+		$this->assertSame( 1, $store['values'][ LogScanner::OPT_LAST_DISPATCHED ] );
+	}
+
+	public function test_scan_holds_cursor_at_last_complete_line(): void {
+		$complete = "[27-Apr-2026 12:34:56 UTC] PHP Fatal error:  whole in /var/www/a.php:1\n";
+		$partial  = '[27-Apr-2026 12:34:57 UTC] PHP Fatal error:  half-writ';
+		$this->write_log( $complete . $partial );
+
+		$store = $this->option_store();
+		$this->stub_options( $store );
+
+		$coordinator = Mockery::mock( AlertCoordinator::class );
+		$coordinator->shouldReceive( 'dispatch_for_groups' )
+			->once()
+			->with( Mockery::on( static fn( $groups ) => 1 === count( $groups ) ) )
+			->andReturnUsing( array( self::class, 'all_sent_results' ) );
+
+		$scanner = new LogScanner( $this->make_source(), $coordinator );
+		$result  = $scanner->scan();
+
+		// Cursor stops at the end of the complete line so the truncated
+		// fatal is re-read whole on the next tick, not consumed broken.
+		$this->assertSame( strlen( $complete ), $store['values'][ LogScanner::OPT_LAST_BYTE ] );
+		$this->assertSame( strlen( $complete ), $result['bytes_read'] );
+		$this->assertSame( 1, $result['groups_dispatched'] );
+	}
+
+	/**
+	 * Maps every group to a `sent` outcome — the shape a fully successful
+	 * dispatch produces. Public static so Mockery `andReturnUsing` can
+	 * reference it as a callable.
+	 *
+	 * @param Group[] $groups Groups handed to the coordinator.
+	 * @return array<int, array{dispatcher:string, signature:string, outcome:string}>
+	 */
+	public static function all_sent_results( array $groups ): array {
+		$results = array();
+		foreach ( $groups as $group ) {
+			$results[] = array(
+				'dispatcher' => 'email',
+				'signature'  => $group->signature,
+				'outcome'    => 'sent',
+			);
+		}
+		return $results;
 	}
 
 	private function make_source(): FileLogSource {
