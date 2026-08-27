@@ -315,7 +315,9 @@ final class LogStats {
 			try {
 				$tz = new DateTimeZone( $entry->timezone );
 			} catch ( \Exception $e ) {
-				// Unrecognised token — keep the UTC default rather than drop the entry.
+				// Unrecognised token — keep the UTC default rather than drop
+				// the entry. Nothing to do: $tz already holds the fallback.
+				unset( $e );
 			}
 		}
 

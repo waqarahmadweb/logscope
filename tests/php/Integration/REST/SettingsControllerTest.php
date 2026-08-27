@@ -7,6 +7,10 @@
 
 declare(strict_types=1);
 
+// Tmp-fixture cleanup uses silenced unlink/rmdir; proper error handling is
+// inappropriate for best-effort teardown.
+// phpcs:disable WordPress.PHP.NoSilencedErrors
+
 namespace Logscope\Tests\Integration\REST;
 
 use Brain\Monkey\Functions;

@@ -213,9 +213,10 @@ final class LogsController extends RestController {
 	 */
 	public function handle_index( WP_REST_Request $request ) {
 		try {
+			// build_query() validates params; query() can also throw when a
+			// pattern that passed compilation blows the PCRE backtrack budget
+			// against real log content.
 			$query  = $this->build_query( (array) $request->get_params() );
-			// query() can also throw: a pattern that passes compilation can
-			// still blow the PCRE backtrack budget against real log content.
 			$result = $this->repository->query( $query );
 		} catch ( LogQueryException $e ) {
 			return $this->error( 'logscope_rest_bad_query', $e->getMessage(), 400 );

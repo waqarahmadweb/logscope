@@ -297,6 +297,9 @@ final class LogRepository {
 	 * @param Entry[]  $entries Parsed entries.
 	 * @param LogQuery $query   Validated query.
 	 * @return Entry[]
+	 *
+	 * @throws LogQueryException When the compiled regex exhausts the PCRE
+	 *                           backtrack budget against the log content.
 	 */
 	private function apply_filters( array $entries, LogQuery $query ): array {
 		$severities = $query->severities;
