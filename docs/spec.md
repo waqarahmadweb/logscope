@@ -1,265 +1,226 @@
-# Logscope — Technical Specification
+# Logscope: Technical Specification
 
-> The long-form technical specification: architectural intent, feature scope, security requirements, wp.org submission constraints.
+> What the plugin is, how it is built, and the constraints it must never break. This is the reference for the shipped 1.0 design.
 >
 > **Related docs:**
-> - [../AGENTS.md](../AGENTS.md) — active working rules for AI agents and contributors (naming, security, commit style, doc-sync rule). Absorbs the "Ruleset for the Agent" that used to live in this file.
-> - [../ROADMAP.md](../ROADMAP.md) — phased, versioned execution plan with checkable steps.
-> - [../CHANGELOG.md](../CHANGELOG.md) — what's actually shipped.
 >
-> Anything marked **[HARD]** is non-negotiable (security, licensing, wp.org policy, architectural foundation). Everything else is a sensible default — revise only with justification.
+> -   [../AGENTS.md](../AGENTS.md): working rules for agents and contributors (naming, security, commit style, doc-sync rule, resolved design decisions).
+> -   [../ROADMAP.md](../ROADMAP.md): phased, versioned plan with checkable steps.
+> -   [../CHANGELOG.md](../CHANGELOG.md): what actually shipped, per version.
+>
+> Anything marked **[HARD]** is non-negotiable (security, licensing, wp.org policy, architectural foundation). Everything else is a sensible default; revise only with justification and a changelog entry.
 
 ---
 
-## 1. Project Metadata
+## 1. Project metadata
 
-| Field | Value |
-|---|---|
-| Display name | **Logscope — Debug Log Viewer for WordPress** |
-| Plugin slug | `logscope` |
-| Text domain | `logscope` |
-| PHP namespace | `Logscope\` |
-| Option / transient prefix | `logscope_` |
-| Hook prefix | `logscope/` (e.g. `logscope/log_parsed`, `logscope/before_alert`) |
-| Custom capability | `logscope_manage` (default-map to `manage_options`) |
-| Min PHP | **8.0** |
-| Min WP | **6.2** |
-| License | **GPL v2+** (wp.org requirement) **[HARD]** |
-| Distribution | Free forever. No paid tier, no upsells, no telemetry. **[HARD]** |
+| Field                     | Value                                                                  |
+| ------------------------- | ---------------------------------------------------------------------- |
+| Display name              | **Logscope: Debug Log Viewer for WordPress**                           |
+| Plugin slug               | `logscope`                                                             |
+| Text domain               | `logscope`                                                             |
+| PHP namespace             | `Logscope\`                                                            |
+| Option / transient prefix | `logscope_`                                                            |
+| Hook prefix               | `logscope/` (e.g. `logscope/before_alert`, `logscope/webhook_payload`) |
+| REST namespace            | `logscope/v1`                                                          |
+| Custom capability         | `logscope_manage` (default-maps to `manage_options`)                   |
+| Min PHP                   | **8.0**                                                                |
+| Min WP                    | **6.2** (tested up to 7.0)                                             |
+| License                   | **GPL v2+** (wp.org requirement) **[HARD]**                            |
+| Distribution              | Free forever. No paid tier, no upsells, no telemetry. **[HARD]**       |
 
-Tagline: *Stream, filter, and group your WordPress debug log without leaving wp-admin.*
-
----
-
-## 2. Tech Stack
-
-- **PHP 8.0** minimum. Use typed properties, arrow functions, `null` coalescing, constructor promotion, `match`. No features beyond 8.0.
-- **Composer** with PSR-4 autoloading — namespace `Logscope\` mapped to `src/`. **[HARD]**
-- **React** via `@wordpress/scripts` build toolchain (standard WP workflow, no custom webpack).
-- **@wordpress/components** for all UI primitives (Button, Panel, SelectControl, etc.) — WP-native look is a feature.
-- **@wordpress/data** for store / state management.
-- **WP REST API** for all PHP ↔ React communication. **[HARD]** No admin-ajax.php, no `<form>` POSTs.
-- **WordPress Coding Standards** (PHPCS) for PHP — enforce via `phpcs.xml.dist`.
-- **@wordpress/eslint-plugin** + **@wordpress/prettier-config** for JS.
+Tagline: _Stream, filter, and group your WordPress debug log without leaving wp-admin._
 
 ---
 
-## 3. Folder Structure
+## 2. Tech stack
+
+-   **PHP 8.0** minimum. Typed properties, constructor promotion, `match`, nullsafe, named args. No 8.1+ features (enums, readonly, never).
+-   **Composer** with PSR-4 autoloading: `Logscope\` maps to `src/`. **[HARD]**
+-   **React** via `@wordpress/scripts` (standard WP toolchain, no custom webpack).
+-   **@wordpress/components** for UI primitives. WP-native look is a feature.
+-   **@wordpress/data** for the single app store.
+-   **WP REST API** for all PHP to React traffic. **[HARD]** No `admin-ajax.php`, no `<form>` POSTs.
+-   **WordPress Coding Standards** (PHPCS) via `phpcs.xml.dist`; **@wordpress/eslint-plugin** + **@wordpress/prettier-config** for JS.
+-   **PHPUnit 9** with hand-rolled WP stubs (`tests/php/Stubs/`). Tests run without a WordPress install or database.
+
+---
+
+## 3. Folder structure
 
 ```
 logscope/
-├── logscope.php                      # Main plugin file: header + bootstrap only
-├── uninstall.php                     # Cleans options on full uninstall
-├── readme.txt                        # wp.org-format readme
-├── composer.json
-├── package.json
-├── phpcs.xml.dist
-├── .editorconfig
-├── .gitignore                        # Excludes vendor/, node_modules/, build/
-├── LICENSE                           # GPL v2
-├── CHANGELOG.md
-├── CLAUDE.md                         # Agent rules (this doc, or a trimmed version)
+├── logscope.php                  # Header, constants, autoload guard, Plugin::boot()
+├── uninstall.php                 # Removes all logscope_* options, transients, user meta, cron
+├── readme.txt                    # wp.org listing (two latest changelog entries only)
+├── changelog.txt                 # Full wp.org-format version history
+├── AGENTS.md / CLAUDE.md         # Agent + contributor rules (CLAUDE.md imports AGENTS.md)
+├── README.md / ROADMAP.md / CHANGELOG.md / LICENSE
+├── composer.json, package.json, phpcs.xml.dist, phpunit.xml.dist, eslint.config.mjs
 │
-├── src/                              # PHP source — PSR-4: Logscope\
-│   ├── Plugin.php                    # Main orchestrator, service wiring
-│   ├── Activator.php
-│   ├── Deactivator.php
-│   │
-│   ├── Admin/
-│   │   ├── Menu.php                  # Registers Tools → Logscope page
-│   │   ├── AssetLoader.php           # Enqueues React bundle on plugin page only
-│   │   └── PageRenderer.php          # Renders React mount point
-│   │
-│   ├── Log/
-│   │   ├── LogSourceInterface.php
-│   │   ├── FileLogSource.php         # Reads debug.log / custom paths
-│   │   ├── LogParser.php             # Severity detection, timestamp parsing
-│   │   ├── StackTraceParser.php
-│   │   ├── LogGrouper.php            # Signature-based error grouping
-│   │   └── LogRepository.php         # Paginated, filtered access
-│   │
-│   ├── REST/
-│   │   ├── RestController.php        # Abstract base: caps, nonces, schema
-│   │   ├── LogsController.php
-│   │   ├── SettingsController.php
-│   │   └── AlertsController.php
-│   │
-│   ├── Settings/
-│   │   ├── Settings.php              # Get/set with defaults
-│   │   └── SettingsSchema.php        # Single source of truth for shape
-│   │
-│   ├── Alerts/
-│   │   ├── AlertDispatcherInterface.php
-│   │   ├── AlertCoordinator.php      # Fanout + dedupe
-│   │   ├── EmailAlerter.php
-│   │   ├── WebhookAlerter.php        # Generic JSON POST (Slack/Discord/Teams/n8n)
-│   │   └── AlertDeduplicator.php     # Transient-based rate limiting
-│   │
-│   ├── Cron/
-│   │   └── LogScanner.php            # Scheduled scan for new fatals → alerts
-│   │
-│   └── Support/
-│       ├── Capabilities.php
-│       ├── PathGuard.php             # Path traversal prevention [HARD]
-│       └── Sanitizer.php
+├── src/                          # PHP, PSR-4: Logscope\
+│   ├── Plugin.php                # Container + service wiring + hook registration
+│   ├── Activator.php             # Cap grant, option defaults, cron scheduling
+│   ├── Deactivator.php           # Cron unscheduling
+│   ├── Admin/                    # Menu, AssetLoader, PageRenderer, AdminBar, DashboardWidget, SiteHealthTest
+│   ├── Log/                      # LogSourceInterface, FileLogSource, LogParser, StackTraceParser,
+│   │                             # LogGrouper, LogQuery, LogRepository, LogStats, LogRotator,
+│   │                             # MuteStore, SourceClassifier, Severity, Entry, Frame, Group, PagedResult
+│   ├── REST/                     # RestController (base) + Logs, Settings, Alerts, Mute, Presets,
+│   │                             # Stats, Diagnostics controllers
+│   ├── Settings/                 # Settings, SettingsSchema (single source of truth), PresetStore
+│   ├── Alerts/                   # AlertDispatcherInterface, AlertCoordinator, EmailAlerter,
+│   │                             # WebhookAlerter, AlertDeduplicator
+│   ├── Cron/                     # CronScheduler, LogScanner
+│   └── Support/                  # Capabilities, PathGuard [HARD], DiagnosticsService, path exceptions
 │
 ├── assets/
-│   ├── src/                          # React source
-│   │   ├── index.js                  # App mount (wp-admin page)
-│   │   ├── App.jsx
-│   │   ├── components/
-│   │   │   ├── LogViewer/            # Virtualized list + tail mode
-│   │   │   ├── FilterBar/            # Severity, regex, date range
-│   │   │   ├── EntryRow/
-│   │   │   ├── StackTracePanel/
-│   │   │   ├── GroupedView/          # Errors grouped by signature
-│   │   │   ├── SettingsPanel/
-│   │   │   └── EmptyState/
-│   │   ├── hooks/                    # useLogs, useTail, useSettings
-│   │   ├── api/                      # REST client wrapper
-│   │   ├── store/                    # @wordpress/data registrations
-│   │   └── utils/
-│   └── build/                        # @wordpress/scripts output (gitignored)
+│   ├── src/                      # React source
+│   │   ├── index.js              # Mounts App on the Tools → Logscope page
+│   │   ├── components/           # App, LogViewer, FilterBar, EntryRow, StackTracePanel, GroupedView,
+│   │   │                         # StatsTab, SettingsPanel, MonitoringPanel, DisplayPanel,
+│   │   │                         # MutedSignaturesPanel, OnboardingBanner, HelpModal, EmptyState,
+│   │   │                         # Skeleton, ToastHost
+│   │   ├── hooks/                # useTailPolling, useUrlQuerySync, useKeyboardShortcuts, useDebouncedValue
+│   │   ├── store/                # @wordpress/data store (logs, filters, settings, UI state)
+│   │   ├── api/                  # REST client wrapper over @wordpress/api-fetch
+│   │   ├── utils/                # severity, csv, entryKey, filterParams, frameSource, ...
+│   │   └── style.scss            # Design tokens (--logscope-*) + component styles
+│   └── build/                    # @wordpress/scripts output (gitignored)
 │
-├── languages/
-│   └── logscope.pot                  # Generated on release build
-│
-├── tests/
-│   ├── php/
-│   │   ├── bootstrap.php
-│   │   ├── Unit/                     # Parser, grouper, path guard, dedup
-│   │   └── Integration/              # REST endpoints
-│   └── js/                           # Jest, kept minimal for MVP
-│
-├── .wordpress-org/                   # wp.org listing assets
-│   ├── banner-1544x500.png
-│   ├── icon-256x256.png
-│   └── screenshot-1.png … screenshot-5.png
-│
-└── .github/
-    └── workflows/
-        ├── lint.yml                  # PHPCS + ESLint
-        └── release.yml               # Build zip, strip dev deps
+├── languages/logscope.pot        # Regenerated with `pnpm i18n`
+├── tests/php/{Unit,Integration,Stubs}/
+├── tests/js/                     # Empty placeholder
+├── bin/                          # build-zip.ps1, make-pot.mjs
+├── docs/spec.md                  # This file
+├── .wordpress-org/               # Banner, icon, screenshots (export-ignored from the zip)
+└── .github/workflows/            # ci.yml (lint, build, audit, Plugin Check), release.yml (zip on tag)
 ```
 
 ---
 
-## 4. Architecture Principles
+## 4. Architecture principles
 
-1. **Thin main file.** `logscope.php` contains only the plugin header, autoload include, and a single `Plugin::boot()` call. All logic lives under `src/`.
-2. **Dependency injection over globals.** A lightweight container (hand-rolled in `Plugin.php`, no package needed) wires services. No `global $wpdb` chains inside business logic.
-3. **Interface boundaries for replaceable parts.** `LogSourceInterface` and `AlertDispatcherInterface` exist so readers/alerters can be swapped or extended via filters.
-4. **REST-first.** All React ↔ PHP traffic flows through `wp-json/logscope/v1/*`. No AJAX actions, no hidden admin-post handlers.
-5. **File-based logs stay file-based.** Do not copy log entries into the database. Read, parse, and serve on demand. Settings and alert state are the only things in `wp_options` / transients.
-6. **Extensibility via hooks.** Every meaningful operation fires a filter or action under the `logscope/` prefix so power users can extend without forking.
-
----
-
-## 5. MVP Feature Scope (v1.0)
-
-1. **Log viewer page** under Tools → Logscope (virtualized list, handles 10k+ lines).
-2. **Tail mode** — live-updating view (polling every 2–5s is fine for v1; SSE is a v1.1 nice-to-have).
-3. **Filters** — severity (Fatal / Warning / Notice / Deprecated), regex search, date range, source plugin/theme (parsed from path).
-4. **Error grouping** — collapse duplicate errors by signature (file:line + message shape). Show first-seen, last-seen, count.
-5. **Stack trace parsing** — expandable, file paths linked to clipboard copy.
-6. **Clear log** / **Download log** (with confirmation + capability check).
-7. **Custom log paths** — settings field with allowlisted directory validation.
-8. **Email alerts** on new fatal errors (configurable recipients, rate-limited).
-9. **Webhook alerts** — generic JSON POST; docs include ready-made templates for Slack/Discord/Teams/n8n.
-10. **Settings page** (React, same admin page, tabbed) — all options configurable via UI.
+1. **Thin main file.** `logscope.php` holds the header, constants, the autoload include (with a graceful admin notice when `vendor/` is missing), and one `Plugin::boot()` call.
+2. **Dependency injection over globals.** A hand-rolled container in `Plugin.php` wires services. No `global $wpdb` chains in business logic.
+3. **Interface boundaries for replaceable parts.** `LogSourceInterface` and `AlertDispatcherInterface` let readers and alerters be swapped via filters.
+4. **REST-first.** All React to PHP traffic flows through `/wp-json/logscope/v1/*`. No AJAX actions, no admin-post handlers.
+5. **File-based logs stay file-based.** Log entries are never copied into the database. Only settings, mute list, presets, cron cursors, and alert-dedup state live in `wp_options` / transients / user meta.
+6. **Bounded reads.** Every read is capped: 50 MB per query (`MAX_BYTES_PER_QUERY`), tail reads from a byte cursor clamped to the last complete line, regex patterns ≤ 200 chars. A huge log must never OOM a request or a cron tick.
+7. **Extensibility via hooks.** Meaningful operations fire a filter or action under `logscope/`.
 
 ---
 
-## 6. Out of Scope for v1
+## 5. Data model
 
-- Multisite / network-wide log aggregation *(v1.1)*
-- Log retention policies / rotation management
-- External log storage (Loki, Elastic, Datadog)
-- Advanced analytics dashboards
-- Role/team management beyond the single `logscope_manage` capability
-- SSE / WebSocket live streaming *(v1.1)*
-- Import/export of historical logs
+**Entry** (parsed log line): `timestamp`, `severity`, `message`, `file`, `line`, `source` (plugin / theme / mu-plugin / core / unknown, plus slug), `frames[]` (stack trace), `raw`.
 
----
+**Severity** (`Log\Severity` constants, not an enum): `fatal`, `parse`, `warning`, `notice`, `deprecated`, `strict`, `unknown`.
 
-## 7. Security Requirements **[HARD]**
+**Group** (Unique errors view): `signature` (md5 of severity + file + line + message with variable parts normalised), `count`, `first_seen`, `last_seen`, representative `entry`.
 
-- **Capability check** on every REST route: `current_user_can( 'logscope_manage' )`. Never relax this.
-- **Nonces** via WP REST auth — do not disable.
-- **Path traversal prevention** — `PathGuard` class. Custom log paths MUST resolve to an allowlisted set of directories (WP root, wp-content, ABSPATH). Reject symlinks that escape. Reject `..` explicitly before realpath. Test this with adversarial inputs.
-- **Escape on output, sanitize on input.** No exceptions. React handles most escaping; PHP-side REST responses still need proper sanitization for anything read from disk.
-- **Rate-limit alerts** — webhook/email dedup window (default 5 min) via transients. Prevents alert storms from flooding Slack channels.
-- **No external HTTP** except user-configured alert webhooks. No telemetry, no update checks outside wp.org, no remote fonts/CSS.
-- **Uninstall cleanup** — `uninstall.php` removes all `logscope_*` options and transients.
+**Settings** (`SettingsSchema`, each stored as `logscope_<key>`):
 
----
+| Key                          | Type   | Default | Notes                                                                                             |
+| ---------------------------- | ------ | ------- | ------------------------------------------------------------------------------------------------- |
+| `log_path`                   | string | `''`    | Empty = `WP_DEBUG_LOG` / `wp-content/debug.log`. Validated by `PathGuard`. `manage_options` only. |
+| `tail_interval`              | int    | 3       | Live mode poll seconds, min 1.                                                                    |
+| `alert_email_enabled`        | bool   | false   |                                                                                                   |
+| `alert_email_to`             | string | `''`    | `manage_options` only.                                                                            |
+| `alert_webhook_enabled`      | bool   | false   |                                                                                                   |
+| `alert_webhook_url`          | string | `''`    | http(s) only. `manage_options` only.                                                              |
+| `alert_dedup_window`         | int    | 1800    | Seconds per signature per dispatcher.                                                             |
+| `cron_scan_enabled`          | bool   | false   | Drives the `logscope_scan_fatals` event.                                                          |
+| `cron_scan_interval_minutes` | int    | 5       | 1 to 1440.                                                                                        |
+| `retention_enabled`          | bool   | false   | Drives the daily `logscope_rotate_logs` event.                                                    |
+| `retention_max_size_mb`      | int    | 50      | Archive once the log crosses this size.                                                           |
+| `retention_max_archives`     | int    | 5       | Prune oldest archives beyond this count.                                                          |
+| `default_per_page`           | int    | 50      | Infinite-scroll batch size.                                                                       |
+| `default_severity_filter`    | string | `''`    | Comma-separated severities, intersected with `Severity::all()`.                                   |
+| `admin_bar_enabled`          | bool   | true    |                                                                                                   |
+| `timestamp_tz`               | string | `site`  | Display timezone (`site` or `utc`).                                                               |
 
-## 8. Ruleset for the Agent
-
-### Must do
-- Use Composer PSR-4 autoloading. No `require_once` chains. **[HARD]**
-- Prefix every hook with `logscope/`. **[HARD]**
-- Prefix every option, transient, cron event, and user meta key with `logscope_`. **[HARD]**
-- Wrap all user-facing strings in `__()`, `_e()`, `esc_html__()`, etc. with text domain `logscope`. **[HARD]**
-- Register the REST namespace as `logscope/v1`. **[HARD]**
-- Load the React bundle only on the Logscope admin page (check screen ID in `AssetLoader`).
-- Ship a `readme.txt` in wp.org format from day 1 (Stable Tag, Tested Up To, Requires at least, Requires PHP).
-- Generate the `.pot` file as part of the release build.
-- Write PHPUnit tests for at minimum: `LogParser`, `StackTraceParser`, `LogGrouper`, `PathGuard`, `AlertDeduplicator`.
-
-### Must not do
-- **No paid tier, no license gating, no "Pro" code paths, no upsell UI.** Always free. **[HARD]**
-- No telemetry, no phone-home, no analytics. **[HARD]**
-- No jQuery. No PHP-rendered admin forms. All UI is React. **[HARD]**
-- No bundled minified dependencies tracked in VCS (wp.org will reject it).
-- No reading/writing files outside the allowlisted log directories. **[HARD]**
-- No database table for log entries. Logs are read from disk on demand.
-- No multisite-specific code in v1 — single-site assumption throughout.
-- No external CDN loads for fonts, icons, or CSS.
-
-### Preferred patterns
-- Strict types in PHP files where practical (`declare(strict_types=1);`).
-- Return early; avoid deep nesting.
-- Pure functions for parsers — makes them trivially testable.
-- Keep React components small; colocate their styles as SCSS modules or emotion-style inline (follow `@wordpress/scripts` convention).
-- Use `@wordpress/data` stores for anything touched by more than one component.
+Other persisted state: `logscope_muted_signatures` (option), `logscope_filter_presets` (user meta), `logscope_last_scanned_*` (cron cursor), `logscope_db_version`, and short-lived transients for alert dedup, stats, admin-bar counts, and dashboard widget cache.
 
 ---
 
-## 9. wp.org Submission Readiness
+## 6. REST surface
 
-- `readme.txt` with correct headers (Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI).
-- Plugin header in `logscope.php` with matching versioning.
-- Banner (1544×500) and icon (256×256) in `.wordpress-org/`.
-- 3–5 screenshots showing: log viewer, grouped view, filters in action, settings, alert config.
-- No trademarked terms in the slug or display name.
-- Clear "Privacy" section in readme (should be easy — no data leaves the site except user-configured webhooks).
+All routes under `/wp-json/logscope/v1`, all gated by `logscope_manage` through `RestController`. Errors use `logscope_rest_<reason>` codes.
 
----
+| Route                    | Methods   | Purpose                                                                     |
+| ------------------------ | --------- | --------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `/logs`                  | GET       | Paged, filtered entries or groups (`view=list                               | grouped`, severity, regex, date range, source, tail cursor). |
+| `/logs`                  | DELETE    | Clear log (soft-delete rename). Needs `?confirm=true` and `manage_options`. |
+| `/logs/download`         | GET       | Stream the raw log.                                                         |
+| `/logs/mute`             | GET, POST | List / add muted signatures.                                                |
+| `/logs/mute/{signature}` | DELETE    | Unmute.                                                                     |
+| `/settings`              | GET, POST | Read / write settings. Sensitive keys need `manage_options`.                |
+| `/settings/test-path`    | POST      | Validate a custom log path through `PathGuard` without saving.              |
+| `/alerts/test`           | POST      | Send a test alert through every enabled dispatcher.                         |
+| `/presets`               | GET, POST | Per-user saved filter presets.                                              |
+| `/presets/{name}`        | DELETE    | Remove a preset.                                                            |
+| `/stats`                 | GET       | Severity breakdown, per-severity series (24h / 7d / 30d), top signatures.   |
+| `/diagnostics`           | GET       | `WP_DEBUG*` constants, log path status, writability, cron status.           |
 
-## 10. Suggested Build Order
+**Hooks:** filters `logscope/required_capability`, `logscope/before_alert`, `logscope/email_subject`, `logscope/webhook_payload`; actions `logscope/booted`, `logscope/alert_sent`.
 
-Not mandatory, but this sequence de-risks the hardest parts first:
-
-1. Skeleton plugin + Composer autoload + `@wordpress/scripts` build pipeline running.
-2. `FileLogSource` + `LogParser` + unit tests. *Prove you can read and parse real debug.log output reliably.*
-3. REST API: `GET /logs` with pagination and filters.
-4. React shell + `LogViewer` component consuming the REST endpoint.
-5. Filters, grouping, stack trace expansion.
-6. Settings page + `SettingsController`.
-7. Alert coordinator + email alerter + webhook alerter + dedup.
-8. Cron scanner for new fatals.
-9. Polish: empty states, loading skeletons, keyboard shortcuts, accessibility pass.
-10. readme.txt, screenshots, wp.org assets.
-11. PHPUnit + ESLint in CI.
+**Webhook payload** (neutral JSON, reshape via `logscope/webhook_payload`): `{site, severity, message, file, line, signature, first_seen, last_seen, count}`.
 
 ---
 
-## 11. Open Questions to Surface Back
+## 7. Feature scope (shipped in 1.0)
 
-If the agent hits any of these, ask before deciding:
+1. **Log viewer** under Tools → Logscope: virtualized list (10k+ lines), severity pills, timestamp, `file:line`, message, stack-trace expansion with per-frame source tags.
+2. **Filters**: severity multi-select, debounced server-side regex, date range, source (plugins / themes / mu-plugins / core). Filter state mirrored to the URL. Saved presets per user.
+3. **Unique errors view**: groups by signature with count and first / last seen. Multi-select rows to mute or export CSV.
+4. **Live mode**: toolbar toggle polling from a byte cursor; detects rotation; shows an "N new entries" pill when scrolled away.
+5. **Stats dashboard**: severity breakdown bar, sparklines over 24h / 7d / 30d, top-10 signatures with click-through to a pre-filtered Logs view.
+6. **Clear log** (soft-delete) and **Download log**, both capability-gated.
+7. **Custom log path** with allowlisted-directory validation and a test-path button.
+8. **Alerts**: email and generic webhook on new fatals, per-dispatcher dedup, "Send test alert".
+9. **Scheduled scanner**: opt-in WP-Cron job (1 to 1440 min) reading only new bytes since the last tick.
+10. **Retention / rotation**: opt-in daily archive above a size threshold, pruning beyond a cap.
+11. **Mute**: silence known signatures; unmute from Settings.
+12. **Admin surfacing**: admin-bar indicator with today's count, "Recent errors" Dashboard widget, Site Health test.
+13. **Onboarding banner** when `WP_DEBUG_LOG` is off; **diagnostics** card showing the debug constants.
+14. **Keyboard shortcuts** and a help modal; full keyboard and screen-reader support; light theme only.
 
-- Should "Clear log" soft-delete (rename with timestamp) or hard-delete? *(Suggest soft-delete for safety.)*
-- Webhook payload shape — mimic Slack's incoming webhook format (`text` field) or use a neutral shape and let users adapt downstream? *(Suggest neutral + document Slack/Discord mapping.)*
-- Tail polling interval — fixed 3s, or user-configurable? *(Suggest configurable, 3s default, min 1s.)*
-- Regex filter — run server-side (safer, better for large logs) or client-side (snappier)? *(Suggest server-side with a length cap on the pattern.)*
+---
+
+## 8. Out of scope for 1.0 (planned, see ROADMAP Phase 22)
+
+-   One-click `WP_DEBUG` toggle that edits `wp-config.php` (1.1.0; needs its own security review).
+-   Slack / Discord / Teams payload formatters (1.2.0; today users reshape via the filter).
+-   SSE / WebSocket live streaming (1.3.0; Live mode polls).
+-   Multisite / network-wide aggregation (1.4.0).
+-   Source preview, WP-CLI commands, request context, external log stores (Loki, Elastic, Datadog) (1.5.0+).
+-   Dark mode (removed before 1.0; WP 7.0 exposed a half-built palette).
+-   Roles beyond the single `logscope_manage` capability; import / export of historical logs.
+
+---
+
+## 9. Security requirements [HARD]
+
+-   **Capability check on every REST route**: `current_user_can( 'logscope_manage' )`. Never relax.
+-   **Full-admin gate** (`manage_options`) on `log_path`, `alert_webhook_url`, `alert_email_to`, and clear-log. The grantable cap must not be able to repoint the log or redirect alerts.
+-   **Nonces** via WP REST auth; never disabled.
+-   **Path traversal prevention** via `PathGuard`: custom paths must resolve inside the allowlist (WP root, `wp-content`, `ABSPATH`), have a `*.log` or `debug.log*` basename, reject `..` before `realpath`, reject symlinks that escape. Tested with adversarial inputs.
+-   **Anti-SSRF**: webhook POSTs use `wp_safe_remote_post()`, refusing private / loopback / internal hosts.
+-   **Escape on output, sanitize on input.** Anything read from disk is sanitized before it leaves a REST response.
+-   **Bounded input**: regex ≤ 200 chars, mute and preset counts capped, severity filters intersected with the known set.
+-   **Rate-limited alerts**: per-dispatcher dedup window via transients.
+-   **Unguessable archives**: cleared and rotated logs carry a random suffix.
+-   **No external HTTP** except user-configured webhooks. No telemetry, no update checks outside wp.org, no remote assets.
+-   **Uninstall cleanup** removes every `logscope_*` option, transient, user meta, and cron event.
+
+---
+
+## 10. wp.org submission readiness
+
+-   `readme.txt` headers: Contributors, Tags, Requires at least, Tested up to, Stable tag, Requires PHP, License, License URI. `Stable tag` matches the `Version:` header in `logscope.php`.
+-   `readme.txt` keeps the two latest changelog entries; `changelog.txt` holds the full history.
+-   Banner (1544×500), icon (256×256), and six screenshots in `.wordpress-org/`, captions paired by index with `== Screenshots ==`.
+-   Clear Privacy section in `readme.txt` (nothing leaves the site except user-configured alerts).
+-   Distribution zip built by `release.yml` on a `v*` tag: production `vendor/`, built `assets/build/`, no dev files (enforced by `.gitattributes export-ignore` and a forbidden-path check).
+-   `composer lint`, `composer test`, `pnpm lint:js`, and Plugin Check all clean in CI.
