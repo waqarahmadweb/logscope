@@ -19,7 +19,7 @@ UX + a11y fixes from live browser testing on a real WordPress install.
 -   Fixed cramped spacing under the "WordPress debug constants" card: it now carries a bottom margin so the log-rotation toggle below it isn't flush against the card.
 -   The Settings "Muted signatures" section heading is now an `<h2>` like its peer sections (Log file, Monitoring, Display) instead of an `<h2>`-skipping `<h3>`, so the page heading outline is flat with no skipped level. Same visual size.
 
-Pre-submission fix pass from the fresh three-agent review ([docs/v1.0-submission-report.md](docs/v1.0-submission-report.md)) — the fix-before-shipping bugs, the one security tightening worth closing, and the Plugin Check ERROR-level annotations. 350 tests green.
+Pre-submission fix pass from the fresh three-agent review (v1.0 submission report, kept outside the repo) — the fix-before-shipping bugs, the one security tightening worth closing, and the Plugin Check ERROR-level annotations. 350 tests green.
 
 ### Security
 
@@ -40,7 +40,7 @@ Pre-submission fix pass from the fresh three-agent review ([docs/v1.0-submission
 -   Cleared and rotated log archives get an unguessable name — a `wp_generate_password(6)` token is appended after the timestamp (`debug.log.cleared-<ts>-<rand>` / `.archived-<ts>-<rand>`), so an anonymous visitor cannot enumerate them over the web on a server that serves the log directory as plain files. The prune glob and mtime sort are unaffected.
 -   Stopping Live now refetches page 1, so the rows a tail session prepended (which shift the newest-first server pages) no longer cause the next infinite-scroll fetch to re-serve on-screen rows as duplicates.
 
-Pre-submission punchlist pass ([docs/v1.0-release-punchlist.md](docs/v1.0-release-punchlist.md)): all §1 blockers, §2 high-severity items, §3 medium items, and every small (S-effort) §4/§5 quality item. The seven M-effort §4 refactors (shared timestamp parse, PHP→JS severity emit, bulk-mute endpoint, thunk factory, /logs transient cache, derived selectors, shared tail reader) are deliberately deferred to v1.0.1 as cross-cutting refactors too risky days before submission. Screenshots still need re-capturing on the renamed toolbar before the zip is built.
+Pre-submission punchlist pass (v1.0 release punchlist, kept outside the repo): all §1 blockers, §2 high-severity items, §3 medium items, and every small (S-effort) §4/§5 quality item. The seven M-effort §4 refactors (shared timestamp parse, PHP→JS severity emit, bulk-mute endpoint, thunk factory, /logs transient cache, derived selectors, shared tail reader) are deliberately deferred to v1.0.1 as cross-cutting refactors too risky days before submission. Screenshots still need re-capturing on the renamed toolbar before the zip is built.
 
 ### Changed (§4/§5 quality pass)
 

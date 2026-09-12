@@ -713,7 +713,7 @@ Goal: shipping pipeline ready before any feature work that gates v1.0.0.
 
 ## Phase 18 — Pre-1.0 UI redesign (v0.16.0)
 
-Goal: replace the default `@wordpress/components` look with the soft-pastel / Linear-density design from [docs/ui-mockups.html](docs/ui-mockups.html). One commit per component so the visual diff is reviewable.
+Goal: replace the default `@wordpress/components` look with the soft-pastel / Linear-density design from the UI mockups (kept outside the repo). One commit per component so the visual diff is reviewable.
 
 -   [x] **18.1** Design tokens
 

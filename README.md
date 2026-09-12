@@ -24,11 +24,11 @@ Logscope turns `wp-content/debug.log` into a real admin tool. Instead of SSHing 
 
 ## Screenshots
 
-|                                                           Log viewer                                                           |                                                        Stats dashboard                                                         |
-| :----------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------: |
-|        <img src=".wordpress-org/screenshot-1.jpg" alt="Log viewer (All entries) with severity filters and regex search" width="420">         | <img src=".wordpress-org/screenshot-2.jpg" alt="Stats dashboard — severity breakdown, sparklines, top signatures" width="420"> |
-|                                                  **Unique errors + bulk actions**                                                  |                                               **Alerts settings**                                                |
-|     <img src=".wordpress-org/screenshot-3.jpg" alt="Unique errors view with bulk mute and CSV export" width="420">     | <img src=".wordpress-org/screenshot-4.jpg" alt="Alerts settings — email and webhook with test send" width="420"> |
+|                                                          Log viewer                                                           |                                                        Stats dashboard                                                         |
+| :---------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------: |
+| <img src=".wordpress-org/screenshot-1.jpg" alt="Log viewer (All entries) with severity filters and regex search" width="420"> | <img src=".wordpress-org/screenshot-2.jpg" alt="Stats dashboard — severity breakdown, sparklines, top signatures" width="420"> |
+|                                               **Unique errors + bulk actions**                                                |                                                      **Alerts settings**                                                       |
+|        <img src=".wordpress-org/screenshot-3.jpg" alt="Unique errors view with bulk mute and CSV export" width="420">         |        <img src=".wordpress-org/screenshot-4.jpg" alt="Alerts settings — email and webhook with test send" width="420">        |
 
 ## Features
 
@@ -59,7 +59,7 @@ Logscope reads your debug log and sends **nothing** anywhere by default — no t
 ## Development
 
 -   **[AGENTS.md](AGENTS.md)** — primary source of truth: conventions, naming, security rules, workflow.
--   **[CLAUDE.md](CLAUDE.md)** — Claude Code-specific operational notes.
+-   **[CLAUDE.md](CLAUDE.md)** — imports AGENTS.md for Claude Code.
 -   **[ROADMAP.md](ROADMAP.md)** — phased plan from scaffold → v1.0.0 (wp.org) → beyond.
 -   **[CHANGELOG.md](CHANGELOG.md)** — versioned history.
 -   **[docs/spec.md](docs/spec.md)** — long-form technical specification.
