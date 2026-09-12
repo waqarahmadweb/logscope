@@ -164,7 +164,7 @@ Non-negotiable. Violating any of these is a bug.
 
 -   **Never** add a paid tier, license gate, "Pro" code path, or upsell UI. Always free.
 -   **Never** add telemetry, analytics, or phone-home code.
--   **Never** use jQuery or render admin UI from PHP templates. React only.
+-   **Never** use jQuery or render admin UI from PHP templates. React only. One accepted exception: `AdminBar`, `DashboardWidget`, and `SiteHealthTest` echo small HTML fragments from PHP because those WordPress surfaces cannot host a React mount. Keep them tiny and keep their severity labels in step with `Severity` and `utils/severity.js`.
 -   **Never** bundle minified dependencies into the repo (wp.org will reject it).
 -   **Never** read or write files outside the allowlisted log directories.
 -   **Never** create a database table for log entries.

@@ -9,6 +9,8 @@ UX + a11y fixes from live browser testing on a real WordPress install.
 ### Fixed
 
 -   The admin page now has exactly one `<h1>`. The server host page dropped its screen-reader `<h1>` so the React app's visible "Logscope" title is the sole level-1 heading (previously both rendered, giving the page two h1s).
+-   `Tested up to` raised to WordPress 7.1 in `readme.txt` (wp.org Plugin Check requires the current release).
+-   Dev tooling bumped past the advisories flagged by `composer audit`: php_codesniffer 3.13.6, wpcs 3.4.1, phpcsutils 1.2.3, phpcsextra 1.5.1. No runtime dependency changed. `assets/src/store/index.js` re-formatted with the project Prettier config (pre-commit hook had been skipped).
 -   The read-only "WordPress debug constants" card no longer appears to jump/vanish when the log-rotation toggle is switched on. The card now sits above the rotation controls, so enabling rotation only expands the size/archives fields below it instead of pushing the card out of view.
 -   Enabling alerts no longer flashes red errors before the user has filled anything in. An empty-but-required recipient email or webhook URL (and the "pick a channel" prompt) now render as amber guidance; only genuinely invalid input (a malformed email, a non-http(s) URL) shows a red error. Both still block Save.
 
