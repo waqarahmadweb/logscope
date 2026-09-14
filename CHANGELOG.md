@@ -4,10 +4,6 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
-### Fixed
-
--   `pnpm package` (`bin/build-zip.ps1`) wrote zip entry names with backslashes on Windows PowerShell 5.1 (`logscopessetsuildindex.js`), which a Linux host extracts as literal file names so the plugin would not load. The zip is now written through .NET `ZipArchive` with forward-slash entries and no directory entries, matching the release workflow's `zip -r`.
-
 ## [1.0.0] - 2026-09-16
 
 First public release on the WordPress.org plugin directory (Phase 21 of the [roadmap](ROADMAP.md)). Everything since 0.18.0 was found by the pre-submission reviews, the manual test plan, and an automated browser pass against a real WordPress install: a security tightening pass, the retention settings UI, a long correctness and accessibility fix list, and the polish needed for the listing. 360 tests green.
@@ -46,6 +42,7 @@ First public release on the WordPress.org plugin directory (Phase 21 of the [roa
 
 ### Fixed
 
+-   `pnpm package` (`bin/build-zip.ps1`) wrote zip entry names with backslashes on Windows PowerShell 5.1 (`logscopessetsuildindex.js`), which a Linux host extracts as literal file names so the plugin would not load. The zip is now written through .NET `ZipArchive` with forward-slash entries and no directory entries, matching the release workflow's `zip -r`.
 -   Date range: a date-only "To" bound now means the end of that day (`23:59:59`), so picking the same day for From and To returns that day's entries instead of zero.
 -   Live mode: the "N new entries" pill and the scroll-to-top on new rows work again. `ListScrollPane` attached its scroll listener in a mount-only effect, but react-window v2 only exposes the scroll container after its own first re-render, so the listener never attached and Live always believed the user was at the top.
 -   The header "N fatal" badge now comes from the server (`fatal_total` on `GET /logs`, filter-aware, mute-aware) instead of counting only the rows loaded so far; Live ticks keep it in step.
