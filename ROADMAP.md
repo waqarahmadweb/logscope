@@ -48,7 +48,9 @@ Pre-1.0 bumps are git tags only — nothing leaves the repo. **The wp.org releas
 
 > **2026-04-30 restructure:** Phases 12–16 were added to flesh out the plugin before the wp.org cut. The original "Phase 12 = release infrastructure → cut v1.0.0" became Phase 17. Alerts and cron were pulled forward from post-1.0 (v1.1.0 / v1.2.0) into Phases 12 / 13 so the submission lands with a usable feature set rather than a viewer-only MVP.
 >
-> **2026-05-04 restructure:** Phase 17 was split. Release infrastructure stays in Phase 17 (already shipped as v0.15.0). The UI redesign that was Phase 17.5 is now Phase 18 (v0.16.0). Phase 19 (v0.17.0) was inserted to close the three feature-parity gaps surfaced in the [competitor analysis](../.vscode/02-feature-gap-analysis.md): admin bar indicator, dashboard widget, Site Health integration. The security gate is now Phase 20 (v0.18.0). The v1.0.0 cut moves to its own dedicated **Phase 21**. Post-1.0 work was reordered per the same gap analysis: one-click `WP_DEBUG` toggle pulled forward to v1.1.0, Slack/Discord formatters to v1.2.0, live streaming to v1.3.0, multisite to v1.4.0.
+> **Reports:** Report 1 (WordPress Submission Guide), Report 2 (Feature Gap Analysis), and Report 3 (Social Promotion Guide) cited below live in the maintainer's `Data/Reports/` folder outside this repository, so they are plain text here rather than links.
+>
+> **2026-05-04 restructure:** Phase 17 was split. Release infrastructure stays in Phase 17 (already shipped as v0.15.0). The UI redesign that was Phase 17.5 is now Phase 18 (v0.16.0). Phase 19 (v0.17.0) was inserted to close the three feature-parity gaps surfaced in the competitor analysis: admin bar indicator, dashboard widget, Site Health integration. The security gate is now Phase 20 (v0.18.0). The v1.0.0 cut moves to its own dedicated **Phase 21**. Post-1.0 work was reordered per the same gap analysis: one-click `WP_DEBUG` toggle pulled forward to v1.1.0, Slack/Discord formatters to v1.2.0, live streaming to v1.3.0, multisite to v1.4.0.
 
 ---
 
@@ -752,7 +754,7 @@ Goal: replace the default `@wordpress/components` look with the soft-pastel / Li
 -   [x] **18.7** StackTracePanel restyle + visual hierarchy
 
     -   Match the new card surface; add visual call-stack hierarchy (file/line aligned columns, plugin/theme/core color coding for frame source).
-    -   Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P1-3.
+    -   Closes Report 2 P1-3.
     -   **Commit**: `feat(ui): stack trace visual hierarchy`
 
 -   [x] **18.8** 🏷️ **Release v0.16.0** — Pre-1.0 UI redesign
@@ -764,7 +766,7 @@ Goal: replace the default `@wordpress/components` look with the soft-pastel / Li
 
 ## Phase 19 — Pre-1.0 feature parity (v0.17.0)
 
-Goal: close the three P0 gaps from [Report 2 — Feature Gap Analysis](../.vscode/02-feature-gap-analysis.md) so a side-by-side feature table against Debug Log Manager and BestWebSoft shows Logscope strictly ahead at the v1.0.0 cut.
+Goal: close the three P0 gaps from Report 2 — Feature Gap Analysis so a side-by-side feature table against Debug Log Manager and BestWebSoft shows Logscope strictly ahead at the v1.0.0 cut.
 
 > The fourth P0 (one-click `WP_DEBUG` toggle) is **deferred to v1.1.0 / Phase 22.1** because it edits `wp-config.php` and warrants its own security-review pass on a post-1.0 release line.
 
@@ -818,18 +820,18 @@ Goal: every security-sensitive surface re-reviewed under one pass before the pub
     -   **AC**: Every finding from the skill is resolved (fixed or documented as non-issue). No outstanding HIGH or MEDIUM items.
     -   **Commit(s)**: one per fix, as needed.
 
--   [ ] **20.2** Pre-submission checklist (from [Report 1 — WordPress Submission Guide](../.vscode/01-wordpress-submission-guide.md) §7)
+-   [x] **20.2** Pre-submission checklist (from Report 1 — WordPress Submission Guide §7)
 
     -   Plugin Check tool clean
     -   `readme.txt` validated against the wp.org validator
     -   Banner + icon final assets in `.wordpress-org/`
-    -   6 screenshots re-captured on the v1.0 UI (wp.org allows 5–7; 6 cover viewer, grouped+bulk, stats, alerts, mute, onboarding — captions in `readme.txt`)
+    -   6 screenshots re-captured on the v1.0 UI (wp.org allows 5–7; 6 cover viewer, grouped+bulk, stats, alerts, mute, onboarding — captions in `readme.txt`). Re-shot again on the final toolbar before the 1.0.0 tag (tracked under 21.2).
     -   `.gitattributes export-ignore` covers every dev file
     -   Activation smoke test on PHP 8.0, 8.1, 8.2, 8.3 — no notices, no warnings
     -   Zip < 10 MB
     -   **Commit(s)**: one per fix, as needed.
 
--   [ ] **20.3** 🏷️ **Release v0.18.0** — Security gate
+-   [x] **20.3** 🏷️ **Release v0.18.0** — Security gate
     -   **Commit**: `chore(release): v0.18.0`
 
 ---
@@ -838,11 +840,11 @@ Goal: every security-sensitive surface re-reviewed under one pass before the pub
 
 **This is the only phase where code leaves the repo for public distribution.** No new features land here — only the cut, submit, and post-launch admin work.
 
--   [ ] **21.1** Bump version to **1.0.0**
+-   [x] **21.1** Bump version to **1.0.0**
 
     -   [logscope.php](logscope.php) header `Version: 1.0.0`
     -   [readme.txt](readme.txt) `Stable tag: 1.0.0`, `Tested up to:` = current stable WP
-    -   [CHANGELOG.md](CHANGELOG.md) — move `[Unreleased]` under `[1.0.0] - YYYY-MM-DD`
+    -   [CHANGELOG.md](CHANGELOG.md) — move `[Unreleased]` under `[1.0.0] - 2026-09-16`
     -   [README.md](README.md) status line: `Status: v1.0.0 — public release`
     -   **Commit**: `chore(release): v1.0.0`
 
@@ -866,7 +868,7 @@ Goal: every security-sensitive surface re-reviewed under one pass before the pub
 
 -   [ ] **21.5** Launch announcements
 
-    -   Drive the queue from [Report 3 — Social Promotion Guide](../.vscode/03-social-promotion-guide.md) §6.
+    -   Drive the queue from Report 3 — Social Promotion Guide §6.
     -   LinkedIn launch post (Template A) on day 0.
     -   Twitter launch thread (Template B) ~2h after LinkedIn.
     -   Reddit posts (`r/ProWordPress`, `r/SideProject`) on day 1.
@@ -888,9 +890,9 @@ Each version is a single coherent release. Flow for every one:
 2. Run `security-review` skill if the release touches REST, file I/O, external HTTP, or `wp-config.php`.
 3. Bump version, update [CHANGELOG.md](CHANGELOG.md), tag, push.
 4. Push to wp.org SVN (`trunk/` + `tags/X.Y.Z/`), update `Stable tag:` in `trunk/readme.txt`.
-5. Feature-update social post per [Report 3](../.vscode/03-social-promotion-guide.md) Template D.
+5. Feature-update social post per Report 3 Template D.
 
-Order below comes from [Report 2 — Feature Gap Analysis](../.vscode/02-feature-gap-analysis.md): the deferred P0 ships first, then the P1s in impact order.
+Order below comes from Report 2 — Feature Gap Analysis: the deferred P0 ships first, then the P1s in impact order.
 
 ### 22.1 — v1.1.0 · One-click WP_DEBUG toggle (auto-edit wp-config.php)
 
@@ -904,7 +906,7 @@ Order below comes from [Report 2 — Feature Gap Analysis](../.vscode/02-feature
 -   New REST routes `POST /diagnostics/enable-debug-log` and `POST /diagnostics/disable-debug-log`.
 -   Onboarding banner from Phase 16.3 grows a primary action button: "Enable now" (in addition to the existing "I'll do it manually" instructions).
 -   **AC**: Toggling enables/disables the constant on a fresh install; corrupted `wp-config.php` is rejected with a clear error; the backup file is recoverable by hand.
--   Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P0-3.
+-   Closes Report 2 P0-3.
 
 ### 22.2 — v1.2.0 · Slack & Discord webhook formatters
 
@@ -914,7 +916,7 @@ Order below comes from [Report 2 — Feature Gap Analysis](../.vscode/02-feature
 -   Settings UI: dropdown "Webhook style: Generic / Slack / Discord", with a preview snippet for each.
 -   "Send test alert" returns a per-style outcome.
 -   **AC**: Alert fires from a fixture fatal; Slack channel renders it with severity color + `file:line` link; Discord channel renders it with embed thumbnail + fields.
--   Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P1-2.
+-   Closes Report 2 P1-2.
 
 ### 22.3 — v1.3.0 · Live streaming (SSE / WebSocket)
 
@@ -922,7 +924,7 @@ Order below comes from [Report 2 — Feature Gap Analysis](../.vscode/02-feature
 -   Feature-flag in settings; polling stays as the fallback.
 -   Ship only after measuring on a real WP host — some shared hosts kill long-running PHP.
 -   **AC**: Tail mode receives new entries within 1s of append on a representative shared host; falls back to polling cleanly when SSE is unsupported.
--   Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P1-1.
+-   Closes Report 2 P1-1.
 
 ### 22.4 — v1.4.0 · Multisite aggregation
 
@@ -934,12 +936,12 @@ Order below comes from [Report 2 — Feature Gap Analysis](../.vscode/02-feature
 
 These are unordered. Promote any of them to a numbered minor release when user feedback or install metrics justify it.
 
--   **Source code preview inline** — click a stack frame, see the file at line N (security-sensitive, reuses `PathGuard`). Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P2-3.
--   **Native WP-CLI commands** — `wp logscope tail`, `wp logscope stats`, `wp logscope mute <signature>`. Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P2-6.
--   **Log archive download** from Settings → Retention (download archived `.log` files produced by the rotator). Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P2-2.
+-   **Source code preview inline** — click a stack frame, see the file at line N (security-sensitive, reuses `PathGuard`). Closes Report 2 P2-3.
+-   **Native WP-CLI commands** — `wp logscope tail`, `wp logscope stats`, `wp logscope mute <signature>`. Closes Report 2 P2-6.
+-   **Log archive download** from Settings → Retention (download archived `.log` files produced by the rotator). Closes Report 2 P2-2.
 -   **Request context capture** — URL / method / authenticated user at error time, captured via an MU-style hook.
 -   **Loki / Elastic integrations** — external HTTP, gated behind explicit user config.
--   **Filter preset import / export** across users (Closes [Report 2](../.vscode/02-feature-gap-analysis.md) P2-7).
+-   **Filter preset import / export** across users (Closes Report 2 P2-7).
 -   **Per-site export / import** of all settings as a JSON profile.
 
 ---
