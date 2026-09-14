@@ -52,8 +52,8 @@
 	--logscope-radius-md: 8px;
 	--logscope-radius-lg: 12px;
 	--logscope-radius-pill: 999px;
-	--logscope-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
-		Consolas, monospace;
+	--logscope-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular,
+		Menlo, Consolas, monospace;
 }
 
 // Dark mode is intentionally disabled for v1.0. WP 7.0 began honouring the
@@ -72,8 +72,8 @@
 .logscope-wrap {
 	margin: 0;
 	padding: 0;
-	background: var(--logscope-bg);
-	min-height: calc(100vh - 32px); // 32px = wp-admin top bar
+	background: var( --logscope-bg );
+	min-height: calc( 100vh - 32px ); // 32px = wp-admin top bar
 }
 
 // Paint the wp-admin column the same warm pastel so the .logscope-wrap
@@ -84,18 +84,19 @@ body.tools_page_logscope {
 	#wpcontent,
 	#wpbody,
 	#wpbody-content {
-		background: var(--logscope-bg);
+		background: var( --logscope-bg );
 	}
 }
 
 .logscope-app {
-	color: var(--logscope-fg);
+	color: var( --logscope-fg );
 	font-size: 13px;
-	background: var(--logscope-bg);
+	background: var( --logscope-bg );
 	padding: 15px 35px 10px 15px;
 
+
 	*:focus-visible {
-		outline: 2px solid var(--logscope-focus-ring);
+		outline: 2px solid var( --logscope-focus-ring );
 		outline-offset: 2px;
 		border-radius: 4px;
 	}
@@ -107,21 +108,21 @@ body.tools_page_logscope {
 	// `:focus` (not only `:focus-visible`) because a mouse click focuses a
 	// checkbox without matching `:focus-visible`, and that is exactly when
 	// WP's 4px-offset box-shadow ring was still showing.
-	input[type="checkbox"]:focus,
-	input[type="radio"]:focus {
+	input[ type='checkbox' ]:focus,
+	input[ type='radio' ]:focus {
 		box-shadow: none;
 	}
 
 	// Outline repeated here (not inherited from `*:focus-visible`) because
 	// wp-admin's `input[type=checkbox]:focus` sets a transparent outline at
 	// higher specificity, which would leave keyboard focus with no ring.
-	input[type="checkbox"]:focus-visible,
-	input[type="radio"]:focus-visible {
-		outline: 2px solid var(--logscope-focus-ring);
+	input[ type='checkbox' ]:focus-visible,
+	input[ type='radio' ]:focus-visible {
+		outline: 2px solid var( --logscope-focus-ring );
 		outline-offset: 0;
 	}
 
-	input[type="radio"]:focus-visible {
+	input[ type='radio' ]:focus-visible {
 		border-radius: 50%;
 	}
 
@@ -143,9 +144,7 @@ body.tools_page_logscope {
 		.components-form-toggle__input:focus-visible
 		+ .components-form-toggle__track {
 		// 1px page-colour gap so the ring still reads against the blue "on" track.
-		box-shadow:
-			0 0 0 1px var(--logscope-bg),
-			0 0 0 3px var(--logscope-focus-ring);
+		box-shadow: 0 0 0 1px var( --logscope-bg ), 0 0 0 3px var( --logscope-focus-ring );
 	}
 
 	// ToggleControl stacks the switch and its label 8px apart, which is too
@@ -173,12 +172,12 @@ body.tools_page_logscope {
 		letter-spacing: -0.03em;
 		line-height: 1.05;
 		margin: 0 0 4px;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__sub {
 		margin: 0;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		font-size: 15px;
 	}
 
@@ -187,24 +186,21 @@ body.tools_page_logscope {
 		appearance: none;
 		width: 36px;
 		height: 36px;
-		border-radius: var(--logscope-radius-pill);
-		border: 1px solid var(--logscope-border);
-		background: var(--logscope-bg-muted);
-		color: var(--logscope-fg-muted);
+		border-radius: var( --logscope-radius-pill );
+		border: 1px solid var( --logscope-border );
+		background: var( --logscope-bg-muted );
+		color: var( --logscope-fg-muted );
 		font-size: 16px;
 		line-height: 1;
 		cursor: pointer;
 		margin-top: 6px;
 		margin-right: 8px;
-		transition:
-			background 0.1s,
-			color 0.1s,
-			border-color 0.1s;
+		transition: background 0.1s, color 0.1s, border-color 0.1s;
 
 		&:hover {
-			background: var(--logscope-row-hover);
-			color: var(--logscope-fg);
-			border-color: var(--logscope-border-strong);
+			background: var( --logscope-row-hover );
+			color: var( --logscope-fg );
+			border-color: var( --logscope-border-strong );
 		}
 	}
 
@@ -213,16 +209,16 @@ body.tools_page_logscope {
 		align-items: center;
 		gap: 8px;
 		padding: 7px 13px;
-		border-radius: var(--logscope-radius-pill);
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
-		color: var(--logscope-fg-muted);
+		border-radius: var( --logscope-radius-pill );
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		color: var( --logscope-fg-muted );
 		font-size: 13px;
 		white-space: nowrap;
 		margin-top: 6px;
 
 		strong {
-			color: var(--logscope-fg);
+			color: var( --logscope-fg );
 			font-weight: 600;
 		}
 	}
@@ -231,24 +227,24 @@ body.tools_page_logscope {
 		width: 7px;
 		height: 7px;
 		border-radius: 50%;
-		background: var(--logscope-dot-strict);
-		box-shadow: 0 0 0 3px rgba(25, 158, 108, 0.18);
+		background: var( --logscope-dot-strict );
+		box-shadow: 0 0 0 3px rgba( 25, 158, 108, 0.18 );
 		animation: logscope-pulse 2s ease-in-out infinite;
 	}
 
 	&__live-sep {
-		color: var(--logscope-border-strong);
+		color: var( --logscope-border-strong );
 	}
 
 	&__live-fatal {
-		color: var(--logscope-pill-fatal-fg);
+		color: var( --logscope-pill-fatal-fg );
 		font-weight: 500;
 	}
 }
 
 @keyframes logscope-pulse {
 	50% {
-		box-shadow: 0 0 0 6px rgba(25, 158, 108, 0);
+		box-shadow: 0 0 0 6px rgba( 25, 158, 108, 0 );
 	}
 }
 
@@ -256,8 +252,8 @@ body.tools_page_logscope {
 	display: inline-flex;
 	gap: 2px;
 	padding: 4px;
-	background: var(--logscope-bg-track);
-	border-radius: var(--logscope-radius-lg);
+	background: var( --logscope-bg-track );
+	border-radius: var( --logscope-radius-lg );
 	margin-bottom: 22px;
 	align-items: center;
 
@@ -265,22 +261,22 @@ body.tools_page_logscope {
 		appearance: none;
 		background: transparent;
 		border: 0;
-		border-radius: var(--logscope-radius-md);
-		color: var(--logscope-fg-muted);
+		border-radius: var( --logscope-radius-md );
+		color: var( --logscope-fg-muted );
 		cursor: pointer;
 		font-size: 14px;
 		font-weight: 500;
 		padding: 9px 18px;
 
 		&:hover {
-			color: var(--logscope-fg);
+			color: var( --logscope-fg );
 		}
 
 		&--active {
-			background: var(--logscope-bg-muted);
-			color: var(--logscope-fg);
+			background: var( --logscope-bg-muted );
+			color: var( --logscope-fg );
 			font-weight: 600;
-			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+			box-shadow: 0 1px 2px rgba( 0, 0, 0, 0.05 );
 		}
 	}
 
@@ -291,7 +287,7 @@ body.tools_page_logscope {
 	&__shortcut-anchor {
 		margin-left: 8px;
 		padding: 0 14px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		font-size: 12.5px;
 		text-decoration: none;
 		cursor: pointer;
@@ -299,7 +295,7 @@ body.tools_page_logscope {
 		border: 0;
 
 		&:hover {
-			color: var(--logscope-fg);
+			color: var( --logscope-fg );
 		}
 	}
 }
@@ -307,7 +303,7 @@ body.tools_page_logscope {
 .logscope-logs {
 	display: flex;
 	flex-direction: column;
-	gap: 15px;
+  gap: 15px;
 	.logscope-entry:last-child {
 		border-bottom: 0;
 	}
@@ -319,9 +315,9 @@ body.tools_page_logscope {
 	gap: 8px;
 
 	&__toolbar {
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
-		border-radius: var(--logscope-radius-md);
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
 		padding: 8px 10px;
 		display: flex;
 		flex-wrap: wrap;
@@ -335,42 +331,40 @@ body.tools_page_logscope {
 		align-items: center;
 		gap: 7px;
 		padding: 5px 11px;
-		border-radius: var(--logscope-radius-pill);
+		border-radius: var( --logscope-radius-pill );
 		font: inherit;
 		font-size: 12.5px;
 		font-weight: 500;
-		color: var(--logscope-fg);
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
+		color: var( --logscope-fg );
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
 		cursor: pointer;
-		transition:
-			background 0.1s,
-			border-color 0.1s;
+		transition: background 0.1s, border-color 0.1s;
 
 		&:hover {
-			background: var(--logscope-bg);
-			border-color: var(--logscope-border-strong);
+			background: var( --logscope-bg );
+			border-color: var( --logscope-border-strong );
 		}
 
 		&--on {
-			background: var(--logscope-bg-sunken);
-			color: var(--logscope-fg);
-			border-color: var(--logscope-border-strong);
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
+			border-color: var( --logscope-border-strong );
 		}
 
 		&--on:hover {
-			background: var(--logscope-bg-track);
-			border-color: var(--logscope-border-strong);
+			background: var( --logscope-bg-track );
+			border-color: var( --logscope-border-strong );
 		}
 
 		&--ghost {
-			color: var(--logscope-fg-muted);
+			color: var( --logscope-fg-muted );
 		}
 
 		&--active {
-			color: var(--logscope-fg);
-			background: var(--logscope-bg);
-			border-color: var(--logscope-border-strong);
+			color: var( --logscope-fg );
+			background: var( --logscope-bg );
+			border-color: var( --logscope-border-strong );
 		}
 	}
 
@@ -381,33 +375,19 @@ body.tools_page_logscope {
 		display: inline-block;
 		flex-shrink: 0;
 
-		&--fatal {
-			background: var(--logscope-dot-fatal);
-		}
-		&--parse {
-			background: var(--logscope-dot-parse);
-		}
-		&--warning {
-			background: var(--logscope-dot-warning);
-		}
-		&--notice {
-			background: var(--logscope-dot-notice);
-		}
-		&--deprecated {
-			background: var(--logscope-dot-deprecated);
-		}
-		&--strict {
-			background: var(--logscope-dot-strict);
-		}
-		&--unknown {
-			background: var(--logscope-dot-unknown);
-		}
+		&--fatal { background: var( --logscope-dot-fatal ); }
+		&--parse { background: var( --logscope-dot-parse ); }
+		&--warning { background: var( --logscope-dot-warning ); }
+		&--notice { background: var( --logscope-dot-notice ); }
+		&--deprecated { background: var( --logscope-dot-deprecated ); }
+		&--strict { background: var( --logscope-dot-strict ); }
+		&--unknown { background: var( --logscope-dot-unknown ); }
 	}
 
 	&__sep {
 		width: 1px;
 		height: 20px;
-		background: var(--logscope-border);
+		background: var( --logscope-border );
 		margin: 0 4px;
 	}
 
@@ -417,14 +397,14 @@ body.tools_page_logscope {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
-		border-radius: var(--logscope-radius-pill);
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-pill );
 		padding: 0 12px;
 		transition: border-color 0.1s;
 
 		&:focus-within {
-			border-color: var(--logscope-fg);
+			border-color: var( --logscope-fg );
 		}
 
 		input {
@@ -434,9 +414,9 @@ body.tools_page_logscope {
 			background: transparent;
 			padding: 6px 0;
 			font: inherit;
-			font-family: var(--logscope-font-mono);
+			font-family: var( --logscope-font-mono );
 			font-size: 12.5px;
-			color: var(--logscope-fg);
+			color: var( --logscope-fg );
 
 			// Wrapper handles the focus state via :focus-within, so suppress
 			// the global .logscope-app *:focus-visible blue outline here.
@@ -448,7 +428,7 @@ body.tools_page_logscope {
 			}
 
 			&::placeholder {
-				color: var(--logscope-fg-mute);
+				color: var( --logscope-fg-mute );
 			}
 
 			// Hide the WebKit search-cancel button so the kbd hint doesn't
@@ -465,13 +445,13 @@ body.tools_page_logscope {
 	}
 
 	&__kbd {
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		font-size: 11px;
 		padding: 1px 6px;
-		border: 1px solid var(--logscope-border);
-		border-radius: var(--logscope-radius-xs);
-		color: var(--logscope-fg-muted);
-		background: var(--logscope-bg);
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-xs );
+		color: var( --logscope-fg-muted );
+		background: var( --logscope-bg );
 	}
 
 	&__menu-wrap {
@@ -480,17 +460,17 @@ body.tools_page_logscope {
 
 	&__menu {
 		position: absolute;
-		top: calc(100% + 6px);
+		top: calc( 100% + 6px );
 		right: 0;
 		left: auto;
 		z-index: 30;
 		min-width: 220px;
-		max-width: min(360px, calc(100vw - 40px));
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
-		border-radius: var(--logscope-radius-md);
+		max-width: min( 360px, calc( 100vw - 40px ) );
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
 		padding: 6px;
-		box-shadow: 0 12px 32px -12px rgba(20, 15, 30, 0.18);
+		box-shadow: 0 12px 32px -12px rgba( 20, 15, 30, 0.18 );
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
@@ -512,13 +492,13 @@ body.tools_page_logscope {
 				gap: 4px;
 				font-size: 12px;
 				font-weight: 500;
-				color: var(--logscope-fg-muted);
+				color: var( --logscope-fg-muted );
 
 				input {
-					background: var(--logscope-bg);
-					color: var(--logscope-fg);
-					border: 1px solid var(--logscope-border);
-					border-radius: var(--logscope-radius-sm);
+					background: var( --logscope-bg );
+					color: var( --logscope-fg );
+					border: 1px solid var( --logscope-border );
+					border-radius: var( --logscope-radius-sm );
 					padding: 6px 8px;
 					font: inherit;
 					font-size: 13px;
@@ -539,26 +519,26 @@ body.tools_page_logscope {
 		background: transparent;
 		border: 0;
 		padding: 7px 10px;
-		border-radius: var(--logscope-radius-sm);
+		border-radius: var( --logscope-radius-sm );
 		font: inherit;
 		font-size: 13px;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 		cursor: pointer;
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 
 		&:hover {
-			background: var(--logscope-bg-sunken);
+			background: var( --logscope-bg-sunken );
 		}
 
 		&--on {
-			background: var(--logscope-bg-sunken);
+			background: var( --logscope-bg-sunken );
 			font-weight: 600;
 		}
 
 		&--primary {
 			font-family: inherit;
 			font-weight: 500;
-			color: var(--logscope-accent);
+			color: var( --logscope-accent );
 		}
 
 		&--flex {
@@ -568,7 +548,7 @@ body.tools_page_logscope {
 
 	&__menu-empty {
 		padding: 12px 10px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		font-size: 12.5px;
 		font-style: italic;
 	}
@@ -583,17 +563,17 @@ body.tools_page_logscope {
 		appearance: none;
 		background: transparent;
 		border: 0;
-		color: var(--logscope-fg-mute);
+		color: var( --logscope-fg-mute );
 		font-size: 16px;
 		line-height: 1;
 		width: 24px;
 		height: 24px;
-		border-radius: var(--logscope-radius-sm);
+		border-radius: var( --logscope-radius-sm );
 		cursor: pointer;
 
 		&:hover {
-			background: var(--logscope-pill-fatal-bg);
-			color: var(--logscope-pill-fatal-fg);
+			background: var( --logscope-pill-fatal-bg );
+			color: var( --logscope-pill-fatal-fg );
 		}
 	}
 }
@@ -605,15 +585,15 @@ body.tools_page_logscope {
 	gap: 8px;
 	padding: 0 4px;
 	font-size: 12.5px;
-	color: var(--logscope-fg-muted);
+	color: var( --logscope-fg-muted );
 
 	strong {
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 		font-weight: 600;
 	}
 
 	&__sep {
-		color: var(--logscope-border-strong);
+		color: var( --logscope-border-strong );
 	}
 
 	&__chip {
@@ -621,18 +601,18 @@ body.tools_page_logscope {
 		align-items: center;
 		gap: 6px;
 		padding: 3px 4px 3px 10px;
-		border-radius: var(--logscope-radius-pill);
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
+		border-radius: var( --logscope-radius-pill );
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
 		font-size: 12px;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__chip-remove {
 		appearance: none;
 		background: transparent;
 		border: 0;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		font-size: 14px;
 		line-height: 1;
 		width: 18px;
@@ -641,8 +621,8 @@ body.tools_page_logscope {
 		cursor: pointer;
 
 		&:hover {
-			color: var(--logscope-fg);
-			background: var(--logscope-bg-sunken);
+			color: var( --logscope-fg );
+			background: var( --logscope-bg-sunken );
 		}
 	}
 
@@ -650,7 +630,7 @@ body.tools_page_logscope {
 		appearance: none;
 		background: transparent;
 		border: 0;
-		color: var(--logscope-accent);
+		color: var( --logscope-accent );
 		font: inherit;
 		font-size: 12.5px;
 		cursor: pointer;
@@ -674,12 +654,12 @@ body.tools_page_logscope {
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	background: var(--logscope-fg);
-	color: var(--logscope-bg-muted);
-	border-radius: var(--logscope-radius-md);
+	background: var( --logscope-fg );
+	color: var( --logscope-bg-muted );
+	border-radius: var( --logscope-radius-md );
 	padding: 9px 14px;
 	margin-bottom: 10px;
-	box-shadow: 0 8px 24px -12px rgba(20, 15, 30, 0.4);
+	box-shadow: 0 8px 24px -12px rgba( 20, 15, 30, 0.4 );
 	font-size: 13px;
 
 	&__count {
@@ -696,17 +676,17 @@ body.tools_page_logscope {
 	// check when checked). Only the indeterminate state needs help: WP has
 	// no look for it, so mirror the checked fill with a white dash.
 	// `input[type=checkbox]` is spelled out to outrank the forms.css rules.
-	input[type="checkbox"]#{&}__check {
+	input[ type='checkbox' ]#{&}__check {
 		margin: 0;
 		position: relative;
 
 		&:indeterminate {
-			background: var(--wp-admin-theme-color);
-			border-color: var(--wp-admin-theme-color);
+			background: var( --wp-admin-theme-color );
+			border-color: var( --wp-admin-theme-color );
 		}
 
 		&:indeterminate::before {
-			content: "";
+			content: '';
 			position: absolute;
 			inset: 6px 3px;
 			background: #fff;
@@ -715,7 +695,7 @@ body.tools_page_logscope {
 	}
 
 	&__sep {
-		color: rgba(255, 255, 255, 0.32);
+		color: rgba( 255, 255, 255, 0.32 );
 	}
 
 	&__btn {
@@ -724,15 +704,15 @@ body.tools_page_logscope {
 		font-size: 12.5px;
 		font-weight: 500;
 		padding: 5px 11px;
-		border-radius: var(--logscope-radius-sm);
-		border: 1px solid rgba(255, 255, 255, 0.18);
+		border-radius: var( --logscope-radius-sm );
+		border: 1px solid rgba( 255, 255, 255, 0.18 );
 		background: transparent;
-		color: var(--logscope-bg-muted);
+		color: var( --logscope-bg-muted );
 		cursor: pointer;
 
 		&:hover {
-			background: rgba(255, 255, 255, 0.08);
-			border-color: rgba(255, 255, 255, 0.28);
+			background: rgba( 255, 255, 255, 0.08 );
+			border-color: rgba( 255, 255, 255, 0.28 );
 		}
 	}
 
@@ -742,14 +722,14 @@ body.tools_page_logscope {
 		border: 0;
 		font: inherit;
 		font-size: 12.5px;
-		color: rgba(255, 255, 255, 0.72);
+		color: rgba( 255, 255, 255, 0.72 );
 		cursor: pointer;
 		padding: 6px 10px;
-		border-radius: var(--logscope-radius-sm);
+		border-radius: var( --logscope-radius-sm );
 
 		&:hover {
-			color: var(--logscope-bg-muted);
-			background: rgba(255, 255, 255, 0.08);
+			color: var( --logscope-bg-muted );
+			background: rgba( 255, 255, 255, 0.08 );
 		}
 	}
 }
@@ -771,30 +751,28 @@ body.tools_page_logscope {
 		font-size: 13px;
 		font-weight: 500;
 		padding: 8px 16px;
-		border-radius: var(--logscope-radius-md);
-		border: 1px solid var(--logscope-border);
-		background: var(--logscope-bg-muted);
-		color: var(--logscope-fg);
+		border-radius: var( --logscope-radius-md );
+		border: 1px solid var( --logscope-border );
+		background: var( --logscope-bg-muted );
+		color: var( --logscope-fg );
 		cursor: pointer;
-		transition:
-			background 0.1s,
-			border-color 0.1s;
+		transition: background 0.1s, border-color 0.1s;
 
-		&:hover:not(:disabled) {
-			background: var(--logscope-row-hover);
-			border-color: var(--logscope-border-strong);
+		&:hover:not( :disabled ) {
+			background: var( --logscope-row-hover );
+			border-color: var( --logscope-border-strong );
 		}
 
 		&--primary {
-			background: var(--logscope-fg);
-			color: var(--logscope-bg-muted);
-			border-color: var(--logscope-fg);
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
+			border-color: var( --logscope-fg );
 			font-weight: 600;
 
-			&:hover:not(:disabled) {
-				background: var(--logscope-fg);
-				color: var(--logscope-bg-muted);
-				filter: brightness(1.1);
+			&:hover:not( :disabled ) {
+				background: var( --logscope-fg );
+				color: var( --logscope-bg-muted );
+				filter: brightness( 1.1 );
 			}
 		}
 
@@ -808,9 +786,9 @@ body.tools_page_logscope {
 .logscope-mode-toggle {
 	display: inline-flex;
 	gap: 0;
-	background: var(--logscope-bg-muted);
-	border: 1px solid var(--logscope-border);
-	border-radius: var(--logscope-radius-md);
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
 	padding: 4px;
 
 	// Override the WP Button defaults inside the seg control so the
@@ -818,19 +796,19 @@ body.tools_page_logscope {
 	// WP primary blue that fights the warm surface, and so hover/focus
 	// don't paint a blue outline.
 	.components-button {
-		border-radius: var(--logscope-radius-sm);
+		border-radius: var( --logscope-radius-sm );
 		min-height: 26px;
 		padding: 0 20px;
 		font-size: 13px;
 		font-weight: 500;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		background: transparent;
 		box-shadow: none;
 		border: 0;
 		outline: none;
 
-		&:not(:disabled):hover {
-			color: var(--logscope-fg);
+		&:not( :disabled ):hover {
+			color: var( --logscope-fg );
 			background: transparent;
 			box-shadow: none;
 			border: 0;
@@ -846,16 +824,16 @@ body.tools_page_logscope {
 		}
 
 		&.is-primary {
-			background: var(--logscope-bg-sunken);
-			color: var(--logscope-fg);
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
 			font-weight: 600;
 
-			&:hover:not(:disabled),
+			&:hover:not( :disabled ),
 			&:focus,
 			&:focus-visible,
 			&:active {
-				background: var(--logscope-bg-sunken);
-				color: var(--logscope-fg);
+				background: var( --logscope-bg-sunken );
+				color: var( --logscope-fg );
 				box-shadow: none;
 				outline: none;
 				filter: none;
@@ -879,20 +857,20 @@ body.tools_page_logscope {
 	.components-button,
 	.components-button.is-tertiary,
 	.components-button.is-destructive {
-		border-radius: var(--logscope-radius-sm);
+		border-radius: var( --logscope-radius-sm );
 		min-height: 26px;
 		padding: 0 12px;
 		font-size: 13px;
 		font-weight: 500;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		background: transparent;
 		box-shadow: none;
 		border: 0;
 		outline: none;
 
-		&:not(:disabled):hover {
-			color: var(--logscope-fg);
-			background: var(--logscope-bg-sunken);
+		&:not( :disabled ):hover {
+			color: var( --logscope-fg );
+			background: var( --logscope-bg-sunken );
 			box-shadow: none;
 		}
 
@@ -904,11 +882,11 @@ body.tools_page_logscope {
 		}
 
 		&.is-pressed,
-		&.is-pressed:hover:not(:disabled),
+		&.is-pressed:hover:not( :disabled ),
 		&.is-pressed:focus,
 		&.is-pressed:active {
-			background: var(--logscope-bg-sunken);
-			color: var(--logscope-fg);
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
 			box-shadow: none;
 			border: 0;
 			outline: none;
@@ -923,11 +901,11 @@ body.tools_page_logscope {
 		height: 8px;
 		margin-right: 6px;
 		border-radius: 50%;
-		background: var(--logscope-border-strong);
+		background: var( --logscope-border-strong );
 	}
 
 	&--on {
-		color: var(--logscope-fg) !important;
+		color: var( --logscope-fg ) !important;
 		font-weight: 600 !important;
 
 		.logscope-live__dot {
@@ -939,27 +917,27 @@ body.tools_page_logscope {
 
 @keyframes logscope-save-check-pop {
 	0% {
-		transform: rotate(40deg) scale(0.4);
+		transform: rotate( 40deg ) scale( 0.4 );
 		opacity: 0;
 	}
 	100% {
-		transform: rotate(40deg) scale(1);
+		transform: rotate( 40deg ) scale( 1 );
 		opacity: 1;
 	}
 }
 
 @keyframes logscope-save-cross-pop {
 	0% {
-		transform: scale(0.4);
+		transform: scale( 0.4 );
 		opacity: 0;
 	}
 	100% {
-		transform: scale(1);
+		transform: scale( 1 );
 		opacity: 1;
 	}
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media ( prefers-reduced-motion: reduce ) {
 	.logscope-settings-panel__save-check,
 	.logscope-settings-panel__save-cross {
 		animation: none;
@@ -969,24 +947,24 @@ body.tools_page_logscope {
 @keyframes logscope-live-pulse {
 	0%,
 	100% {
-		box-shadow: 0 0 0 0 rgba(34, 160, 107, 0.45);
+		box-shadow: 0 0 0 0 rgba( 34, 160, 107, 0.45 );
 	}
 	50% {
-		box-shadow: 0 0 0 4px rgba(34, 160, 107, 0);
+		box-shadow: 0 0 0 4px rgba( 34, 160, 107, 0 );
 	}
 }
 
 // Respect reduced-motion: the green fill alone signals the active state.
-@media (prefers-reduced-motion: reduce) {
+@media ( prefers-reduced-motion: reduce ) {
 	.logscope-live--on .logscope-live__dot {
 		animation: none;
 	}
 }
 
 .logscope-viewer {
-	background: var(--logscope-bg-muted);
-	border: 1px solid var(--logscope-border);
-	border-radius: var(--logscope-radius-md);
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
 	overflow: hidden;
 	position: relative;
 	display: flex;
@@ -1002,28 +980,28 @@ body.tools_page_logscope {
 	}
 
 	&__list {
-		background: var(--logscope-bg-muted);
+		background: var( --logscope-bg-muted );
 	}
 
 	&__new-pill {
 		position: absolute;
 		top: 8px;
 		left: 50%;
-		transform: translateX(-50%);
+		transform: translateX( -50% );
 		z-index: 5;
 		appearance: none;
-		background: var(--logscope-fg);
-		color: var(--logscope-bg-muted);
+		background: var( --logscope-fg );
+		color: var( --logscope-bg-muted );
 		border: 0;
-		border-radius: var(--logscope-radius-pill);
+		border-radius: var( --logscope-radius-pill );
 		padding: 5px 14px;
 		font-size: 12px;
 		font-weight: 600;
 		cursor: pointer;
-		box-shadow: 0 6px 16px -6px rgba(20, 15, 30, 0.3);
+		box-shadow: 0 6px 16px -6px rgba( 20, 15, 30, 0.3 );
 
 		&:hover {
-			filter: brightness(1.1);
+			filter: brightness( 1.1 );
 		}
 	}
 
@@ -1031,9 +1009,9 @@ body.tools_page_logscope {
 		padding: 10px 16px;
 		text-align: center;
 		font-size: 12px;
-		color: var(--logscope-fg-muted);
-		border-top: 1px solid var(--logscope-border);
-		background: var(--logscope-bg-muted);
+		color: var( --logscope-fg-muted );
+		border-top: 1px solid var( --logscope-border );
+		background: var( --logscope-bg-muted );
 
 		&--end {
 			opacity: 0.7;
@@ -1044,7 +1022,7 @@ body.tools_page_logscope {
 .logscope-empty {
 	padding: 32px 16px;
 	text-align: center;
-	color: var(--logscope-fg-muted);
+	color: var( --logscope-fg-muted );
 
 	p {
 		margin: 0 0 4px;
@@ -1056,10 +1034,10 @@ body.tools_page_logscope {
 	}
 
 	&--error {
-		color: var(--logscope-pill-fatal-fg);
+		color: var( --logscope-pill-fatal-fg );
 
 		.logscope-empty__detail {
-			color: var(--logscope-fg-muted);
+			color: var( --logscope-fg-muted );
 		}
 	}
 }
@@ -1067,19 +1045,19 @@ body.tools_page_logscope {
 .logscope-entry {
 	display: flex;
 	flex-direction: column;
-	border-bottom: 1px solid var(--logscope-border);
+	border-bottom: 1px solid var( --logscope-border );
 	border-left: 3px solid transparent;
 	padding: 15px 16px;
 	box-sizing: border-box;
-	font-family: var(--logscope-font-mono);
+	font-family: var( --logscope-font-mono );
 	font-size: 12.5px;
-	color: var(--logscope-fg);
-	background: var(--logscope-bg-muted);
+	color: var( --logscope-fg );
+	background: var( --logscope-bg-muted );
 	cursor: pointer;
 	transition: background 0.08s;
 
 	&:hover {
-		background: var(--logscope-row-hover);
+		background: var( --logscope-row-hover );
 
 		.logscope-entry__toggle {
 			opacity: 1;
@@ -1088,7 +1066,7 @@ body.tools_page_logscope {
 
 	&__head {
 		display: grid;
-		grid-template-columns: 22px auto auto 1fr minmax(0, 320px) auto auto;
+		grid-template-columns: 22px auto auto 1fr minmax( 0, 320px ) auto auto;
 		gap: 12px;
 		align-items: center;
 		min-height: 32px;
@@ -1101,11 +1079,11 @@ body.tools_page_logscope {
 	}
 
 	&--selected {
-		background: var(--logscope-row-hover);
+		background: var( --logscope-row-hover );
 	}
 
 	&__timestamp {
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		flex-shrink: 0;
 		white-space: nowrap;
 		font-size: 12px;
@@ -1119,7 +1097,7 @@ body.tools_page_logscope {
 	}
 
 	.logscope-mark {
-		background: rgba(251, 191, 36, 0.45);
+		background: rgba( 251, 191, 36, 0.45 );
 		color: inherit;
 		padding: 0 2px;
 		border-radius: 2px;
@@ -1127,7 +1105,7 @@ body.tools_page_logscope {
 	}
 
 	&__path {
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		font-size: 11.5px;
 		white-space: nowrap;
 		overflow: hidden;
@@ -1140,26 +1118,24 @@ body.tools_page_logscope {
 		appearance: none;
 		background: transparent;
 		border: 1px solid transparent;
-		border-radius: var(--logscope-radius-sm);
-		color: var(--logscope-fg-muted);
+		border-radius: var( --logscope-radius-sm );
+		color: var( --logscope-fg-muted );
 		cursor: pointer;
 		font: inherit;
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		min-width: 28px;
 		min-height: 26px;
 		padding: 0 6px;
 		opacity: 0;
-		transition:
-			opacity 0.1s,
-			background 0.1s;
+		transition: opacity 0.1s, background 0.1s;
 
 		&:hover {
-			background: var(--logscope-bg-muted);
-			color: var(--logscope-fg);
-			border-color: var(--logscope-border);
+			background: var( --logscope-bg-muted );
+			color: var( --logscope-fg );
+			border-color: var( --logscope-border );
 		}
 
-		&[aria-expanded="true"] {
+		&[aria-expanded='true'] {
 			opacity: 1;
 		}
 	}
@@ -1169,28 +1145,26 @@ body.tools_page_logscope {
 		appearance: none;
 		background: transparent;
 		border: 1px solid transparent;
-		border-radius: var(--logscope-radius-sm);
-		color: var(--logscope-fg-muted);
+		border-radius: var( --logscope-radius-sm );
+		color: var( --logscope-fg-muted );
 		cursor: pointer;
 		font: inherit;
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		font-size: 16px;
 		line-height: 1;
 		min-width: 24px;
 		min-height: 26px;
 		padding: 0 4px;
 		opacity: 0;
-		transition:
-			opacity 0.1s,
-			background 0.1s;
+		transition: opacity 0.1s, background 0.1s;
 
 		&:hover,
 		&:focus-visible,
-		&[aria-expanded="true"] {
+		&[aria-expanded='true'] {
 			opacity: 1;
-			background: var(--logscope-bg-muted);
-			color: var(--logscope-fg);
-			border-color: var(--logscope-border);
+			background: var( --logscope-bg-muted );
+			color: var( --logscope-fg );
+			border-color: var( --logscope-border );
 		}
 	}
 
@@ -1198,21 +1172,13 @@ body.tools_page_logscope {
 		opacity: 0.6;
 	}
 
-	&--fatal {
-		border-left-color: var(--logscope-dot-fatal);
-	}
-	&--warning {
-		border-left-color: var(--logscope-dot-warning);
-	}
-	&--notice {
-		border-left-color: var(--logscope-dot-notice);
-	}
-	&--deprecated {
-		border-left-color: var(--logscope-dot-deprecated);
-	}
+	&--fatal { border-left-color: var( --logscope-dot-fatal ); }
+	&--warning { border-left-color: var( --logscope-dot-warning ); }
+	&--notice { border-left-color: var( --logscope-dot-notice ); }
+	&--deprecated { border-left-color: var( --logscope-dot-deprecated ); }
 
 	&--expanded {
-		background: var(--logscope-row-hover);
+		background: var( --logscope-row-hover );
 	}
 
 	// Inline expanded body — full message + path, wrapped. Sits below the
@@ -1222,9 +1188,9 @@ body.tools_page_logscope {
 	&__details {
 		margin-top: 10px;
 		padding: 10px 12px;
-		background: var(--logscope-bg);
-		border: 1px solid var(--logscope-border-soft);
-		border-radius: var(--logscope-radius-sm);
+		background: var( --logscope-bg );
+		border: 1px solid var( --logscope-border-soft );
+		border-radius: var( --logscope-radius-sm );
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
@@ -1232,7 +1198,7 @@ body.tools_page_logscope {
 	}
 
 	&__details-message {
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 		font-size: 12.5px;
 		line-height: 1.5;
 		white-space: pre-wrap;
@@ -1240,7 +1206,7 @@ body.tools_page_logscope {
 	}
 
 	&__details-path {
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		font-size: 11.5px;
 		word-break: break-all;
 	}
@@ -1255,11 +1221,11 @@ body.tools_page_logscope {
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 	padding: 3px 9px;
-	border-radius: var(--logscope-radius-xs);
+	border-radius: var( --logscope-radius-xs );
 	flex-shrink: 0;
-	background: var(--logscope-pill-unknown-bg);
-	color: var(--logscope-pill-unknown-fg);
-	font-family: "Inter", system-ui, sans-serif;
+	background: var( --logscope-pill-unknown-bg );
+	color: var( --logscope-pill-unknown-fg );
+	font-family: 'Inter', system-ui, sans-serif;
 
 	&__dot {
 		width: 5px;
@@ -1269,43 +1235,28 @@ body.tools_page_logscope {
 		background: currentColor;
 		opacity: 0.85;
 
-		&--fatal {
-			background: var(--logscope-dot-fatal);
-			opacity: 1;
-		}
-		&--warning {
-			background: var(--logscope-dot-warning);
-			opacity: 1;
-		}
-		&--notice {
-			background: var(--logscope-dot-notice);
-			opacity: 1;
-		}
-		&--deprecated {
-			background: var(--logscope-dot-deprecated);
-			opacity: 1;
-		}
-		&--unknown {
-			background: var(--logscope-dot-unknown);
-			opacity: 1;
-		}
+		&--fatal { background: var( --logscope-dot-fatal ); opacity: 1; }
+		&--warning { background: var( --logscope-dot-warning ); opacity: 1; }
+		&--notice { background: var( --logscope-dot-notice ); opacity: 1; }
+		&--deprecated { background: var( --logscope-dot-deprecated ); opacity: 1; }
+		&--unknown { background: var( --logscope-dot-unknown ); opacity: 1; }
 	}
 
 	&--fatal {
-		background: var(--logscope-pill-fatal-bg);
-		color: var(--logscope-pill-fatal-fg);
+		background: var( --logscope-pill-fatal-bg );
+		color: var( --logscope-pill-fatal-fg );
 	}
 	&--warning {
-		background: var(--logscope-pill-warning-bg);
-		color: var(--logscope-pill-warning-fg);
+		background: var( --logscope-pill-warning-bg );
+		color: var( --logscope-pill-warning-fg );
 	}
 	&--notice {
-		background: var(--logscope-pill-notice-bg);
-		color: var(--logscope-pill-notice-fg);
+		background: var( --logscope-pill-notice-bg );
+		color: var( --logscope-pill-notice-fg );
 	}
 	&--deprecated {
-		background: var(--logscope-pill-deprecated-bg);
-		color: var(--logscope-pill-deprecated-fg);
+		background: var( --logscope-pill-deprecated-bg );
+		color: var( --logscope-pill-deprecated-fg );
 	}
 }
 
@@ -1313,15 +1264,15 @@ body.tools_page_logscope {
 	list-style: none;
 	margin: 6px 12px 12px;
 	padding: 10px 12px;
-	background: var(--logscope-bg-muted);
-	border: 1px solid var(--logscope-border);
-	border-radius: var(--logscope-radius-md);
-	font-family: var(--logscope-font-mono);
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
+	font-family: var( --logscope-font-mono );
 	display: grid;
 	// 4 columns: frame index · source tag · file:line · call
 	// File:line shares the row gutter so paths line up across frames
 	// and the eye can scan a single column to spot the offending file.
-	grid-template-columns: 28px minmax(88px, auto) minmax(0, 1fr) minmax(
+	grid-template-columns: 28px minmax( 88px, auto ) minmax( 0, 1fr ) minmax(
 			0,
 			1.4fr
 		);
@@ -1338,7 +1289,7 @@ body.tools_page_logscope {
 	// shared bottom border, so the panel reads as a small table.
 	&__frame > * {
 		padding: 4px 0;
-		border-bottom: 1px solid var(--logscope-border-soft);
+		border-bottom: 1px solid var( --logscope-border-soft );
 		min-width: 0;
 	}
 
@@ -1354,7 +1305,7 @@ body.tools_page_logscope {
 	}
 
 	&__index {
-		color: var(--logscope-fg-mute);
+		color: var( --logscope-fg-mute );
 		font-variant-numeric: tabular-nums;
 	}
 
@@ -1364,13 +1315,13 @@ body.tools_page_logscope {
 		justify-content: center;
 		max-width: 100%;
 		padding: 1px 8px;
-		border-radius: var(--logscope-radius-pill);
+		border-radius: var( --logscope-radius-pill );
 		font-size: 10.5px;
 		font-weight: 600;
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		letter-spacing: 0.01em;
-		background: var(--logscope-pill-unknown-bg);
-		color: var(--logscope-pill-unknown-fg);
+		background: var( --logscope-pill-unknown-bg );
+		color: var( --logscope-pill-unknown-fg );
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -1379,21 +1330,21 @@ body.tools_page_logscope {
 		align-self: center;
 
 		&--plugin {
-			background: var(--logscope-pill-notice-bg);
-			color: var(--logscope-pill-notice-fg);
+			background: var( --logscope-pill-notice-bg );
+			color: var( --logscope-pill-notice-fg );
 		}
 		&--theme {
-			background: var(--logscope-pill-deprecated-bg);
-			color: var(--logscope-pill-deprecated-fg);
+			background: var( --logscope-pill-deprecated-bg );
+			color: var( --logscope-pill-deprecated-fg );
 		}
 		&--mu-plugin {
-			background: var(--logscope-pill-warning-bg);
-			color: var(--logscope-pill-warning-fg);
+			background: var( --logscope-pill-warning-bg );
+			color: var( --logscope-pill-warning-fg );
 		}
 		&--core,
 		&--unknown {
-			background: var(--logscope-pill-unknown-bg);
-			color: var(--logscope-pill-unknown-fg);
+			background: var( --logscope-pill-unknown-bg );
+			color: var( --logscope-pill-unknown-fg );
 		}
 	}
 
@@ -1403,10 +1354,10 @@ body.tools_page_logscope {
 		border: 0;
 		padding: 4px 0;
 		text-align: left;
-		color: var(--logscope-accent);
+		color: var( --logscope-accent );
 		cursor: pointer;
 		font: inherit;
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		text-decoration: underline dotted;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -1417,13 +1368,13 @@ body.tools_page_logscope {
 		}
 
 		&:focus-visible {
-			outline: 2px solid var(--logscope-focus-ring);
+			outline: 2px solid var( --logscope-focus-ring );
 			outline-offset: 1px;
-			border-radius: var(--logscope-radius-xs);
+			border-radius: var( --logscope-radius-xs );
 		}
 
 		&--internal {
-			color: var(--logscope-fg-muted);
+			color: var( --logscope-fg-muted );
 			cursor: default;
 			text-decoration: none;
 		}
@@ -1441,15 +1392,15 @@ body.tools_page_logscope {
 		display: inline-block;
 		margin-left: 6px;
 		padding: 1px 7px;
-		background: var(--logscope-pill-notice-bg);
-		color: var(--logscope-pill-notice-fg);
-		border-radius: var(--logscope-radius-xs);
+		background: var( --logscope-pill-notice-bg );
+		color: var( --logscope-pill-notice-fg );
+		border-radius: var( --logscope-radius-xs );
 		font-size: 10px;
 		font-weight: 600;
 	}
 
 	&__call {
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -1460,19 +1411,19 @@ body.tools_page_logscope {
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	background: var(--logscope-bg-muted);
-	border: 1px solid var(--logscope-border);
-	border-radius: var(--logscope-radius-md);
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
 	overflow: hidden;
 
 	&__row {
 		display: grid;
 		grid-template-columns: 28px 1fr 32px;
-		grid-template-areas: "check summary mute";
+		grid-template-areas: 'check summary mute';
 		align-items: center;
 		gap: 8px;
 		padding: 0 12px;
-		border-bottom: 1px solid var(--logscope-border-soft);
+		border-bottom: 1px solid var( --logscope-border-soft );
 		border-left: 3px solid transparent;
 		transition: background 0.08s;
 
@@ -1481,28 +1432,20 @@ body.tools_page_logscope {
 		}
 
 		&:hover {
-			background: var(--logscope-row-hover);
+			background: var( --logscope-row-hover );
 
 			.logscope-grouped__mute {
 				opacity: 1;
 			}
 		}
 
-		&--fatal {
-			border-left-color: var(--logscope-dot-fatal);
-		}
-		&--warning {
-			border-left-color: var(--logscope-dot-warning);
-		}
-		&--notice {
-			border-left-color: var(--logscope-dot-notice);
-		}
-		&--deprecated {
-			border-left-color: var(--logscope-dot-deprecated);
-		}
+		&--fatal { border-left-color: var( --logscope-dot-fatal ); }
+		&--warning { border-left-color: var( --logscope-dot-warning ); }
+		&--notice { border-left-color: var( --logscope-dot-notice ); }
+		&--deprecated { border-left-color: var( --logscope-dot-deprecated ); }
 
 		&--expanded {
-			background: var(--logscope-row-hover);
+			background: var( --logscope-row-hover );
 		}
 	}
 
@@ -1514,7 +1457,7 @@ body.tools_page_logscope {
 	&__summary {
 		grid-area: summary;
 		display: grid;
-		grid-template-columns: auto auto 1fr minmax(0, 320px);
+		grid-template-columns: auto auto 1fr minmax( 0, 320px );
 		gap: 12px;
 		align-items: center;
 		width: 100%;
@@ -1525,7 +1468,7 @@ body.tools_page_logscope {
 		padding: 8px 0;
 		text-align: left;
 		cursor: pointer;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 		font: inherit;
 
 		&:hover {
@@ -1534,8 +1477,8 @@ body.tools_page_logscope {
 	}
 
 	&__count {
-		color: var(--logscope-fg-muted);
-		font-family: var(--logscope-font-mono);
+		color: var( --logscope-fg-muted );
+		font-family: var( --logscope-font-mono );
 		font-size: 12px;
 		font-weight: 500;
 	}
@@ -1545,13 +1488,13 @@ body.tools_page_logscope {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		font-size: 12.5px;
 	}
 
 	&__file {
-		color: var(--logscope-fg-muted);
-		font-family: var(--logscope-font-mono);
+		color: var( --logscope-fg-muted );
+		font-family: var( --logscope-font-mono );
 		font-size: 11.5px;
 		white-space: nowrap;
 		overflow: hidden;
@@ -1564,23 +1507,21 @@ body.tools_page_logscope {
 		appearance: none;
 		background: transparent;
 		border: 1px solid transparent;
-		border-radius: var(--logscope-radius-sm);
+		border-radius: var( --logscope-radius-sm );
 		width: 28px;
 		height: 28px;
 		padding: 0;
 		font-size: 14px;
 		line-height: 1;
 		cursor: pointer;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		opacity: 0;
-		transition:
-			opacity 0.12s,
-			background 0.1s;
+		transition: opacity 0.12s, background 0.1s;
 
-		&:hover:not(:disabled) {
-			background: var(--logscope-bg-muted);
-			border-color: var(--logscope-border);
-			color: var(--logscope-fg);
+		&:hover:not( :disabled ) {
+			background: var( --logscope-bg-muted );
+			border-color: var( --logscope-border );
+			color: var( --logscope-fg );
 		}
 
 		&:disabled {
@@ -1594,8 +1535,8 @@ body.tools_page_logscope {
 		// panel into the 28px checkbox column → text wrapped one char wide.)
 		grid-column: 1 / -1;
 		padding: 12px 16px 14px;
-		background: var(--logscope-bg-sunken);
-		border-top: 1px solid var(--logscope-border-soft);
+		background: var( --logscope-bg-sunken );
+		border-top: 1px solid var( --logscope-border-soft );
 
 		dl {
 			display: grid;
@@ -1606,13 +1547,13 @@ body.tools_page_logscope {
 
 		dt {
 			font-weight: 600;
-			color: var(--logscope-fg-muted);
+			color: var( --logscope-fg-muted );
 			font-size: 12px;
 		}
 
 		dd {
 			margin: 0;
-			font-family: var(--logscope-font-mono);
+			font-family: var( --logscope-font-mono );
 			font-size: 12px;
 		}
 	}
@@ -1620,13 +1561,13 @@ body.tools_page_logscope {
 	&__sample {
 		margin: 0;
 		padding: 10px 12px;
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border-soft);
-		border-radius: var(--logscope-radius-sm);
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border-soft );
+		border-radius: var( --logscope-radius-sm );
 		white-space: pre-wrap;
 		word-break: break-word;
 		font-size: 11.5px;
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		line-height: 1.55;
 	}
 }
@@ -1636,11 +1577,11 @@ body.tools_page_logscope {
 
 	&__layout {
 		display: grid;
-		grid-template-columns: 220px minmax(0, 1fr);
+		grid-template-columns: 220px minmax( 0, 1fr );
 		gap: 24px;
 		align-items: start;
 
-		@media (max-width: 880px) {
+		@media ( max-width: 880px ) {
 			grid-template-columns: 1fr;
 		}
 	}
@@ -1649,12 +1590,12 @@ body.tools_page_logscope {
 		position: sticky;
 		top: 16px;
 		align-self: start;
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
-		border-radius: var(--logscope-radius-md);
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
 		padding: 8px;
 
-		@media (max-width: 880px) {
+		@media ( max-width: 880px ) {
 			position: static;
 		}
 	}
@@ -1679,7 +1620,7 @@ body.tools_page_logscope {
 		border: 0;
 		background: transparent;
 		padding: 9px 12px;
-		border-radius: var(--logscope-radius-sm);
+		border-radius: var( --logscope-radius-sm );
 		font-size: 13.5px;
 		font-weight: 500;
 		cursor: pointer;
@@ -1694,14 +1635,14 @@ body.tools_page_logscope {
 		&:hover,
 		&:focus,
 		&:active {
-			color: var(--logscope-fg-muted);
+			color: var( --logscope-fg-muted );
 			text-decoration: none;
 			box-shadow: none;
 		}
 
 		&:hover {
-			background: var(--logscope-bg-sunken);
-			color: var(--logscope-fg);
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
 		}
 
 		&:focus,
@@ -1716,8 +1657,8 @@ body.tools_page_logscope {
 		&--on:hover,
 		&--on:focus,
 		&--on:active {
-			background: var(--logscope-fg);
-			color: var(--logscope-bg-muted);
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
 		}
 	}
 
@@ -1732,7 +1673,7 @@ body.tools_page_logscope {
 
 	&__nav-sep {
 		height: 1px;
-		background: var(--logscope-border-soft);
+		background: var( --logscope-border-soft );
 		margin: 8px 4px;
 	}
 
@@ -1748,26 +1689,24 @@ body.tools_page_logscope {
 		}
 
 		.components-button.is-primary,
-		.components-button.is-primary:not(:disabled):not(
-				[aria-disabled="true"]
-			) {
-			background: var(--logscope-fg);
-			color: var(--logscope-bg-muted);
+		.components-button.is-primary:not( :disabled ):not( [aria-disabled='true'] ) {
+			background: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
 			box-shadow: none;
-			border-radius: var(--logscope-radius-sm);
+			border-radius: var( --logscope-radius-sm );
 
 			&:hover,
 			&:focus {
 				background: #000;
-				color: var(--logscope-bg-muted);
+				color: var( --logscope-bg-muted );
 				box-shadow: none;
 			}
 		}
 
 		.components-button.is-primary:disabled,
-		.components-button.is-primary[aria-disabled="true"] {
-			background: var(--logscope-bg-sunken);
-			color: var(--logscope-fg-mute);
+		.components-button.is-primary[ aria-disabled='true' ] {
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg-mute );
 			box-shadow: none;
 		}
 
@@ -1775,14 +1714,14 @@ body.tools_page_logscope {
 		// shorthand above wipes WP's busy stripes; restore them on the dark
 		// fill so "Saving…" visibly moves.
 		.components-button.is-primary.is-busy:disabled {
-			background-color: var(--logscope-fg);
-			color: var(--logscope-bg-muted);
+			background-color: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
 			background-image: linear-gradient(
 				-45deg,
-				rgba(255, 255, 255, 0.14) 33%,
+				rgba( 255, 255, 255, 0.14 ) 33%,
 				transparent 33%,
 				transparent 70%,
-				rgba(255, 255, 255, 0.14) 70%
+				rgba( 255, 255, 255, 0.14 ) 70%
 			);
 			background-size: 100px 100%;
 			animation: components-button__busy-animation 2.5s infinite linear;
@@ -1809,11 +1748,11 @@ body.tools_page_logscope {
 		}
 
 		.components-button.is-tertiary {
-			color: var(--logscope-fg-muted);
+			color: var( --logscope-fg-muted );
 
 			&:hover {
-				color: var(--logscope-fg);
-				background: var(--logscope-bg-sunken);
+				color: var( --logscope-fg );
+				background: var( --logscope-bg-sunken );
 				box-shadow: none;
 			}
 		}
@@ -1826,7 +1765,7 @@ body.tools_page_logscope {
 		margin: -3px 8px 0 0;
 		border-right: 2px solid currentColor;
 		border-bottom: 2px solid currentColor;
-		transform: rotate(40deg);
+		transform: rotate( 40deg );
 		animation: logscope-save-check-pop 0.25s ease-out;
 	}
 
@@ -1840,7 +1779,7 @@ body.tools_page_logscope {
 
 		&::before,
 		&::after {
-			content: "";
+			content: '';
 			position: absolute;
 			left: 4px;
 			top: -1px;
@@ -1848,11 +1787,11 @@ body.tools_page_logscope {
 			height: 12px;
 			background: currentColor;
 			border-radius: 1px;
-			transform: rotate(45deg);
+			transform: rotate( 45deg );
 		}
 
 		&::after {
-			transform: rotate(-45deg);
+			transform: rotate( -45deg );
 		}
 	}
 
@@ -1873,7 +1812,7 @@ body.tools_page_logscope {
 
 	&__nav-dirty {
 		font-size: 11px;
-		color: var(--logscope-fg-mute);
+		color: var( --logscope-fg-mute );
 		text-align: center;
 		padding: 2px 0 4px;
 	}
@@ -1886,9 +1825,9 @@ body.tools_page_logscope {
 	}
 
 	&__section {
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
-		border-radius: var(--logscope-radius-md);
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
 		padding: 22px 24px;
 		scroll-margin-top: 16px;
 	}
@@ -1897,12 +1836,12 @@ body.tools_page_logscope {
 		margin: 0 0 4px;
 		font-size: 18px;
 		font-weight: 700;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__section-lead {
 		margin: 0 0 18px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		font-size: 13px;
 	}
 
@@ -1947,7 +1886,7 @@ body.tools_page_logscope {
 		display: flex;
 		gap: 8px;
 		align-items: center;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 	}
 }
 
@@ -1963,7 +1902,7 @@ body.tools_page_logscope {
 
 	.logscope-muted-panel__hint {
 		margin: 0 0 18px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		font-size: 13px;
 	}
 }
@@ -1989,16 +1928,16 @@ body.tools_page_logscope {
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 	}
 
 	&__status {
 		margin: 8px 0 0;
 		padding: 8px 12px;
-		background: var(--logscope-bg-sunken);
-		border-radius: var(--logscope-radius-sm);
+		background: var( --logscope-bg-sunken );
+		border-radius: var( --logscope-radius-sm );
 		font-size: 12.5px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 	}
 
 	&__test-row {
@@ -2045,18 +1984,18 @@ body.tools_page_logscope {
 		margin-bottom: 4px;
 		font-size: 13px;
 		font-weight: 600;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__field-help {
 		margin: 4px 0 8px;
 		font-size: 12px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 	}
 
 	&__checks {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+		grid-template-columns: repeat( auto-fit, minmax( 160px, 1fr ) );
 		gap: 4px 16px;
 	}
 }
@@ -2068,21 +2007,21 @@ body.tools_page_logscope {
 	margin-top: 24px;
 	margin-bottom: 24px;
 	padding: 14px 16px;
-	background: var(--logscope-bg-sunken);
-	border: 1px solid var(--logscope-border);
-	border-radius: var(--logscope-radius-sm);
+	background: var( --logscope-bg-sunken );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-sm );
 
 	&__heading {
 		margin: 0 0 4px;
 		font-size: 14px;
 		font-weight: 600;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__lead {
 		margin: 0 0 12px;
 		font-size: 12.5px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 	}
 
 	&__list {
@@ -2096,9 +2035,9 @@ body.tools_page_logscope {
 
 	&__row {
 		padding: 8px 10px;
-		border-radius: var(--logscope-radius-sm);
-		background: var(--logscope-bg);
-		border-left: 3px solid var(--logscope-border);
+		border-radius: var( --logscope-radius-sm );
+		background: var( --logscope-bg );
+		border-left: 3px solid var( --logscope-border );
 
 		&--ok {
 			border-left-color: #29a383;
@@ -2117,28 +2056,28 @@ body.tools_page_logscope {
 	}
 
 	&__name {
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		font-size: 12.5px;
 		font-weight: 600;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__state {
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		font-size: 12px;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__rec {
 		font-size: 11px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		margin-left: auto;
 	}
 
 	&__tip {
 		margin: 4px 0 0;
 		font-size: 12px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 	}
 }
 
@@ -2164,8 +2103,8 @@ body.tools_page_logscope {
 		justify-content: space-between;
 		gap: 12px;
 		padding: 10px 12px;
-		background: var(--logscope-bg-sunken);
-		border-radius: var(--logscope-radius-sm);
+		background: var( --logscope-bg-sunken );
+		border-radius: var( --logscope-radius-sm );
 	}
 
 	&__meta {
@@ -2178,16 +2117,16 @@ body.tools_page_logscope {
 
 	&__message {
 		font-size: 13px;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
 	&__sig {
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		font-size: 12px;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -2198,17 +2137,17 @@ body.tools_page_logscope {
 	&__message + &__sig {
 		align-self: flex-start;
 		font-size: 11px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 	}
 
 	&__reason {
 		font-size: 11px;
-		color: var(--logscope-fg-mute);
+		color: var( --logscope-fg-mute );
 	}
 
 	&__empty {
 		margin: 0;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		font-size: 13px;
 	}
 }
@@ -2218,9 +2157,9 @@ body.tools_page_logscope {
 .logscope-skeleton {
 	background: linear-gradient(
 		90deg,
-		var(--logscope-skeleton-base) 0%,
-		var(--logscope-skeleton-shimmer) 50%,
-		var(--logscope-skeleton-base) 100%
+		var( --logscope-skeleton-base ) 0%,
+		var( --logscope-skeleton-shimmer ) 50%,
+		var( --logscope-skeleton-base ) 100%
 	);
 	background-size: 200% 100%;
 	border-radius: 2px;
@@ -2257,7 +2196,7 @@ body.tools_page_logscope {
 }
 
 // Respect prefers-reduced-motion for the shimmer.
-@media (prefers-reduced-motion: reduce) {
+@media ( prefers-reduced-motion: reduce ) {
 	.logscope-skeleton {
 		animation: none;
 	}
@@ -2295,10 +2234,10 @@ body.tools_page_logscope {
 	kbd {
 		display: inline-block;
 		padding: 1px 6px;
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
 		border-radius: 2px;
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		font-size: 11px;
 		min-width: 18px;
 		text-align: center;
@@ -2308,13 +2247,13 @@ body.tools_page_logscope {
 // Severity tone palette — aliases onto the `--logscope-dot-*` custom
 // props so Logs pills and Stats tiles cannot drift to different colors
 // for the same severity.
-$severity-fatal: var(--logscope-dot-fatal);
-$severity-parse: var(--logscope-dot-parse);
-$severity-warning: var(--logscope-dot-warning);
-$severity-notice: var(--logscope-dot-notice);
-$severity-deprecated: var(--logscope-dot-deprecated);
-$severity-strict: var(--logscope-dot-strict);
-$severity-unknown: var(--logscope-dot-unknown);
+$severity-fatal: var( --logscope-dot-fatal );
+$severity-parse: var( --logscope-dot-parse );
+$severity-warning: var( --logscope-dot-warning );
+$severity-notice: var( --logscope-dot-notice );
+$severity-deprecated: var( --logscope-dot-deprecated );
+$severity-strict: var( --logscope-dot-strict );
+$severity-unknown: var( --logscope-dot-unknown );
 
 .logscope-stats {
 	display: flex;
@@ -2328,9 +2267,9 @@ $severity-unknown: var(--logscope-dot-unknown);
 		gap: 12px 24px;
 		align-items: center;
 		padding: 12px 14px;
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
-		border-radius: var(--logscope-radius-md);
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
 	}
 
 	&__group {
@@ -2343,12 +2282,12 @@ $severity-unknown: var(--logscope-dot-unknown);
 		font-size: 11px;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
-		color: var(--logscope-fg-mute);
+		color: var( --logscope-fg-mute );
 		font-weight: 600;
 	}
 
 	&__status {
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		margin: 0;
 		padding: 16px 4px;
 	}
@@ -2361,18 +2300,18 @@ $severity-unknown: var(--logscope-dot-unknown);
 
 	&__hero-row {
 		display: grid;
-		grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+		grid-template-columns: minmax( 0, 1.7fr ) minmax( 0, 1fr );
 		gap: 14px;
 
-		@media (max-width: 960px) {
+		@media ( max-width: 960px ) {
 			grid-template-columns: 1fr;
 		}
 	}
 
 	&__panel {
-		background: var(--logscope-bg-muted);
-		border: 1px solid var(--logscope-border);
-		border-radius: var(--logscope-radius-md);
+		background: var( --logscope-bg-muted );
+		border: 1px solid var( --logscope-border );
+		border-radius: var( --logscope-radius-md );
 		padding: 18px 20px 14px;
 	}
 
@@ -2392,13 +2331,13 @@ $severity-unknown: var(--logscope-dot-unknown);
 		margin: 0;
 		font-size: 14px;
 		font-weight: 600;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__panel-meta {
 		font-size: 11px;
 		font-weight: 500;
-		color: var(--logscope-fg-mute);
+		color: var( --logscope-fg-mute );
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 	}
@@ -2408,8 +2347,8 @@ $severity-unknown: var(--logscope-dot-unknown);
 .logscope-seg {
 	display: inline-flex;
 	padding: 3px;
-	background: var(--logscope-bg-sunken);
-	border-radius: var(--logscope-radius-sm);
+	background: var( --logscope-bg-sunken );
+	border-radius: var( --logscope-radius-sm );
 	gap: 2px;
 
 	&__btn {
@@ -2417,16 +2356,16 @@ $severity-unknown: var(--logscope-dot-unknown);
 		border: 0;
 		background: transparent;
 		padding: 5px 12px;
-		border-radius: var(--logscope-radius-xs);
+		border-radius: var( --logscope-radius-xs );
 		font: inherit;
 		font-size: 13px;
 		font-weight: 500;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		cursor: pointer;
 		outline: none;
 
 		&:hover {
-			color: var(--logscope-fg);
+			color: var( --logscope-fg );
 		}
 
 		&:focus,
@@ -2436,10 +2375,10 @@ $severity-unknown: var(--logscope-dot-unknown);
 		}
 
 		&--on {
-			background: var(--logscope-bg-muted);
-			color: var(--logscope-fg);
+			background: var( --logscope-bg-muted );
+			color: var( --logscope-fg );
 			font-weight: 600;
-			box-shadow: 0 1px 2px rgba(20, 15, 30, 0.06);
+			box-shadow: 0 1px 2px rgba( 20, 15, 30, 0.06 );
 		}
 	}
 }
@@ -2447,20 +2386,20 @@ $severity-unknown: var(--logscope-dot-unknown);
 // KPI tiles row.
 .logscope-kpi-grid {
 	display: grid;
-	grid-template-columns: repeat(6, minmax(0, 1fr));
+	grid-template-columns: repeat( 6, minmax( 0, 1fr ) );
 	gap: 12px;
 
-	@media (max-width: 1200px) {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+	@media ( max-width: 1200px ) {
+		grid-template-columns: repeat( 3, minmax( 0, 1fr ) );
 	}
-	@media (max-width: 640px) {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+	@media ( max-width: 640px ) {
+		grid-template-columns: repeat( 2, minmax( 0, 1fr ) );
 	}
 }
 
 .logscope-kpi {
-	background: var(--logscope-bg-muted);
-	border: 1px solid var(--logscope-border);
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
 	border-radius: 10px;
 	padding: 14px 16px 12px;
 	position: relative;
@@ -2471,7 +2410,7 @@ $severity-unknown: var(--logscope-dot-unknown);
 		font-size: 11px;
 		text-transform: uppercase;
 		letter-spacing: 0.07em;
-		color: var(--logscope-fg-mute);
+		color: var( --logscope-fg-mute );
 		font-weight: 600;
 		display: flex;
 		align-items: center;
@@ -2484,12 +2423,12 @@ $severity-unknown: var(--logscope-dot-unknown);
 		letter-spacing: -0.02em;
 		line-height: 1.1;
 		margin-top: 6px;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__meta {
 		font-size: 11.5px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 		margin-top: 4px;
 	}
 
@@ -2502,24 +2441,14 @@ $severity-unknown: var(--logscope-dot-unknown);
 
 		// Keyed off severityTone(), which collapses parse→fatal and
 		// strict→deprecated — only tone names can ever match here.
-		&--fatal {
-			background: $severity-fatal;
-		}
-		&--warning {
-			background: $severity-warning;
-		}
-		&--notice {
-			background: $severity-notice;
-		}
-		&--deprecated {
-			background: $severity-deprecated;
-		}
-		&--unknown {
-			background: $severity-unknown;
-		}
+		&--fatal { background: $severity-fatal; }
+		&--warning { background: $severity-warning; }
+		&--notice { background: $severity-notice; }
+		&--deprecated { background: $severity-deprecated; }
+		&--unknown { background: $severity-unknown; }
 	}
 
-	&__spark {
+&__spark {
 		position: absolute;
 		right: 12px;
 		bottom: 10px;
@@ -2527,48 +2456,26 @@ $severity-unknown: var(--logscope-dot-unknown);
 		height: 22px;
 		opacity: 0.65;
 
-		polyline {
-			stroke-linecap: round;
-			stroke-linejoin: round;
-		}
+		polyline { stroke-linecap: round; stroke-linejoin: round; }
 		// Tone-keyed like the dot above — parse/strict collapse upstream.
-		&--fatal polyline {
-			stroke: $severity-fatal;
-		}
-		&--warning polyline {
-			stroke: $severity-warning;
-		}
-		&--notice polyline {
-			stroke: $severity-notice;
-		}
-		&--deprecated polyline {
-			stroke: $severity-deprecated;
-		}
-		&--unknown polyline {
-			stroke: $severity-unknown;
-		}
+		&--fatal polyline { stroke: $severity-fatal; }
+		&--warning polyline { stroke: $severity-warning; }
+		&--notice polyline { stroke: $severity-notice; }
+		&--deprecated polyline { stroke: $severity-deprecated; }
+		&--unknown polyline { stroke: $severity-unknown; }
 	}
 
 	&--total {
-		background: linear-gradient(135deg, #1a1a1f, #2a2a32);
+		background: linear-gradient( 135deg, #1a1a1f, #2a2a32 );
 		border-color: #1a1a1f;
 		color: #fff;
 
-		.logscope-kpi__label {
-			color: rgba(255, 255, 255, 0.65);
-		}
-		.logscope-kpi__value {
-			color: #fff;
-			font-size: 32px;
-		}
-		.logscope-kpi__meta {
-			color: rgba(255, 255, 255, 0.7);
-		}
+		.logscope-kpi__label { color: rgba( 255, 255, 255, 0.65 ); }
+		.logscope-kpi__value { color: #fff; font-size: 32px; }
+		.logscope-kpi__meta { color: rgba( 255, 255, 255, 0.7 ); }
 	}
 
-	&--fatal .logscope-kpi__value {
-		color: $severity-fatal;
-	}
+	&--fatal .logscope-kpi__value { color: $severity-fatal; }
 }
 
 // Volume chart panel.
@@ -2589,7 +2496,7 @@ $severity-unknown: var(--logscope-dot-unknown);
 		margin: 0;
 		font-size: 14px;
 		font-weight: 600;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__legend {
@@ -2600,7 +2507,7 @@ $severity-unknown: var(--logscope-dot-unknown);
 		flex-wrap: wrap;
 		gap: 12px;
 		font-size: 12px;
-		color: var(--logscope-fg-muted);
+		color: var( --logscope-fg-muted );
 
 		li {
 			display: inline-flex;
@@ -2613,19 +2520,15 @@ $severity-unknown: var(--logscope-dot-unknown);
 		height: 220px;
 		position: relative;
 
-		svg {
-			display: block;
-			width: 100%;
-			height: 100%;
-		}
+		svg { display: block; width: 100%; height: 100%; }
 	}
 
 	&__axis {
 		display: flex;
 		justify-content: space-between;
 		font-size: 11px;
-		color: var(--logscope-fg-mute);
-		font-family: var(--logscope-font-mono);
+		color: var( --logscope-fg-mute );
+		font-family: var( --logscope-font-mono );
 		padding: 4px 0 0;
 	}
 }
@@ -2636,7 +2539,7 @@ $severity-unknown: var(--logscope-dot-unknown);
 		margin: 0 0 12px;
 		font-size: 14px;
 		font-weight: 600;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__list {
@@ -2663,26 +2566,26 @@ $severity-unknown: var(--logscope-dot-unknown);
 
 	&__name {
 		flex: 1;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__count {
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		font-weight: 600;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 	}
 
 	&__pct {
-		color: var(--logscope-fg-mute);
+		color: var( --logscope-fg-mute );
 		font-size: 12px;
-		font-family: var(--logscope-font-mono);
+		font-family: var( --logscope-font-mono );
 		min-width: 44px;
 		text-align: right;
 	}
 
 	&__track {
 		height: 6px;
-		background: var(--logscope-bg-sunken);
+		background: var( --logscope-bg-sunken );
 		border-radius: 3px;
 		overflow: hidden;
 	}
@@ -2691,21 +2594,11 @@ $severity-unknown: var(--logscope-dot-unknown);
 		height: 100%;
 
 		// Tone-keyed — parse/strict collapse upstream in severityTone().
-		&--fatal {
-			background: $severity-fatal;
-		}
-		&--warning {
-			background: $severity-warning;
-		}
-		&--notice {
-			background: $severity-notice;
-		}
-		&--deprecated {
-			background: $severity-deprecated;
-		}
-		&--unknown {
-			background: $severity-unknown;
-		}
+		&--fatal { background: $severity-fatal; }
+		&--warning { background: $severity-warning; }
+		&--notice { background: $severity-notice; }
+		&--deprecated { background: $severity-deprecated; }
+		&--unknown { background: $severity-unknown; }
 	}
 }
 
@@ -2718,18 +2611,18 @@ $severity-unknown: var(--logscope-dot-unknown);
 
 	th {
 		font-weight: 500;
-		color: var(--logscope-fg-mute);
+		color: var( --logscope-fg-mute );
 		text-align: left;
 		padding: 6px 8px;
 		font-size: 11px;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
-		border-bottom: 1px solid var(--logscope-border);
+		border-bottom: 1px solid var( --logscope-border );
 	}
 
 	td {
 		padding: 11px 8px;
-		border-bottom: 1px solid var(--logscope-border-soft);
+		border-bottom: 1px solid var( --logscope-border-soft );
 		vertical-align: middle;
 	}
 
@@ -2750,25 +2643,25 @@ $severity-unknown: var(--logscope-dot-unknown);
 	transition: background 0.08s;
 
 	&:hover {
-		background: var(--logscope-row-hover);
+		background: var( --logscope-row-hover );
 	}
 
 	&:focus-visible {
-		background: var(--logscope-row-hover);
-		outline: 2px solid var(--logscope-focus-ring);
+		background: var( --logscope-row-hover );
+		outline: 2px solid var( --logscope-focus-ring );
 		outline-offset: -2px;
 	}
 }
 
 .logscope-stats__top-rank {
 	width: 36px;
-	color: var(--logscope-fg-mute);
-	font-family: var(--logscope-font-mono);
+	color: var( --logscope-fg-mute );
+	font-family: var( --logscope-font-mono );
 }
 
 .logscope-stats__top-rank-num {
-	color: var(--logscope-fg-mute);
-	font-family: var(--logscope-font-mono);
+	color: var( --logscope-fg-mute );
+	font-family: var( --logscope-font-mono );
 	font-size: 12px;
 }
 
@@ -2777,9 +2670,9 @@ $severity-unknown: var(--logscope-dot-unknown);
 }
 
 .logscope-stats__top-table-msg {
-	font-family: var(--logscope-font-mono);
+	font-family: var( --logscope-font-mono );
 	font-size: 12.5px;
-	color: var(--logscope-fg);
+	color: var( --logscope-fg );
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -2806,7 +2699,7 @@ $severity-unknown: var(--logscope-dot-unknown);
 .logscope-stats__top-table th.logscope-stats__top-table-count,
 .logscope-stats__top-table td.logscope-stats__top-table-count {
 	text-align: right;
-	font-family: var(--logscope-font-mono);
+	font-family: var( --logscope-font-mono );
 	font-weight: 600;
 	width: 80px;
 }
@@ -2839,15 +2732,12 @@ $severity-unknown: var(--logscope-dot-unknown);
 	align-items: center;
 	gap: 12px;
 	padding: 9px 14px;
-	background: var(--logscope-bg-muted);
-	border: 1px solid var(--logscope-border);
-	border-radius: var(--logscope-radius-md);
+	background: var( --logscope-bg-muted );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
 	font-size: 13px;
-	color: var(--logscope-fg-muted);
-	transition:
-		background 0.15s,
-		color 0.15s,
-		border-color 0.15s;
+	color: var( --logscope-fg-muted );
+	transition: background 0.15s, color 0.15s, border-color 0.15s;
 
 	// Selection-active variant — flips the strip into a dark sticky pill
 	// that hovers above the list while the user works through bulk
@@ -2862,25 +2752,25 @@ $severity-unknown: var(--logscope-dot-unknown);
 		// pane, which is why it correctly uses 32px.
 		top: 0;
 		z-index: 5;
-		background: var(--logscope-fg);
-		color: var(--logscope-bg-muted);
-		border-color: var(--logscope-fg);
-		box-shadow: 0 8px 24px -12px rgba(20, 15, 30, 0.4);
+		background: var( --logscope-fg );
+		color: var( --logscope-bg-muted );
+		border-color: var( --logscope-fg );
+		box-shadow: 0 8px 24px -12px rgba( 20, 15, 30, 0.4 );
 
-		.logscope-grouped__select-all input[type="checkbox"] {
-			accent-color: var(--logscope-bg-muted);
+		.logscope-grouped__select-all input[ type='checkbox' ] {
+			accent-color: var( --logscope-bg-muted );
 		}
 
 		.components-button.is-secondary {
 			background: transparent;
-			border: 1px solid rgba(255, 255, 255, 0.18);
-			color: var(--logscope-bg-muted);
+			border: 1px solid rgba( 255, 255, 255, 0.18 );
+			color: var( --logscope-bg-muted );
 			box-shadow: none;
 
-			&:hover:not(:disabled) {
-				background: rgba(255, 255, 255, 0.08);
-				color: var(--logscope-bg-muted);
-				border-color: rgba(255, 255, 255, 0.28);
+			&:hover:not( :disabled ) {
+				background: rgba( 255, 255, 255, 0.08 );
+				color: var( --logscope-bg-muted );
+				border-color: rgba( 255, 255, 255, 0.28 );
 			}
 		}
 	}
@@ -2898,10 +2788,10 @@ $severity-unknown: var(--logscope-dot-unknown);
 }
 
 .logscope-grouped__header-sep {
-	color: var(--logscope-border-strong);
+	color: var( --logscope-border-strong );
 
 	.logscope-grouped__header--active & {
-		color: rgba(255, 255, 255, 0.32);
+		color: rgba( 255, 255, 255, 0.32 );
 	}
 }
 
@@ -2917,25 +2807,25 @@ $severity-unknown: var(--logscope-dot-unknown);
 	border: 0;
 	font: inherit;
 	font-size: 12.5px;
-	color: rgba(255, 255, 255, 0.72);
+	color: rgba( 255, 255, 255, 0.72 );
 	cursor: pointer;
 	padding: 6px 10px;
-	border-radius: var(--logscope-radius-sm);
+	border-radius: var( --logscope-radius-sm );
 
 	&:hover {
-		color: var(--logscope-bg-muted);
-		background: rgba(255, 255, 255, 0.08);
+		color: var( --logscope-bg-muted );
+		background: rgba( 255, 255, 255, 0.08 );
 	}
 }
 
 .logscope-row-menu {
 	z-index: 9999;
 	min-width: 200px;
-	background: var(--logscope-bg);
-	color: var(--logscope-fg);
-	border: 1px solid var(--logscope-border);
-	border-radius: var(--logscope-radius-md);
-	box-shadow: 0 12px 32px -8px rgba(20, 15, 30, 0.35);
+	background: var( --logscope-bg );
+	color: var( --logscope-fg );
+	border: 1px solid var( --logscope-border );
+	border-radius: var( --logscope-radius-md );
+	box-shadow: 0 12px 32px -8px rgba( 20, 15, 30, 0.35 );
 	padding: 4px;
 	font-size: 12.5px;
 
@@ -2947,33 +2837,31 @@ $severity-unknown: var(--logscope-dot-unknown);
 		appearance: none;
 		background: transparent;
 		border: 0;
-		border-radius: var(--logscope-radius-sm);
+		border-radius: var( --logscope-radius-sm );
 		color: inherit;
 		cursor: pointer;
 		font: inherit;
 		padding: 7px 10px 7px 14px;
-		transition:
-			background 0.12s ease,
-			color 0.12s ease,
+		transition: background 0.12s ease, color 0.12s ease,
 			padding-left 0.12s ease;
 
 		&::before {
-			content: "";
+			content: '';
 			position: absolute;
 			left: 4px;
 			top: 8px;
 			bottom: 8px;
 			width: 2px;
 			border-radius: 2px;
-			background: var(--logscope-fg);
+			background: var( --logscope-fg );
 			opacity: 0;
 			transition: opacity 0.12s ease;
 		}
 
-		&:hover:not(:disabled),
-		&:focus-visible:not(:disabled) {
-			background: var(--logscope-row-hover);
-			color: var(--logscope-fg);
+		&:hover:not( :disabled ),
+		&:focus-visible:not( :disabled ) {
+			background: var( --logscope-row-hover );
+			color: var( --logscope-fg );
 			padding-left: 16px;
 			outline: none;
 
@@ -2982,8 +2870,8 @@ $severity-unknown: var(--logscope-dot-unknown);
 			}
 		}
 
-		&:active:not(:disabled) {
-			background: var(--logscope-border);
+		&:active:not( :disabled ) {
+			background: var( --logscope-border );
 		}
 
 		&:disabled {
@@ -2995,7 +2883,7 @@ $severity-unknown: var(--logscope-dot-unknown);
 	&__sep {
 		height: 1px;
 		margin: 4px 2px;
-		background: var(--logscope-border);
+		background: var( --logscope-border );
 	}
 }
 
@@ -3004,7 +2892,7 @@ $severity-unknown: var(--logscope-dot-unknown);
 	width: 1px;
 	height: 22px;
 	margin: 0 4px;
-	background: var(--logscope-border);
+	background: var( --logscope-border );
 	vertical-align: middle;
 }
 
@@ -3014,26 +2902,26 @@ $severity-unknown: var(--logscope-dot-unknown);
 	gap: 12px;
 	padding: 6px 12px;
 	margin: 6px 0;
-	border: 1px dashed var(--logscope-border);
-	border-radius: var(--logscope-radius-sm);
-	background: var(--logscope-bg-muted);
-	color: var(--logscope-fg-muted);
+	border: 1px dashed var( --logscope-border );
+	border-radius: var( --logscope-radius-sm );
+	background: var( --logscope-bg-muted );
+	color: var( --logscope-fg-muted );
 	font-size: 12px;
 
 	&__btn {
 		appearance: none;
 		background: transparent;
 		border: 0;
-		color: var(--logscope-fg);
+		color: var( --logscope-fg );
 		cursor: pointer;
 		font: inherit;
 		padding: 4px 8px;
-		border-radius: var(--logscope-radius-sm);
+		border-radius: var( --logscope-radius-sm );
 		text-decoration: underline;
 
 		&:hover,
 		&:focus-visible {
-			background: var(--logscope-row-hover);
+			background: var( --logscope-row-hover );
 			outline: none;
 		}
 	}
