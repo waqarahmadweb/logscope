@@ -77,6 +77,23 @@ final class PagedResult {
 	public bool $rotated;
 
 	/**
+	 * Fatal-severity entries across the whole filtered set (not just this
+	 * page), so the header badge does not grow as pages stream in.
+	 *
+	 * @var int
+	 */
+	public int $fatal_total;
+
+	/**
+	 * Distinct source slugs across the entire log (unfiltered), sorted.
+	 * Only populated on page 1 of a non-tail query; the dropdown needs
+	 * it once per filter change, not on every infinite-scroll page.
+	 *
+	 * @var string[]
+	 */
+	public array $sources;
+
+	/**
 	 * Builds a result page.
 	 *
 	 * @param Entry[]|Group[] $items       The page slice.
@@ -86,6 +103,8 @@ final class PagedResult {
 	 * @param int             $total_pages Total pages.
 	 * @param int             $last_byte   Source size at read time.
 	 * @param bool            $rotated     Source detected rotated since last poll.
+	 * @param int             $fatal_total Fatal count across the filtered set.
+	 * @param string[]        $sources     Distinct source slugs in the log.
 	 */
 	public function __construct(
 		array $items,
@@ -94,7 +113,9 @@ final class PagedResult {
 		int $per_page,
 		int $total_pages,
 		int $last_byte = 0,
-		bool $rotated = false
+		bool $rotated = false,
+		int $fatal_total = 0,
+		array $sources = array()
 	) {
 		$this->items       = $items;
 		$this->total       = $total;
@@ -103,5 +124,7 @@ final class PagedResult {
 		$this->total_pages = $total_pages;
 		$this->last_byte   = $last_byte;
 		$this->rotated     = $rotated;
+		$this->fatal_total = $fatal_total;
+		$this->sources     = $sources;
 	}
 }

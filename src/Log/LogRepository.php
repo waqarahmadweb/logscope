@@ -120,6 +120,14 @@ final class LogRepository {
 		}
 
 		$entries = $this->load_entries( $since, $last_byte );
+
+		// Distinct sources come from the unfiltered stream so the dropdown
+		// offers every slug in the log, not just those on the loaded rows.
+		// Page 1 only: the client keeps it across infinite-scroll pages.
+		$sources = ( null === $query->since_byte && 1 === $query->page )
+			? $this->distinct_sources( $entries )
+			: array();
+
 		$entries = $this->apply_filters( $entries, $query );
 
 		// Resolved before the tail branch so Live polling honours mutes
@@ -146,25 +154,61 @@ final class LogRepository {
 			);
 		}
 
+		if ( array() !== $muted_signatures ) {
+			$entries = $this->filter_entries_by_mute( $entries, $muted_signatures );
+		}
+
+		// Counted after mute filtering so the header badge matches what
+		// the list can actually show; grouped view shares the same number.
+		$fatal_total = $this->count_fatals( $entries );
+
 		if ( $query->grouped ) {
 			$groups = LogGrouper::group( $entries );
 
-			if ( array() !== $muted_signatures ) {
-				$groups = $this->filter_groups_by_mute( $groups, $muted_signatures );
-			}
-
-			return $this->paginate( $groups, $query, $reported_last_byte );
-		}
-
-		if ( array() !== $muted_signatures ) {
-			$entries = $this->filter_entries_by_mute( $entries, $muted_signatures );
+			return $this->paginate( $groups, $query, $reported_last_byte, $fatal_total, $sources );
 		}
 
 		// Newest-first: WP appends to the log so reverse of file order
 		// approximates timestamp-desc without a per-entry sort cost.
 		$entries = array_reverse( $entries );
 
-		return $this->paginate( $entries, $query, $reported_last_byte );
+		return $this->paginate( $entries, $query, $reported_last_byte, $fatal_total, $sources );
+	}
+
+	/**
+	 * Counts fatal-severity entries in the filtered set.
+	 *
+	 * @param Entry[] $entries Filtered entries.
+	 * @return int
+	 */
+	private function count_fatals( array $entries ): int {
+		$count = 0;
+		foreach ( $entries as $entry ) {
+			if ( Severity::FATAL === $entry->severity ) {
+				++$count;
+			}
+		}
+		return $count;
+	}
+
+	/**
+	 * Returns the sorted, distinct source slugs across the given entries.
+	 * Unclassifiable files (null source) are skipped.
+	 *
+	 * @param Entry[] $entries Parsed entries.
+	 * @return string[]
+	 */
+	private function distinct_sources( array $entries ): array {
+		$seen = array();
+		foreach ( $entries as $entry ) {
+			$source = SourceClassifier::classify( $entry->file );
+			if ( null !== $source ) {
+				$seen[ $source ] = true;
+			}
+		}
+		$sources = array_keys( $seen );
+		sort( $sources, SORT_STRING );
+		return $sources;
 	}
 
 	/**
@@ -203,24 +247,6 @@ final class LogRepository {
 				continue;
 			}
 			$out[] = $entry;
-		}
-		return $out;
-	}
-
-	/**
-	 * Drops groups whose signature is in the muted lookup.
-	 *
-	 * @param Group[]             $groups Grouped result.
-	 * @param array<string, true> $muted  Muted-signature lookup.
-	 * @return Group[]
-	 */
-	private function filter_groups_by_mute( array $groups, array $muted ): array {
-		$out = array();
-		foreach ( $groups as $group ) {
-			if ( isset( $muted[ $group->signature ] ) ) {
-				continue;
-			}
-			$out[] = $group;
 		}
 		return $out;
 	}
@@ -362,18 +388,20 @@ final class LogRepository {
 	/**
 	 * Slices a page out of items and wraps it in a PagedResult.
 	 *
-	 * @param Entry[]|Group[] $items     All items after filtering.
-	 * @param LogQuery        $query     Source query for page/per_page.
-	 * @param int             $last_byte Source size at read time.
+	 * @param Entry[]|Group[] $items       All items after filtering.
+	 * @param LogQuery        $query       Source query for page/per_page.
+	 * @param int             $last_byte   Source size at read time.
+	 * @param int             $fatal_total Fatal count across the filtered set.
+	 * @param string[]        $sources     Distinct source slugs (page 1 only).
 	 * @return PagedResult
 	 */
-	private function paginate( array $items, LogQuery $query, int $last_byte ): PagedResult {
+	private function paginate( array $items, LogQuery $query, int $last_byte, int $fatal_total, array $sources ): PagedResult {
 		$total       = count( $items );
 		$total_pages = $total > 0 ? (int) ceil( $total / $query->per_page ) : 1;
 		$start       = ( $query->page - 1 ) * $query->per_page;
 		$slice       = array_slice( $items, $start, $query->per_page );
 
-		return new PagedResult( $slice, $total, $query->page, $query->per_page, $total_pages, $last_byte );
+		return new PagedResult( $slice, $total, $query->page, $query->per_page, $total_pages, $last_byte, false, $fatal_total, $sources );
 	}
 
 	/**

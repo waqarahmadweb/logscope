@@ -37,4 +37,25 @@ final class LogQueryTest extends TestCase {
 		$this->expectException( LogQueryException::class );
 		new LogQuery( null, null, null, null, null, false, 1, 50, -1 );
 	}
+
+	public function test_date_only_from_is_start_of_day(): void {
+		$query = new LogQuery( null, '2026-09-10', null, null, null, false, 1, 50 );
+		$this->assertSame( '2026-09-10 00:00:00', $query->from->format( 'Y-m-d H:i:s' ) );
+	}
+
+	public function test_date_only_to_is_end_of_day(): void {
+		$query = new LogQuery( null, null, '2026-09-10', null, null, false, 1, 50 );
+		$this->assertSame( '2026-09-10 23:59:59', $query->to->format( 'Y-m-d H:i:s' ) );
+	}
+
+	public function test_explicit_time_on_to_is_kept(): void {
+		$query = new LogQuery( null, null, '2026-09-10 08:15:00', null, null, false, 1, 50 );
+		$this->assertSame( '2026-09-10 08:15:00', $query->to->format( 'Y-m-d H:i:s' ) );
+	}
+
+	public function test_same_day_from_and_to_covers_whole_day(): void {
+		$query = new LogQuery( null, '2026-09-10', '2026-09-10', null, null, false, 1, 50 );
+		$this->assertTrue( $query->from < $query->to );
+		$this->assertSame( '2026-09-10', $query->to->format( 'Y-m-d' ) );
+	}
 }

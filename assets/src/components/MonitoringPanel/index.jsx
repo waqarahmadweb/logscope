@@ -512,6 +512,12 @@ export default function MonitoringPanel() {
 										<strong>{ result.dispatcher }</strong>
 										{ ' — ' }
 										{ outcomeLabel( result.outcome ) }
+										{ result.error && (
+											<span className="logscope-monitoring-panel__result-error">
+												{ ': ' }
+												{ result.error }
+											</span>
+										) }
 									</Notice>
 								</li>
 							) ) }

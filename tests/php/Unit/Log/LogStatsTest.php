@@ -68,7 +68,9 @@ final class LogStatsTest extends TestCase {
 
 		$this->assertSame( '24h', $result['range'] );
 		$this->assertSame( 'hour', $result['bucket'] );
-		$this->assertCount( 24, $result['buckets'] );
+		// 24 whole hours plus one extra slot: the grid snaps outward to
+		// bucket boundaries around the exact [now - 24h, now] window.
+		$this->assertCount( 25, $result['buckets'] );
 		$this->assertSame( 0, $result['buckets'][0][ Severity::FATAL ] );
 		$this->assertSame( array(), $result['top'] );
 		foreach ( Severity::all() as $severity ) {
@@ -77,22 +79,23 @@ final class LogStatsTest extends TestCase {
 	}
 
 	public function test_buckets_entries_into_expected_hour_slots(): void {
-		// Reference time: 2026-04-30 12:00:00 UTC.
-		// snap_down(hour) = 12:00:00 UTC, end = 13:00:00 UTC, start = 2026-04-29 13:00:00 UTC.
+		// Reference time: 2026-04-30 12:00:00 UTC. Window = [29-Apr 12:00, 30-Apr 12:00].
+		// Grid = 25 hour slots from 29-Apr 12:00 to 30-Apr 13:00.
 		$lines = array(
-			$this->log_line( '30-Apr-2026 12:30:00', 'PHP Warning:  oops in /a.php on line 5' ),  // index 23.
-			$this->log_line( '30-Apr-2026 11:30:00', 'PHP Fatal error:  bang in /a.php on line 9' ), // index 22.
-			$this->log_line( '29-Apr-2026 14:00:00', 'PHP Notice:  hi in /a.php on line 1' ),       // index 1.
+			$this->log_line( '30-Apr-2026 12:00:00', 'PHP Warning:  oops in /a.php on line 5' ),  // index 24 (== now).
+			$this->log_line( '30-Apr-2026 11:30:00', 'PHP Fatal error:  bang in /a.php on line 9' ), // index 23.
+			$this->log_line( '29-Apr-2026 13:00:00', 'PHP Notice:  hi in /a.php on line 1' ),       // index 1.
 			$this->log_line( '28-Apr-2026 12:00:00', 'PHP Warning:  too old in /a.php on line 5' ), // dropped.
-			$this->log_line( '29-Apr-2026 12:30:00', 'PHP Warning:  before window in /a.php on line 5' ), // dropped.
+			$this->log_line( '29-Apr-2026 11:59:59', 'PHP Warning:  before window in /a.php on line 5' ), // dropped.
+			$this->log_line( '30-Apr-2026 12:00:01', 'PHP Warning:  future in /a.php on line 5' ), // dropped (> now).
 		);
 		file_put_contents( $this->log_path, implode( "\n", $lines ) . "\n" );
 
 		$result = $this->stats()->summarize( '24h', 'hour', $this->ref() );
 
 		$this->assertSame( 1, $result['buckets'][1][ Severity::NOTICE ] );
-		$this->assertSame( 1, $result['buckets'][22][ Severity::FATAL ] );
-		$this->assertSame( 1, $result['buckets'][23][ Severity::WARNING ] );
+		$this->assertSame( 1, $result['buckets'][23][ Severity::FATAL ] );
+		$this->assertSame( 1, $result['buckets'][24][ Severity::WARNING ] );
 		// Out-of-window entries are not in any bucket.
 		$this->assertSame( 0, array_sum( $result['buckets'][0] ) - $result['buckets'][0]['ts'] );
 		$this->assertSame( 1, $result['totals'][ Severity::FATAL ] );
@@ -144,20 +147,20 @@ final class LogStatsTest extends TestCase {
 	}
 
 	public function test_day_bucket_for_seven_day_range(): void {
-		// Reference: 2026-04-30 12:00:00 UTC. Day-snap = 2026-04-30 00:00:00.
-		// End = 2026-05-01 00:00:00. Start = 2026-04-24 00:00:00.
+		// Reference: 2026-04-30 12:00:00 UTC. Window = [23-Apr 12:00, 30-Apr 12:00].
+		// Grid = 8 day slots from 23-Apr 00:00 to 01-May 00:00 (partial at both ends).
 		$lines = array(
-			$this->log_line( '30-Apr-2026 12:30:00', 'PHP Warning:  today in /a.php on line 5' ),     // last bucket, index 6.
-			$this->log_line( '24-Apr-2026 00:00:00', 'PHP Notice:  start edge in /a.php on line 1' ), // index 0.
-			$this->log_line( '23-Apr-2026 23:59:59', 'PHP Notice:  too old in /a.php on line 1' ),    // dropped.
+			$this->log_line( '30-Apr-2026 11:30:00', 'PHP Warning:  today in /a.php on line 5' ),      // last bucket, index 7.
+			$this->log_line( '23-Apr-2026 12:00:00', 'PHP Notice:  start edge in /a.php on line 1' ),  // index 0.
+			$this->log_line( '23-Apr-2026 11:59:59', 'PHP Notice:  too old in /a.php on line 1' ),     // dropped.
 		);
 		file_put_contents( $this->log_path, implode( "\n", $lines ) . "\n" );
 
 		$result = $this->stats()->summarize( '7d', 'day', $this->ref() );
 
-		$this->assertCount( 7, $result['buckets'] );
+		$this->assertCount( 8, $result['buckets'] );
 		$this->assertSame( 1, $result['buckets'][0][ Severity::NOTICE ] );
-		$this->assertSame( 1, $result['buckets'][6][ Severity::WARNING ] );
+		$this->assertSame( 1, $result['buckets'][7][ Severity::WARNING ] );
 		$this->assertSame( 1, $result['totals'][ Severity::WARNING ] );
 		$this->assertSame( 1, $result['totals'][ Severity::NOTICE ] );
 	}
@@ -222,6 +225,28 @@ final class LogStatsTest extends TestCase {
 	public function test_unknown_bucket_throws(): void {
 		$this->expectException( LogStatsException::class );
 		$this->stats()->summarize( '24h', 'minute', $this->ref() );
+	}
+
+	public function test_totals_do_not_depend_on_bucket_size(): void {
+		// Reference 12:00 UTC. Under the old day-snapped window, "24h / day"
+		// meant "today since midnight" and dropped everything from yesterday
+		// afternoon; hour and day views must now agree on the window.
+		$lines = array(
+			$this->log_line( '30-Apr-2026 11:00:00', 'PHP Warning:  today in /a.php on line 5' ),
+			$this->log_line( '29-Apr-2026 20:00:00', 'PHP Warning:  yesterday evening in /a.php on line 5' ),
+			$this->log_line( '29-Apr-2026 13:00:00', 'PHP Notice:  yesterday afternoon in /a.php on line 1' ),
+			$this->log_line( '29-Apr-2026 11:00:00', 'PHP Notice:  outside in /a.php on line 1' ),
+		);
+		file_put_contents( $this->log_path, implode( "\n", $lines ) . "\n" );
+
+		$hour = $this->stats()->summarize( '24h', 'hour', $this->ref() );
+		$day  = $this->stats()->summarize( '24h', 'day', $this->ref() );
+
+		$this->assertSame( 2, $hour['totals'][ Severity::WARNING ] );
+		$this->assertSame( 1, $hour['totals'][ Severity::NOTICE ] );
+		$this->assertSame( $hour['totals'], $day['totals'] );
+		$this->assertCount( 2, $day['buckets'] );
+		$this->assertSame( 2, $day['buckets'][0][ Severity::WARNING ] + $day['buckets'][1][ Severity::WARNING ] );
 	}
 
 	public function test_buckets_carry_absolute_timestamps_in_order(): void {

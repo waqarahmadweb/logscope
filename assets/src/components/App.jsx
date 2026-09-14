@@ -16,7 +16,7 @@
  * the global key listener (which has to live above the tab switch) free
  * of knowledge about specific refs.
  */
-import { useCallback, useEffect, useMemo, useState } from '@wordpress/element';
+import { useCallback, useEffect, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf, _n } from '@wordpress/i18n';
 
@@ -53,27 +53,16 @@ function emitShortcut( name ) {
 }
 
 export default function App() {
-	const { activeTab, logsTotal, items } = useSelect( ( select ) => {
+	const { activeTab, logsTotal, fatalTotal } = useSelect( ( select ) => {
 		const store = select( STORE_KEY );
 		return {
 			activeTab: store.getActiveTab(),
 			logsTotal: store.getLogsTotal(),
-			items: store.getLogs(),
+			fatalTotal: store.getLogsFatalTotal(),
 		};
 	}, [] );
 	const { setActiveTab } = useDispatch( STORE_KEY );
 	const [ helpOpen, setHelpOpen ] = useState( false );
-
-	// Live indicator counts: total comes from the API response (matches
-	// active filters across pagination); fatalInLoaded counts fatals
-	// across the entries the list has actually streamed in. With
-	// infinite-scroll loading, this grows toward the true total as the
-	// user scrolls — it is intentionally not a global aggregate (the
-	// Stats tab owns that view).
-	const fatalInLoaded = useMemo(
-		() => items.filter( ( i ) => i?.severity === 'fatal' ).length,
-		[ items ]
-	);
 
 	useEffect( () => {
 		const sync = () => setActiveTab( readTabFromHash() );
@@ -200,7 +189,7 @@ export default function App() {
 					role="status"
 					aria-live="polite"
 					title={ __(
-						'Entries matching the current filters · fatal count grows as more entries stream in while you scroll.',
+						'Entries and fatal errors matching the current filters.',
 						'logscope'
 					) }
 				>
@@ -213,21 +202,21 @@ export default function App() {
 						{ ' ' }
 						{ _n( 'entry', 'entries', logsTotal, 'logscope' ) }
 					</span>
-					{ fatalInLoaded > 0 && (
+					{ fatalTotal > 0 && (
 						<>
 							<span className="logscope-page-head__live-sep">
 								·
 							</span>
 							<span className="logscope-page-head__live-fatal">
 								{ sprintf(
-									/* translators: %d is the number of fatal errors among the entries currently loaded into the view. */
+									/* translators: %d is the number of fatal errors matching the current filters. */
 									_n(
 										'%d fatal',
 										'%d fatal',
-										fatalInLoaded,
+										fatalTotal,
 										'logscope'
 									),
-									fatalInLoaded
+									fatalTotal
 								) }
 							</span>
 						</>

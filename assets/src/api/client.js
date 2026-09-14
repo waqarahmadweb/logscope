@@ -85,11 +85,11 @@ export const client = {
 			path: logscopePath( '/logs/mute' ),
 		} );
 	},
-	muteSignature( signature, reason = '' ) {
+	muteSignature( signature, reason = '', sampleMessage = '' ) {
 		return apiFetch( {
 			path: logscopePath( '/logs/mute' ),
 			method: 'POST',
-			data: { signature, reason },
+			data: { signature, reason, sample_message: sampleMessage },
 		} );
 	},
 	unmuteSignature( signature ) {

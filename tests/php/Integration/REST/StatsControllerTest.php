@@ -75,12 +75,13 @@ final class StatsControllerTest extends TestCase {
 		$data = $response->get_data();
 		$this->assertSame( '24h', $data['range'] );
 		$this->assertSame( 'hour', $data['bucket'] );
-		$this->assertCount( 24, $data['buckets'] );
+		// range / bucket + 1: the grid snaps outward around the exact window.
+		$this->assertCount( 25, $data['buckets'] );
 		$this->assertArrayHasKey( 'totals', $data );
 		$this->assertArrayHasKey( 'top', $data );
 	}
 
-	public function test_seven_day_range_with_day_bucket_returns_seven_buckets(): void {
+	public function test_seven_day_range_with_day_bucket_returns_eight_buckets(): void {
 		$response = $this->controller->handle_index(
 			$this->request(
 				array(
@@ -93,10 +94,10 @@ final class StatsControllerTest extends TestCase {
 		$data = $response->get_data();
 		$this->assertSame( '7d', $data['range'] );
 		$this->assertSame( 'day', $data['bucket'] );
-		$this->assertCount( 7, $data['buckets'] );
+		$this->assertCount( 8, $data['buckets'] );
 	}
 
-	public function test_thirty_day_range_with_day_bucket_returns_thirty_buckets(): void {
+	public function test_thirty_day_range_with_day_bucket_returns_thirty_one_buckets(): void {
 		$response = $this->controller->handle_index(
 			$this->request(
 				array(
@@ -107,7 +108,7 @@ final class StatsControllerTest extends TestCase {
 		);
 
 		$data = $response->get_data();
-		$this->assertCount( 30, $data['buckets'] );
+		$this->assertCount( 31, $data['buckets'] );
 	}
 
 	public function test_recent_entries_count_in_totals(): void {

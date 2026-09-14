@@ -32,6 +32,7 @@ import buildFilterParams from '../../utils/filterParams';
 import { csvCell, downloadCsv, timestampForFilename } from '../../utils/csv';
 import formatFileLine from '../../utils/fileLine';
 import hiddenSig from '../../utils/hiddenSig';
+import promptMuteReason from '../../utils/muteReason';
 import EmptyState from '../EmptyState';
 import EntryRow, { entryKey, ROW_HEIGHT_BASE, rowHeightFor } from '../EntryRow';
 import FilterBar from '../FilterBar';
@@ -231,13 +232,18 @@ export default function LogViewer() {
 		// to bulkMuteSignatures keeps the dispatch logic identical to
 		// the grouped view's mute path — same toast, same dedup, same
 		// receiveMutes hand-off.
-		const sigs = Array.from(
-			new Set(
-				selectedEntries
-					.map( ( e ) => e.signature )
-					.filter( ( s ) => typeof s === 'string' && s.length > 0 )
-			)
-		);
+		// First message seen per signature doubles as the Muted panel label.
+		const samples = {};
+		selectedEntries.forEach( ( e ) => {
+			if (
+				typeof e.signature === 'string' &&
+				e.signature.length > 0 &&
+				! samples[ e.signature ]
+			) {
+				samples[ e.signature ] = e.message || '';
+			}
+		} );
+		const sigs = Object.keys( samples );
 		if ( sigs.length === 0 ) {
 			pushToast( {
 				message: __(
@@ -248,7 +254,11 @@ export default function LogViewer() {
 			} );
 			return;
 		}
-		await bulkMuteSignatures( sigs, '' );
+		const reason = promptMuteReason( sigs.length );
+		if ( reason === null ) {
+			return;
+		}
+		await bulkMuteSignatures( sigs, reason, samples );
 		// Refetch so the muted signatures' rows drop out of the list
 		// immediately. Mirrors the grouped view's post-mute behaviour.
 		fetchLogs( buildQueryParams( filters, viewMode, 1, perPage ) );
@@ -668,7 +678,7 @@ export default function LogViewer() {
 						{ sprintf(
 							/* translators: %s is the file size, e.g. "1.2 MB". */
 							__(
-								'Logscope will rename the active log to a timestamped archive (.cleared-YYYYMMDD-HHMMSS) so it stays recoverable on disk. Current size: %s.',
+								'Logscope will rename the active log to a timestamped archive (.cleared-YYYYMMDD-HHMMSS-xxxxxx, random suffix) so it stays recoverable on disk. Current size: %s.',
 								'logscope'
 							),
 							formatBytes( fileSize )
@@ -838,8 +848,21 @@ function ListScrollPane( { items, isLoading, scrollElementRef } ) {
 		};
 	}, [ hasMore, page, filters, viewMode, isTailing, isLoading, perPage ] );
 
+	// react-window v2 stores the scroll container in its own state and only
+	// exposes `listRef.current.element` after its first re-render, so a
+	// mount-only effect sees null and never attaches. Mirror the element
+	// into state after every render (cheap: a ref read and an equality
+	// check) so the listener effect below runs as soon as it exists.
+	const [ scrollElement, setScrollElement ] = useState( null );
 	useEffect( () => {
-		const element = listRef.current?.element;
+		const element = listRef.current?.element ?? null;
+		if ( element !== scrollElement ) {
+			setScrollElement( element );
+		}
+	} );
+
+	useEffect( () => {
+		const element = scrollElement;
 		if ( ! element ) {
 			return undefined;
 		}
@@ -855,8 +878,9 @@ function ListScrollPane( { items, isLoading, scrollElementRef } ) {
 				scrollElementRef.current = null;
 			}
 		};
+		// savedOffset is a one-time restore on attach, not a live binding.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [] );
+	}, [ scrollElement ] );
 
 	// Infinite-scroll trigger. The scroll-event approach is unreliable
 	// against react-window's virtualised viewport (the outer scroll

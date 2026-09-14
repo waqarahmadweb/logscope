@@ -60,6 +60,13 @@ final class EmailAlerter implements AlertDispatcherInterface {
 	private string $to;
 
 	/**
+	 * Reason the last dispatch failed, for the test-alert UI.
+	 *
+	 * @var string|null
+	 */
+	private ?string $last_error = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param bool   $enabled Whether the user has enabled email alerts.
@@ -77,6 +84,15 @@ final class EmailAlerter implements AlertDispatcherInterface {
 	 */
 	public function name(): string {
 		return 'email';
+	}
+
+	/**
+	 * Reason the most recent dispatch failed, or null.
+	 *
+	 * @return string|null
+	 */
+	public function last_error(): ?string {
+		return $this->last_error;
 	}
 
 	/**
@@ -98,7 +114,10 @@ final class EmailAlerter implements AlertDispatcherInterface {
 	 * @return bool True on wp_mail success, false on disabled / refused / transport failure.
 	 */
 	public function dispatch( Group $group ): bool {
+		$this->last_error = null;
+
 		if ( ! $this->is_enabled() ) {
+			$this->last_error = __( 'Email alerts are disabled or no recipient is set.', 'logscope' );
 			return false;
 		}
 
@@ -148,6 +167,7 @@ final class EmailAlerter implements AlertDispatcherInterface {
 		// a CRLF in. Refuse to send when one slips through rather than
 		// trusting upstream sanitisation in isolation.
 		if ( $this->contains_header_break( $this->to ) || $this->contains_header_break( $subject ) ) {
+			$this->last_error = __( 'The recipient or subject contains a line break and was refused.', 'logscope' );
 			return false;
 		}
 
@@ -164,11 +184,28 @@ final class EmailAlerter implements AlertDispatcherInterface {
 		};
 		add_action( 'phpmailer_init', $alt_body_cb );
 
+		// PHPMailer's reason (no mailer, SMTP refused, ...) only surfaces on
+		// this action; wp_mail() itself just returns false.
+		$failure    = null;
+		$failure_cb = static function ( $wp_error ) use ( &$failure ): void {
+			if ( is_wp_error( $wp_error ) ) {
+				$failure = $wp_error->get_error_message();
+			}
+		};
+		add_action( 'wp_mail_failed', $failure_cb );
+
 		try {
 			$ok = (bool) wp_mail( $this->to, $subject, $html );
 		} finally {
 			remove_filter( 'wp_mail_content_type', $content_type_cb );
 			remove_action( 'phpmailer_init', $alt_body_cb );
+			remove_action( 'wp_mail_failed', $failure_cb );
+		}
+
+		if ( ! $ok ) {
+			$this->last_error = is_string( $failure ) && '' !== $failure
+				? $failure
+				: __( 'wp_mail() returned false. Check the mail configuration of this site.', 'logscope' );
 		}
 
 		return $ok;

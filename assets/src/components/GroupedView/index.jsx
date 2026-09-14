@@ -27,6 +27,19 @@ import { formatEntryTimestamp } from '../../utils/formatTimestamp';
 import buildFilterParams from '../../utils/filterParams';
 import { csvCell, downloadCsv, timestampForFilename } from '../../utils/csv';
 import formatFileLine from '../../utils/fileLine';
+import promptMuteReason from '../../utils/muteReason';
+
+// Signature → sample message, so the Muted panel can show what was muted.
+function samplesFor( groups, signatures ) {
+	const wanted = new Set( signatures );
+	const out = {};
+	groups.forEach( ( g ) => {
+		if ( wanted.has( g.signature ) && g.sample_message ) {
+			out[ g.signature ] = g.sample_message;
+		}
+	} );
+	return out;
+}
 
 export default function GroupedView() {
 	const { groups, filters, isSavingMutes, perPage } = useSelect(
@@ -101,7 +114,16 @@ export default function GroupedView() {
 		if ( selected.size === 0 || isSavingMutes ) {
 			return;
 		}
-		await bulkMuteSignatures( Array.from( selected ), '' );
+		const signatures = Array.from( selected );
+		const reason = promptMuteReason( signatures.length );
+		if ( reason === null ) {
+			return;
+		}
+		await bulkMuteSignatures(
+			signatures,
+			reason,
+			samplesFor( groups, signatures )
+		);
 		// Refetch the grouped page so the muted groups drop out of
 		// view immediately, satisfying the AC's "all 3 disappear from
 		// view" expectation. We are inside GroupedView so the page is
@@ -247,21 +269,11 @@ function GroupRow( { group, isSelected, onToggleSelected } ) {
 
 	const onMute = ( event ) => {
 		event.stopPropagation();
-		// `window.prompt` is the smallest modal that satisfies the AC's
-		// "ask for an optional reason." A bespoke <Modal> would require
-		// portal wiring + focus traps without changing user value here;
-		// the management panel is where reasons get edited at length.
-		const reason = window.prompt(
-			__(
-				'Optional reason for muting this signature (visible in Settings → Muted signatures):',
-				'logscope'
-			),
-			''
-		);
+		const reason = promptMuteReason( 1 );
 		if ( reason === null ) {
 			return;
 		}
-		muteSignature( group.signature, reason );
+		muteSignature( group.signature, reason, group.sample_message || '' );
 	};
 
 	return (

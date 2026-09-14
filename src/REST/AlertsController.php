@@ -82,7 +82,7 @@ final class AlertsController extends RestController {
 	 * surface "nothing to send to" rather than silently claim success.
 	 *
 	 * Response body shape:
-	 *   - results: array of `{dispatcher, signature, outcome}` (one per
+	 *   - results: array of `{dispatcher, signature, outcome, error}` (one per
 	 *              registered dispatcher; outcome is `sent` / `skipped`
 	 *              / `failed` / `deduped` per
 	 *              `AlertCoordinator::dispatch_one()` — the test route

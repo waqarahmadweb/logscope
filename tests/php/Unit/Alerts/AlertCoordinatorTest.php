@@ -80,6 +80,7 @@ final class AlertCoordinatorTest extends TestCase {
 	public function test_failed_dispatch_does_not_record_sent(): void {
 		$dispatcher = $this->fake_dispatcher( 'email', true, true );
 		$dispatcher->shouldReceive( 'dispatch' )->once()->andReturn( false );
+		$dispatcher->shouldReceive( 'last_error' )->once()->andReturn( 'SMTP connect() failed' );
 
 		$dedup = Mockery::mock( AlertDeduplicator::class );
 		$dedup->shouldReceive( 'should_send' )->once()->andReturn( true );
@@ -89,6 +90,8 @@ final class AlertCoordinatorTest extends TestCase {
 		$out   = $coord->dispatch_for_groups( array( $this->fixture_group( 'sigA' ) ) );
 
 		$this->assertSame( 'failed', $out[0]['outcome'] );
+		// The dispatcher's reason rides along so the test-alert UI can show it.
+		$this->assertSame( 'SMTP connect() failed', $out[0]['error'] );
 	}
 
 	public function test_before_alert_filter_can_short_circuit_dispatch(): void {

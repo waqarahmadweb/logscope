@@ -62,6 +62,27 @@ final class MuteStoreTest extends TestCase {
 		$this->assertGreaterThan( 0, $persisted['sig-abc']['muted_at'] );
 	}
 
+	public function test_add_stores_sample_message_and_defaults_it_empty(): void {
+		$store = new MuteStore();
+
+		$store->add( 'sig-abc', '', 1, 'Undefined index: <b>foo</b> in acme.php' );
+		$store->add( 'sig-def', '', 1 );
+
+		$persisted = $this->store['values'][ MuteStore::OPTION_KEY ];
+		$this->assertSame( 'Undefined index: foo in acme.php', $persisted['sig-abc']['sample_message'] );
+		$this->assertSame( '', $persisted['sig-def']['sample_message'] );
+
+		// Records written before the field existed still list cleanly.
+		$this->store['values'][ MuteStore::OPTION_KEY ] = array(
+			'sig-old' => array(
+				'reason'   => 'legacy',
+				'muted_at' => 1,
+				'muted_by' => 1,
+			),
+		);
+		$this->assertSame( '', $store->list()[0]['sample_message'] );
+	}
+
 	public function test_add_strips_html_from_reason(): void {
 		$store = new MuteStore();
 

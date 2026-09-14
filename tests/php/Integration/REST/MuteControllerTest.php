@@ -76,8 +76,9 @@ final class MuteControllerTest extends TestCase {
 	public function test_post_persists_record_and_returns_full_list(): void {
 		$request = new WP_REST_Request(
 			array(
-				'signature' => 'sig-abc',
-				'reason'    => 'Known noisy plugin',
+				'signature'      => 'sig-abc',
+				'reason'         => 'Known noisy plugin',
+				'sample_message' => 'Undefined index: foo in acme.php',
 			)
 		);
 
@@ -88,6 +89,7 @@ final class MuteControllerTest extends TestCase {
 		$this->assertCount( 1, $items );
 		$this->assertSame( 'sig-abc', $items[0]['signature'] );
 		$this->assertSame( 'Known noisy plugin', $items[0]['reason'] );
+		$this->assertSame( 'Undefined index: foo in acme.php', $items[0]['sample_message'] );
 		$this->assertSame( 42, $items[0]['muted_by'] );
 	}
 

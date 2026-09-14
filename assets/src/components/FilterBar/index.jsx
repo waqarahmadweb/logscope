@@ -12,9 +12,9 @@
  * individual filters off without scanning the toolbar for the right
  * pill. Both strips are part of the same `role="search"` region.
  *
- * The source dropdown is populated from distinct file paths in the
- * currently-loaded entries (per Phase 7.1 AC) — we don't ship a separate
- * REST endpoint for it because the same data is already in the response.
+ * The source dropdown lists the distinct sources the server found across
+ * the whole log (`sources` on page 1 of GET /logs), merged with whatever
+ * the loaded rows carry so Live-appended sources show up too.
  */
 import {
 	useEffect,
@@ -34,18 +34,26 @@ import { SHORTCUT, SHORTCUT_EVENT } from '../../shortcuts';
 const REGEX_DEBOUNCE_MS = 300;
 
 export default function FilterBar() {
-	const { filters, items, viewMode, presets, isSavingPresets, logsTotal } =
-		useSelect( ( select ) => {
-			const store = select( STORE_KEY );
-			return {
-				filters: store.getFilters(),
-				items: store.getLogs(),
-				viewMode: store.getViewMode(),
-				presets: store.getPresets(),
-				isSavingPresets: store.isSavingPresets(),
-				logsTotal: store.getLogsTotal(),
-			};
-		}, [] );
+	const {
+		filters,
+		items,
+		serverSources,
+		viewMode,
+		presets,
+		isSavingPresets,
+		logsTotal,
+	} = useSelect( ( select ) => {
+		const store = select( STORE_KEY );
+		return {
+			filters: store.getFilters(),
+			items: store.getLogs(),
+			serverSources: store.getLogSources(),
+			viewMode: store.getViewMode(),
+			presets: store.getPresets(),
+			isSavingPresets: store.isSavingPresets(),
+			logsTotal: store.getLogsTotal(),
+		};
+	}, [] );
 	const {
 		setFilters,
 		resetFilters,
@@ -165,14 +173,14 @@ export default function FilterBar() {
 	}, [ filters.q ] );
 
 	const sources = useMemo( () => {
-		const seen = new Set();
+		const seen = new Set( serverSources || [] );
 		items.forEach( ( item ) => {
 			if ( item?.source ) {
 				seen.add( item.source );
 			}
 		} );
 		return Array.from( seen ).sort();
-	}, [ items ] );
+	}, [ items, serverSources ] );
 
 	const toggleSeverity = ( token ) => {
 		const next = filters.severity.includes( token )
@@ -418,7 +426,7 @@ export default function FilterBar() {
 							{ sources.length === 0 && (
 								<div className="logscope-filter-bar__menu-empty">
 									{ __(
-										'No sources in current page.',
+										'No sources found in the log.',
 										'logscope'
 									) }
 								</div>

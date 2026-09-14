@@ -54,4 +54,14 @@ interface AlertDispatcherInterface {
 	 * @return bool True on success, false on transport failure.
 	 */
 	public function dispatch( Group $group ): bool;
+
+	/**
+	 * Human-readable reason the most recent {@see dispatch()} returned
+	 * false, or null when it succeeded / has not run. Surfaced by the
+	 * test-alert endpoint so an admin can tell "SMTP not configured" from
+	 * "webhook host refused". Reset on every dispatch call.
+	 *
+	 * @return string|null
+	 */
+	public function last_error(): ?string;
 }

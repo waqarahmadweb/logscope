@@ -187,11 +187,13 @@ final class WebhookAlerterTest extends TestCase {
 				return json_encode( $data );
 			}
 		);
-		Functions\when( 'wp_safe_remote_post' )->justReturn( 'wp_error_sentinel' );
+		Functions\when( 'wp_safe_remote_post' )->justReturn( new \WP_Error( 'http_request_failed', 'A valid URL was not provided.' ) );
 		Functions\when( 'is_wp_error' )->justReturn( true );
 
 		$alerter = new WebhookAlerter( true, 'https://example.com/hook' );
 		$this->assertFalse( $alerter->dispatch( $this->fixture_group() ) );
+		// The transport's message is what the admin sees under "Failed".
+		$this->assertSame( 'A valid URL was not provided.', $alerter->last_error() );
 	}
 
 	public function test_dispatch_returns_false_on_non_2xx_response(): void {
@@ -210,6 +212,7 @@ final class WebhookAlerterTest extends TestCase {
 
 		$alerter = new WebhookAlerter( true, 'https://example.com/hook' );
 		$this->assertFalse( $alerter->dispatch( $this->fixture_group() ) );
+		$this->assertStringContainsString( '500', (string) $alerter->last_error() );
 	}
 
 	private function fixture_group(): Group {

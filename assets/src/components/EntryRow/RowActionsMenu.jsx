@@ -14,7 +14,12 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useDispatch } from '@wordpress/data';
-import { createPortal, useEffect, useRef } from '@wordpress/element';
+import {
+	createPortal,
+	useCallback,
+	useEffect,
+	useRef,
+} from '@wordpress/element';
 
 import { STORE_KEY } from '../../store';
 import formatFileLine from '../../utils/fileLine';
@@ -66,7 +71,19 @@ async function copy( value, dispatchToast, successMessage ) {
 
 export default function RowActionsMenu( { entry, position, onClose } ) {
 	const menuRef = useRef( null );
+	// Whatever had focus when the menu opened (the ⋮ button on keyboard
+	// open); Escape and item activation hand focus back to it instead of
+	// dropping it on <body>. Outside clicks leave focus where the user put it.
+	const openerRef = useRef( null );
 	const { pushToast, setFilters } = useDispatch( STORE_KEY );
+
+	const closeAndRestoreFocus = useCallback( () => {
+		onClose();
+		const opener = openerRef.current;
+		if ( opener && typeof opener.focus === 'function' ) {
+			opener.focus();
+		}
+	}, [ onClose ] );
 
 	useEffect( () => {
 		const onDocMouseDown = ( e ) => {
@@ -76,7 +93,7 @@ export default function RowActionsMenu( { entry, position, onClose } ) {
 		};
 		const onKey = ( e ) => {
 			if ( e.key === 'Escape' ) {
-				onClose();
+				closeAndRestoreFocus();
 			}
 		};
 		// Closing on scroll/resize avoids the menu drifting onto a
@@ -92,7 +109,7 @@ export default function RowActionsMenu( { entry, position, onClose } ) {
 			window.removeEventListener( 'resize', onLayoutChange );
 			window.removeEventListener( 'scroll', onLayoutChange, true );
 		};
-	}, [ onClose ] );
+	}, [ onClose, closeAndRestoreFocus ] );
 
 	// Menus must move focus in on open — without this, keyboard users can
 	// open the popover (aria-haspopup promises a menu) but reach nothing.
@@ -100,6 +117,7 @@ export default function RowActionsMenu( { entry, position, onClose } ) {
 		if ( ! entry || ! position ) {
 			return;
 		}
+		openerRef.current = document.activeElement;
 		const first = menuRef.current?.querySelector(
 			'button[role="menuitem"]:not(:disabled)'
 		);
@@ -159,7 +177,7 @@ export default function RowActionsMenu( { entry, position, onClose } ) {
 
 	const act = ( fn ) => {
 		fn();
-		onClose();
+		closeAndRestoreFocus();
 	};
 
 	// Portal to <body> so the fixed-position menu escapes react-window's
