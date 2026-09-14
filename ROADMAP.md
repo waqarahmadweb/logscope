@@ -848,7 +848,7 @@ Goal: every security-sensitive surface re-reviewed under one pass before the pub
     -   [README.md](README.md) status line: `Status: v1.0.0 — public release`
     -   **Commit**: `chore(release): v1.0.0`
 
--   [ ] **21.2** Tag `v1.0.0`, push tag, let the release workflow build the zip
+-   [x] **21.2** Tag `v1.0.0`, push tag, let the release workflow build the zip (2026-09-14, tag on `9c29856`; `logscope-1.0.0.zip` attached, AC verified)
 
     -   **AC**: GitHub release page shows the zip asset; zip contains no `vendor/dev` paths, no `node_modules/`, no `tests/`, no `.github/`, no `.vscode/`.
 
