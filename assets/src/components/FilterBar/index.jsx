@@ -16,7 +16,13 @@
  * currently-loaded entries (per Phase 7.1 AC) — we don't ship a separate
  * REST endpoint for it because the same data is already in the response.
  */
-import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
+import {
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
 
@@ -62,6 +68,32 @@ export default function FilterBar() {
 	// component that needs to know which one is open.
 	const [ openMenu, setOpenMenu ] = useState( null );
 	const closeMenu = () => setOpenMenu( null );
+
+	// Menus hang off the right edge of their pill. When the toolbar wraps
+	// and the pill sits near the left edge, a right-anchored menu would run
+	// under the wp-admin sidebar, so measure once per open and flip it to
+	// hang off the left edge instead.
+	const barRef = useRef( null );
+	const [ menuFlipped, setMenuFlipped ] = useState( false );
+	useLayoutEffect( () => {
+		setMenuFlipped( false );
+		if ( ! openMenu || ! barRef.current ) {
+			return;
+		}
+		const menu = barRef.current.querySelector(
+			'.logscope-filter-bar__menu'
+		);
+		if (
+			menu &&
+			menu.getBoundingClientRect().left <
+				barRef.current.getBoundingClientRect().left
+		) {
+			setMenuFlipped( true );
+		}
+	}, [ openMenu ] );
+	const menuClass = ( variant ) =>
+		`logscope-filter-bar__menu logscope-filter-bar__menu--${ variant }` +
+		( menuFlipped ? ' logscope-filter-bar__menu--flipped' : '' );
 
 	// `/` shortcut from App focuses (and selects) this input. Listening here
 	// rather than at App keeps the focus side-effect colocated with the
@@ -221,6 +253,7 @@ export default function FilterBar() {
 
 	return (
 		<div
+			ref={ barRef }
 			className="logscope-filter-bar"
 			role="search"
 			aria-label={ __( 'Log filters', 'logscope' ) }
@@ -310,7 +343,7 @@ export default function FilterBar() {
 					</button>
 					{ openMenu === 'date' && (
 						<div
-							className="logscope-filter-bar__menu logscope-filter-bar__menu--date"
+							className={ menuClass( 'date' ) }
 							role="dialog"
 							aria-label={ __( 'Date range', 'logscope' ) }
 						>
@@ -365,7 +398,7 @@ export default function FilterBar() {
 					     buttons already handle better on their own. */ }
 					{ openMenu === 'source' && (
 						<div
-							className="logscope-filter-bar__menu logscope-filter-bar__menu--source"
+							className={ menuClass( 'source' ) }
 							role="dialog"
 							aria-label={ __( 'Source file', 'logscope' ) }
 						>
@@ -437,7 +470,7 @@ export default function FilterBar() {
 					</button>
 					{ openMenu === 'preset' && (
 						<div
-							className="logscope-filter-bar__menu logscope-filter-bar__menu--preset"
+							className={ menuClass( 'preset' ) }
 							role="dialog"
 							aria-label={ __( 'Filter presets', 'logscope' ) }
 						>
