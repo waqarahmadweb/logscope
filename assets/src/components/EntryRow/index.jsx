@@ -94,6 +94,13 @@ export default function EntryRow( { index, style, items } ) {
 		) {
 			return;
 		}
+		// Ctrl/Cmd-click selects the row (multi-select without aiming at
+		// the 14px checkbox); a plain click keeps expanding the trace.
+		if ( e.ctrlKey || e.metaKey ) {
+			e.preventDefault();
+			toggleEntrySelected( key );
+			return;
+		}
 		toggleTraceExpanded( key );
 	};
 

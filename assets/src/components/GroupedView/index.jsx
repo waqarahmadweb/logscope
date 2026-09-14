@@ -286,7 +286,16 @@ function GroupRow( { group, isSelected, onToggleSelected } ) {
 				type="button"
 				className="logscope-grouped__summary"
 				aria-expanded={ isExpanded }
-				onClick={ () => toggleGroupExpanded( group.signature ) }
+				onClick={ ( e ) => {
+					// Ctrl/Cmd-click selects the group instead of expanding it,
+					// matching the list view.
+					if ( e.ctrlKey || e.metaKey ) {
+						e.preventDefault();
+						onToggleSelected( ! isSelected );
+						return;
+					}
+					toggleGroupExpanded( group.signature );
+				} }
 			>
 				<span
 					className={ `logscope-pill logscope-pill--${ tone }` }
