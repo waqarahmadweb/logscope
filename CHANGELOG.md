@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Fixed
+
+-   `pnpm package` (`bin/build-zip.ps1`) wrote zip entry names with backslashes on Windows PowerShell 5.1 (`logscopessetsuildindex.js`), which a Linux host extracts as literal file names so the plugin would not load. The zip is now written through .NET `ZipArchive` with forward-slash entries and no directory entries, matching the release workflow's `zip -r`.
+
 ## [1.0.0] - 2026-09-16
 
 First public release on the WordPress.org plugin directory (Phase 21 of the [roadmap](ROADMAP.md)). Everything since 0.18.0 was found by the pre-submission reviews, the manual test plan, and an automated browser pass against a real WordPress install: a security tightening pass, the retention settings UI, a long correctness and accessibility fix list, and the polish needed for the listing. 360 tests green.

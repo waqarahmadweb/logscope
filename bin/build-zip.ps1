@@ -16,7 +16,8 @@
       4. Layer in the built assets/build/ and a prod-only vendor/ (composer
          install --no-dev into the staging dir — your local dev vendor/ is
          left untouched).
-      5. Compress-Archive -> dist/logscope.zip, then report size.
+      5. Zip via .NET ZipArchive with forward-slash entry names -> dist/logscope.zip,
+         then report size.
 
     Run with:  pnpm package   (or)   powershell -File bin/build-zip.ps1
 #>
@@ -66,8 +67,24 @@ if ($LASTEXITCODE -ne 0) { throw 'composer install (prod) failed.' }
 Remove-Item (Join-Path $staging 'composer.json'), (Join-Path $staging 'composer.lock')
 
 # 5. Zip the slug folder (wp.org expects `logscope/` at the archive root).
+#    Not Compress-Archive: on Windows PowerShell 5.1 it writes entry names with
+#    backslashes, which Linux unzip (and WordPress's installer) treats as literal
+#    file names. Build the entries by hand with forward slashes, no directory
+#    entries, matching what `zip -r` produces in the release workflow.
 Write-Host '> Compressing...' -ForegroundColor DarkGray
-Compress-Archive -Path $staging -DestinationPath $zip -Force
+Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+$stream = [IO.File]::Open($zip, [IO.FileMode]::Create)
+$archive = New-Object IO.Compression.ZipArchive($stream, [IO.Compression.ZipArchiveMode]::Create)
+try {
+    Get-ChildItem -Path $staging -Recurse -File | Sort-Object FullName | ForEach-Object {
+        $entryName = $_.FullName.Substring($build.Length + 1).Replace('\', '/')
+        [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $_.FullName, $entryName, [IO.Compression.CompressionLevel]::Optimal) | Out-Null
+    }
+}
+finally {
+    $archive.Dispose()
+    $stream.Dispose()
+}
 
 # 6. Report.
 $sizeMb = (Get-Item $zip).Length / 1MB
