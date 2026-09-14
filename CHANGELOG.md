@@ -23,6 +23,7 @@ First public release on the WordPress.org plugin directory (Phase 21 of the [roa
 
 ### Changed
 
+-   wp.org listing screenshots re-captured on the 1.0.0 UI (All entries / Unique errors / Live toolbar, merged Monitoring section, Muted signatures with messages), in the order `readme.txt` lists them.
 -   `AlertDispatcherInterface` gains `last_error(): ?string`. Custom dispatchers must implement it (return `null` when the last dispatch succeeded).
 -   `POST /logs/mute` accepts an optional `sample_message` (500 chars, sanitised); `GET /logs/mute` items include it.
 -   The log-file setting is relabelled "Live refresh interval (seconds)" (was "Tail interval"), and its help text plus the section lead now describe it in terms of "Live mode" to match the toolbar's Live button rather than the old "tail" vocabulary.
