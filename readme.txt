@@ -103,8 +103,10 @@ Diagnostics data exposed through the `GET /diagnostics` REST endpoint (gated by 
 = 1.0.0 =
 First public release of Logscope on WordPress.org.
 * The 1.0 milestone ships the complete feature set from the pre-1.0 cycle — virtualized log viewer; severity, regex, date, and source filters; Unique errors view with bulk mute and CSV export; Live mode; stats dashboard; email and webhook alerts; the scheduled fatal scanner; opt-in log rotation; signature mute; filter presets; and the admin-bar, Dashboard widget, and Site Health surfaces.
+* Security tightening since 0.18.0: the sensitive settings (log path, alert email, webhook URL) and Clear log now require full administrator rights, not just the grantable Logscope capability; a custom log path must name a log file (`*.log` or `debug.log*`), never any other file in the install; CSV exports neutralise spreadsheet formula injection; Live and cron reads are capped so a huge log cannot exhaust memory.
+* New Settings fields for log rotation (max size, archives to keep); the server side already existed but had no UI.
+* Fix pass from a manual test plan and an automated browser run on a real install: same-day date ranges, the Live "N new entries" pill, a filter-aware fatal count in the header, stats totals that no longer change with the Hour/Day bucket, test-alert failures that explain why, bulk mute with a reason and readable Muted signatures, a Source dropdown listing every source in the log, and a stack of keyboard, focus, and screen-reader fixes.
 * Backed by a full security and privacy review: PathGuard path allowlisting, capability-gated REST routes, anti-SSRF webhook transport, and zero telemetry.
-* No functional changes from 0.18.0 — this release marks the public debut.
 
 = 0.18.0 =
 Phase 20: pre-1.0 security gate and UI fixes.
@@ -119,7 +121,7 @@ https://github.com/waqarahmadweb/logscope/blob/main/CHANGELOG.md
 == Upgrade Notice ==
 
 = 1.0.0 =
-First stable release of Logscope on the WordPress.org plugin directory. Same code as 0.18.0 — the public 1.0 milestone.
+First stable release of Logscope on the WordPress.org plugin directory. Includes a security tightening pass over 0.18.0 (sensitive settings and Clear log need full admin rights, log path limited to log files) and a long list of fixes from real-site testing.
 
 = 0.18.0 =
 Security hardening (anti-SSRF webhook transport, tighter REST validation) plus grouped-view and settings UI fixes. Ships light-only while a proper dark mode is rebuilt.

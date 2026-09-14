@@ -4,7 +4,40 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
-Findings from the automated Step 2 browser pass against the Studio site (release plan report, kept outside the repo).
+## [1.0.0] - 2026-09-14
+
+First public release on the WordPress.org plugin directory (Phase 21 of the [roadmap](ROADMAP.md)). Everything since 0.18.0 was found by the pre-submission reviews, the manual test plan, and an automated browser pass against a real WordPress install: a security tightening pass, the retention settings UI, a long correctness and accessibility fix list, and the polish needed for the listing. 360 tests green.
+
+### Security
+
+-   **POST /settings gates the sensitive keys on `manage_options`** — `log_path`, `alert_webhook_url`, and `alert_email_to`. The grantable `logscope_manage` cap could otherwise repoint the log path at any other `*.log` in the install (arbitrary read of another plugin's PII-laden log) or set the alert webhook/email to an attacker destination; those are now full-admin actions, mirroring the clear route.
+-   **Preset `severity` filter is intersected with `Severity::all()`** — the array branch previously accepted any string, bypassing the per-value length cap and allowing usermeta bloat.
+-   **Log-path leaf restriction** (punchlist 1.1): the configured `log_path` must now name a log file (`*.log` or a `debug.log*` rotation sibling) — directory containment alone spanned the whole install, so a holder of the grantable `logscope_manage` cap could point the plugin at `wp-config.php` and read it via `GET /logs` / `/logs/download`, or rename it to a publicly-served plaintext file via `DELETE /logs`. Enforced at every layer: a new `PathGuard::is_log_basename()` predicate, a construction-time throw in `FileLogSource`, a 400 on `POST /settings`, a sanitizer backstop in `SettingsSchema`, defence-in-depth refusals on the download and clear routes, and the same restriction on `POST /settings/test-path` so the probe stops being an existence/readability oracle for arbitrary files. `DELETE /logs` (clear) is additionally gated on `manage_options` — renaming the live log is a full-admin action, not a plugin-cap one.
+-   **CSV formula/DDE injection** (2.6): both exports now neutralise cells starting with `=`, `+`, `-`, `@`, tab, or CR by prefixing a literal quote — log messages are attacker-influenced and the BOM steers the file into Excel. Fixed once in a new shared `assets/src/utils/csv.js` (also deduplicating `csvCell`/`timestampForFilename`/the blob-download helper out of `LogViewer` and `GroupedView`, punchlist 4.1).
+-   **Tail read-budget bypass** (2.7): `GET /logs?since=0` on a multi-GB log previously `fread` the entire file past the 50 MB budget; the tail offset is now clamped to `max(since, size − MAX_BYTES_PER_QUERY)`.
+-   **Test seam gated out of production** (2.3): the `_logscope_skip_exit_for_tests` download param now only functions when the PHPUnit bootstrap defines `LOGSCOPE_RUNNING_TESTS`; in production it is inert.
+
+### Added
+
+-   Retention / log-rotation settings UI (2.2): the server side (`retention_enabled`, `retention_max_size_mb`, `retention_max_archives`, daily cron, uninstall cleanup) was fully wired but unreachable — no Settings field existed and Save never sent the keys. The Log file section now carries the rotation toggle plus max-size (1–1024 MB) and archives-to-keep (1–50) fields with validation mirroring the schema clamps.
+
+### Changed
+
+-   `AlertDispatcherInterface` gains `last_error(): ?string`. Custom dispatchers must implement it (return `null` when the last dispatch succeeded).
+-   `POST /logs/mute` accepts an optional `sample_message` (500 chars, sanitised); `GET /logs/mute` items include it.
+-   The log-file setting is relabelled "Live refresh interval (seconds)" (was "Tail interval"), and its help text plus the section lead now describe it in terms of "Live mode" to match the toolbar's Live button rather than the old "tail" vocabulary.
+-   The "Default rows per page" Display setting is relabelled "Rows loaded per batch" with clearer help — it sets the infinite-scroll fetch batch size, not a hard cap on rows shown (more load automatically as you scroll), which the old label wrongly implied.
+-   Fixed cramped spacing under the "WordPress debug constants" card: it now carries a bottom margin so the log-rotation toggle below it isn't flush against the card.
+-   The Settings "Muted signatures" section heading is now an `<h2>` like its peer sections (Log file, Monitoring, Display) instead of an `<h2>`-skipping `<h3>`, so the page heading outline is flat with no skipped level. Same visual size.
+-   Plugin Check hygiene: the four remaining `LogQuery` exception-throw sites carry correct `phpcs:disable/enable` (or inline `phpcs:ignore` on the throw line, not the closing paren); both `ini_set('pcre.backtrack_limit', …)` calls carry a justified `WordPress.PHP.IniSet.Risky` ignore; `logscope.php` guards the `vendor/autoload.php` require with a graceful admin notice so a raw git clone (no `composer install`) degrades instead of fataling. The remaining `composer lint` residue (missing `@throws`, an empty catch, an alignment nit) is resolved, so full `phpcs` now exits 0.
+-   Cleared and rotated log archives get an unguessable name — a `wp_generate_password(6)` token is appended after the timestamp (`debug.log.cleared-<ts>-<rand>` / `.archived-<ts>-<rand>`), so an anonymous visitor cannot enumerate them over the web on a server that serves the log directory as plain files. The prune glob and mtime sort are unaffected.
+-   Stopping Live now refetches page 1, so the rows a tail session prepended (which shift the newest-first server pages) no longer cause the next infinite-scroll fetch to re-serve on-screen rows as duplicates.
+-   Dead code removed: `useTheme.js` (dark mode is gone for v1.0), the unused `settings.lastSavedAt` field + selector, the `resetSettingsDraft` action + reducer case, the `getMutesSaveError` / `isMuted` / `isLoadingDiagnostics` / `getDiagnosticsLoadError` selectors and the write-only `mutes.saveError` slice, test-only exports with no tests (`DEFAULT_FILTERS_SHAPE`, `DEFAULT_TIMEOUT_MS`, `MONITORING_FIELD_KEYS`, `DISPLAY_FIELD_KEYS`), `LogRepository::distinct_sources()` (test-only, full 50 MB read), `Plugin::has()`, `SettingsSchema::TYPES`, the unreachable `catch (MissingPathException)` in `DiagnosticsService`, the tone-collapsed `--parse`/`--strict` Stats CSS modifiers, and 24 stale `.gitkeep` files.
+-   Duplication collapsed: `register_rest_routes()` loops over a service-id → label map instead of seven copied try/catch blocks; `PresetsController`'s triple user-id guard is one `current_user_id()` helper; the `fetchLogs`/`fetchNextLogsPage` thunks share one generator; `file:line` formatting is one `utils/fileLine.js` (six call sites); the SCSS `$severity-*` vars alias the `--logscope-dot-*` custom props so Logs pills and Stats tiles share one palette; `SettingsSchema`'s severity vocabulary comes from `Severity::all()`; the six hand-rolled `{items: …}` responses use a base-class `items_response()`; `API_FETCH_STATS` takes range/bucket as payload instead of reaching back into the store.
+-   Efficiency: `SourceClassifier` patterns hoisted to a const (was rebuilt twice per entry on filtered queries); `LogGrouper` tracks first/last-seen as unix ints per group (no re-parse per occurrence or in the sort) and memoizes per-entry signatures in a `WeakMap`; the Dashboard widget caches its five shaped rows in a 60-second transient instead of tail-reading up to 50 MB per dashboard paint; `mtime()` joined `LogSourceInterface`, dropping the `method_exists` reflection in `LogStats`.
+-   Hardening: presets capped at 50 per user with 200-char filter values; mutes capped at 200 records with md5-shape validation at the REST boundary (a full list now 400s with a clear message); the clear-log rename probes for an existing archive so a same-second double-clear cannot overwrite the first; the user-regex filter loop runs under a tightened `pcre.backtrack_limit` and surfaces a PCRE failure as a 400 ("pattern too complex") instead of silently filtering; the URL-borne `?q=` is capped at the server's 200-char regex limit before the client-side highlight `RegExp` sees it.
+-   Nits: stale FTP-deploy comments removed from `bin/build-zip.ps1`; `release.yml` now asserts `languages/logscope.pot` ships in the zip; three drifted docblocks corrected (`AdminBar` hook name, `AlertsController` outcome list, `LogRotator` `$guard` scope); `Plugin.php` uses `CronScheduler::HOOK` instead of a string literal; the punctuation-only `'%1$s — %2$s'` translation slot and two no-op `_n()` plurals removed.
+-   Docs vocabulary aligned with the shipped toolbar (1.5): readme.txt, README.md, and the `.wordpress-org` spec now say **All entries / Unique errors / Live** instead of List / Grouped / Tail; screenshot captions reordered to lead with the Stats dashboard (screenshot 2) and the spec corrected from `.png` to the shipped `.jpg`, with a re-capture note for the renamed toolbar.
 
 ### Fixed
 
@@ -17,16 +50,6 @@ Findings from the automated Step 2 browser pass against the Studio site (release
 -   Row ⋮ menu: Escape and choosing an item return focus to the ⋮ button instead of dropping it on `<body>`.
 -   The empty-state path no longer mixes slash styles on Windows (`D:\...\Site/wp-content\debug.log`), and the Clear-log modal names the real archive pattern including its random suffix.
 -   The Source dropdown lists every source in the log, not just those on the loaded rows. `GET /logs` returns a `sources` array on page 1 (unfiltered, sorted) and the dropdown merges it with the loaded rows.
-
-### Changed
-
--   `AlertDispatcherInterface` gains `last_error(): ?string`. Custom dispatchers must implement it (return `null` when the last dispatch succeeded).
--   `POST /logs/mute` accepts an optional `sample_message` (500 chars, sanitised); `GET /logs/mute` items include it.
-
-UX + a11y fixes from live browser testing on a real WordPress install.
-
-### Fixed
-
 -   The admin page now has exactly one `<h1>`. The server host page dropped its screen-reader `<h1>` so the React app's visible "Logscope" title is the sole level-1 heading (previously both rendered, giving the page two h1s).
 -   The Live button no longer turns black with invisible text once pressed: it now uses the same cream sunken fill as the active view tab, and Download / Clear log share that hover instead of WP's blue and red tertiary hovers.
 -   Ctrl-click (Cmd-click on macOS) on a row now selects it instead of expanding it, in both All entries and Unique errors, so multi-select no longer needs the 14px checkbox.
@@ -39,47 +62,11 @@ UX + a11y fixes from live browser testing on a real WordPress install.
 -   Dev tooling bumped past the advisories flagged by `composer audit`: php_codesniffer 3.13.6, wpcs 3.4.1, phpcsutils 1.2.3, phpcsextra 1.5.1. No runtime dependency changed. `assets/src/store/index.js` re-formatted with the project Prettier config (pre-commit hook had been skipped).
 -   The read-only "WordPress debug constants" card no longer appears to jump/vanish when the log-rotation toggle is switched on. The card now sits above the rotation controls, so enabling rotation only expands the size/archives fields below it instead of pushing the card out of view.
 -   Enabling alerts no longer flashes red errors before the user has filled anything in. An empty-but-required recipient email or webhook URL (and the "pick a channel" prompt) now render as amber guidance; only genuinely invalid input (a malformed email, a non-http(s) URL) shows a red error. Both still block Save.
-
-### Changed
-
--   The log-file setting is relabelled "Live refresh interval (seconds)" (was "Tail interval"), and its help text plus the section lead now describe it in terms of "Live mode" to match the toolbar's Live button rather than the old "tail" vocabulary.
--   The "Default rows per page" Display setting is relabelled "Rows loaded per batch" with clearer help — it sets the infinite-scroll fetch batch size, not a hard cap on rows shown (more load automatically as you scroll), which the old label wrongly implied.
--   Fixed cramped spacing under the "WordPress debug constants" card: it now carries a bottom margin so the log-rotation toggle below it isn't flush against the card.
--   The Settings "Muted signatures" section heading is now an `<h2>` like its peer sections (Log file, Monitoring, Display) instead of an `<h2>`-skipping `<h3>`, so the page heading outline is flat with no skipped level. Same visual size.
-
-Pre-submission fix pass from the fresh three-agent review (v1.0 submission report, kept outside the repo) — the fix-before-shipping bugs, the one security tightening worth closing, and the Plugin Check ERROR-level annotations. 350 tests green.
-
-### Security
-
--   **POST /settings gates the sensitive keys on `manage_options`** — `log_path`, `alert_webhook_url`, and `alert_email_to`. The grantable `logscope_manage` cap could otherwise repoint the log path at any other `*.log` in the install (arbitrary read of another plugin's PII-laden log) or set the alert webhook/email to an attacker destination; those are now full-admin actions, mirroring the clear route.
--   **Preset `severity` filter is intersected with `Severity::all()`** — the array branch previously accepted any string, bypassing the per-value length cap and allowing usermeta bloat.
-
-### Fixed
-
 -   Live mode keeps polling when the visible list is empty — `useTailPolling` was mounted only inside `ListScrollPane`, which unmounts on an empty list, so after Clear log / on an empty log / after muting the last visible rows, Live stayed lit but nothing updated. The hook now lives in `LogViewer` (always mounted) and the scroll pane feeds it a shared ref, nulled on unmount.
 -   The cron scanner clamps its read to `MAX_BYTES_PER_QUERY` — the first tick after enabling monitoring (cursor 0) and every post-rotation tick previously `fread` the entire log in one string (cron OOM/timeout risk on a large log, and a first-enable alert storm over all historical fatals).
 -   Tail appends increment `logs.total`, so `hasMoreLogs` no longer flips false after a Live session while unloaded pages remain (was causing premature "End of log", dead infinite scroll, and a stale header count).
 -   The reported tail cursor is clamped to the end of the last complete line, so a read that races a mid-write no longer hands back a mid-line cursor that the next tick misreads as a rotation (spurious full-list replace). Parsing still reads to true EOF, so a final unterminated line is not dropped.
 -   `clearAllLogs` refetches with the live filters/viewMode/perPage instead of a bare `{page:1}`, so clearing the log no longer resets a configured `default_per_page` to 50.
-
-### Changed
-
--   Plugin Check hygiene: the four remaining `LogQuery` exception-throw sites carry correct `phpcs:disable/enable` (or inline `phpcs:ignore` on the throw line, not the closing paren); both `ini_set('pcre.backtrack_limit', …)` calls carry a justified `WordPress.PHP.IniSet.Risky` ignore; `logscope.php` guards the `vendor/autoload.php` require with a graceful admin notice so a raw git clone (no `composer install`) degrades instead of fataling. The remaining `composer lint` residue (missing `@throws`, an empty catch, an alignment nit) is resolved, so full `phpcs` now exits 0.
--   Cleared and rotated log archives get an unguessable name — a `wp_generate_password(6)` token is appended after the timestamp (`debug.log.cleared-<ts>-<rand>` / `.archived-<ts>-<rand>`), so an anonymous visitor cannot enumerate them over the web on a server that serves the log directory as plain files. The prune glob and mtime sort are unaffected.
--   Stopping Live now refetches page 1, so the rows a tail session prepended (which shift the newest-first server pages) no longer cause the next infinite-scroll fetch to re-serve on-screen rows as duplicates.
-
-Pre-submission punchlist pass (v1.0 release punchlist, kept outside the repo): all §1 blockers, §2 high-severity items, §3 medium items, and every small (S-effort) §4/§5 quality item. The seven M-effort §4 refactors (shared timestamp parse, PHP→JS severity emit, bulk-mute endpoint, thunk factory, /logs transient cache, derived selectors, shared tail reader) are deliberately deferred to v1.0.1 as cross-cutting refactors too risky days before submission. Screenshots still need re-capturing on the renamed toolbar before the zip is built.
-
-### Changed (§4/§5 quality pass)
-
--   Dead code removed: `useTheme.js` (dark mode is gone for v1.0), the unused `settings.lastSavedAt` field + selector, the `resetSettingsDraft` action + reducer case, the `getMutesSaveError` / `isMuted` / `isLoadingDiagnostics` / `getDiagnosticsLoadError` selectors and the write-only `mutes.saveError` slice, test-only exports with no tests (`DEFAULT_FILTERS_SHAPE`, `DEFAULT_TIMEOUT_MS`, `MONITORING_FIELD_KEYS`, `DISPLAY_FIELD_KEYS`), `LogRepository::distinct_sources()` (test-only, full 50 MB read), `Plugin::has()`, `SettingsSchema::TYPES`, the unreachable `catch (MissingPathException)` in `DiagnosticsService`, the tone-collapsed `--parse`/`--strict` Stats CSS modifiers, and 24 stale `.gitkeep` files.
--   Duplication collapsed: `register_rest_routes()` loops over a service-id → label map instead of seven copied try/catch blocks; `PresetsController`'s triple user-id guard is one `current_user_id()` helper; the `fetchLogs`/`fetchNextLogsPage` thunks share one generator; `file:line` formatting is one `utils/fileLine.js` (six call sites); the SCSS `$severity-*` vars alias the `--logscope-dot-*` custom props so Logs pills and Stats tiles share one palette; `SettingsSchema`'s severity vocabulary comes from `Severity::all()`; the six hand-rolled `{items: …}` responses use a base-class `items_response()`; `API_FETCH_STATS` takes range/bucket as payload instead of reaching back into the store.
--   Efficiency: `SourceClassifier` patterns hoisted to a const (was rebuilt twice per entry on filtered queries); `LogGrouper` tracks first/last-seen as unix ints per group (no re-parse per occurrence or in the sort) and memoizes per-entry signatures in a `WeakMap`; the Dashboard widget caches its five shaped rows in a 60-second transient instead of tail-reading up to 50 MB per dashboard paint; `mtime()` joined `LogSourceInterface`, dropping the `method_exists` reflection in `LogStats`.
--   Hardening: presets capped at 50 per user with 200-char filter values; mutes capped at 200 records with md5-shape validation at the REST boundary (a full list now 400s with a clear message); the clear-log rename probes for an existing archive so a same-second double-clear cannot overwrite the first; the user-regex filter loop runs under a tightened `pcre.backtrack_limit` and surfaces a PCRE failure as a 400 ("pattern too complex") instead of silently filtering; the URL-borne `?q=` is capped at the server's 200-char regex limit before the client-side highlight `RegExp` sees it.
--   Nits: stale FTP-deploy comments removed from `bin/build-zip.ps1`; `release.yml` now asserts `languages/logscope.pot` ships in the zip; three drifted docblocks corrected (`AdminBar` hook name, `AlertsController` outcome list, `LogRotator` `$guard` scope); `Plugin.php` uses `CronScheduler::HOOK` instead of a string literal; the punctuation-only `'%1$s — %2$s'` translation slot and two no-op `_n()` plurals removed.
-
-### Fixed (§3 medium — correctness)
-
 -   Loading a filter preset now syncs the visible search box (3.1) — previously the box kept its old text and a pending 300 ms debounce clobbered the just-loaded regex.
 -   Infinite scroll can no longer double-append a page (3.2): the guard read `isLoading` from a ref updated only post-render, so a fast scroll passed it twice; a synchronous in-flight latch now flips at dispatch time.
 -   The tail rotation branch resets `logs.total`/`page` (3.3), removing the phantom "scroll for more" tail and the bogus next-page fetch after a rotation replace.
@@ -91,9 +78,6 @@ Pre-submission punchlist pass (v1.0 release punchlist, kept outside the repo): a
 -   Rotated-then-regrown logs are detected (3.8): a tail cursor that lands mid-line (legit cursors always sit past a newline) marks the response `rotated` so the client replaces instead of appending garbled partial entries.
 -   `EmailAlerter` truncates subject snippets per-character with `mb_substr` (3.10) so a multibyte UTF-8 character is never split into mojibake.
 -   `LogStats` honours each entry's own timezone token when bucketing (3.11) instead of parsing everything as UTC.
-
-### Fixed (§3 accessibility)
-
 -   `BreakdownBar` no longer collapses its subtree behind `role="img"` (3.12) — the heading and per-severity rows are now exposed to AT as real text.
 -   `TopSignaturesTable` rows are plain `<tr>`s again with a real focusable per-row button carrying a distinct label (severity + sample) (3.13) — `role="button"` on rows had destroyed the table semantics and read one identical string N times.
 -   `RowActionsMenu` moves focus to the first item on open and supports Arrow/Home/End navigation per the ARIA menu pattern (3.14).
@@ -102,16 +86,6 @@ Pre-submission punchlist pass (v1.0 release punchlist, kept outside the repo): a
 -   App tabs carry `aria-controls`/`id`, the tabpanel carries `id`/`aria-labelledby`, and the whole-panel `aria-live="polite"` is gone (3.17) — it announced the entire body on every tab switch.
 -   All 14 `'Unknown error'` toast/empty-state fallbacks in the store are translatable (3.18), as are the five `LogQuery` validation messages surfaced in REST 400 bodies (3.19).
 -   Emoji glyphs in button labels (🔕 Mute, 📋 Copy paths, ⤓ Download/Export, 📅 date pill) are wrapped in `aria-hidden` spans (3.20) so screen readers announce the action, not the glyph.
-
-### Security
-
--   **Log-path leaf restriction** (punchlist 1.1): the configured `log_path` must now name a log file (`*.log` or a `debug.log*` rotation sibling) — directory containment alone spanned the whole install, so a holder of the grantable `logscope_manage` cap could point the plugin at `wp-config.php` and read it via `GET /logs` / `/logs/download`, or rename it to a publicly-served plaintext file via `DELETE /logs`. Enforced at every layer: a new `PathGuard::is_log_basename()` predicate, a construction-time throw in `FileLogSource`, a 400 on `POST /settings`, a sanitizer backstop in `SettingsSchema`, defence-in-depth refusals on the download and clear routes, and the same restriction on `POST /settings/test-path` so the probe stops being an existence/readability oracle for arbitrary files. `DELETE /logs` (clear) is additionally gated on `manage_options` — renaming the live log is a full-admin action, not a plugin-cap one.
--   **CSV formula/DDE injection** (2.6): both exports now neutralise cells starting with `=`, `+`, `-`, `@`, tab, or CR by prefixing a literal quote — log messages are attacker-influenced and the BOM steers the file into Excel. Fixed once in a new shared `assets/src/utils/csv.js` (also deduplicating `csvCell`/`timestampForFilename`/the blob-download helper out of `LogViewer` and `GroupedView`, punchlist 4.1).
--   **Tail read-budget bypass** (2.7): `GET /logs?since=0` on a multi-GB log previously `fread` the entire file past the 50 MB budget; the tail offset is now clamped to `max(since, size − MAX_BYTES_PER_QUERY)`.
--   **Test seam gated out of production** (2.3): the `_logscope_skip_exit_for_tests` download param now only functions when the PHPUnit bootstrap defines `LOGSCOPE_RUNNING_TESTS`; in production it is inert.
-
-### Fixed
-
 -   Live tail now honours muted signatures (2.4): the mute filter ran only on the paginated branch, so muted entries re-appeared on every poll tick while tailing.
 -   Tail rotation reset no longer dropped (2.5): `useTailPolling` used `||` on `last_byte`, discarding a legitimate `0` after rotation so the cursor never re-baselined; now `??`.
 -   `unknown` severity no longer vanishes from the Stats tab (2.8): `KpiGrid` / `VolumeChart` / `BreakdownBar` each forked a 6-token severity list while the server counts 7; they now import the canonical `SEVERITY_TOKENS` from `utils/severity.js`, so an unknown-only log no longer renders "Total 0" tiles and a null chart.
@@ -121,18 +95,6 @@ Pre-submission punchlist pass (v1.0 release punchlist, kept outside the repo): a
 -   `uninstall.php` removes the `logscope_muted_signatures` option (2.1) — previously orphaned on delete and silently re-filtering entries on reinstall.
 -   `languages/logscope.pot` regenerated for 1.0.0 (1.2): the shipped file was frozen at 0.8.0 with placeholder copyright, deleted strings, and ~200 missing call sites; `bin/make-pot.mjs` now excludes `assets/build` and friends so minified-bundle refs stay out (1.3).
 -   PHPUnit suite repaired: the bootstrap never defined `ABSPATH`, so the first autoloaded `src/` class hit its `defined( 'ABSPATH' ) || exit` guard and killed the run silently with exit 0 — the suite has not actually executed locally since the guards landed in 0.18.0. With the constant defined, the accumulated stale expectations surfaced and were updated (webhook tests still stubbed pre-0.18.0 `wp_remote_post`, `LogRotator` prune needed a `wp_delete_file` stub, settings-shape tests predated `admin_bar_enabled`, `PageRenderer` markup drift), plus new coverage for the leaf restriction and the clear-route admin gate. 345 tests green.
-
-### Added
-
--   Retention / log-rotation settings UI (2.2): the server side (`retention_enabled`, `retention_max_size_mb`, `retention_max_archives`, daily cron, uninstall cleanup) was fully wired but unreachable — no Settings field existed and Save never sent the keys. The Log file section now carries the rotation toggle plus max-size (1–1024 MB) and archives-to-keep (1–50) fields with validation mirroring the schema clamps.
-
-### Changed
-
--   Docs vocabulary aligned with the shipped toolbar (1.5): readme.txt, README.md, and the `.wordpress-org` spec now say **All entries / Unique errors / Live** instead of List / Grouped / Tail; screenshot captions reordered to lead with the Stats dashboard (screenshot 2) and the spec corrected from `.png` to the shipped `.jpg`, with a re-capture note for the renamed toolbar.
-
-## [1.0.0] - 2026-06-23
-
-First public release on the WordPress.org plugin directory — Phase 21 of the [roadmap](ROADMAP.md). No functional changes from 0.18.0; this is the public 1.0 cut. The complete feature set built across the pre-1.0 cycle (log viewer, filters, grouped view + bulk actions, tail mode, stats dashboard, email/webhook alerts, scheduled scanner, log rotation, mute, presets, admin-bar / Dashboard widget / Site Health surfaces) ships hardened by the full Phase 20 security and privacy review.
 
 ## [0.18.0] - 2026-06-23
 
@@ -473,7 +435,11 @@ Closes Phase 1 of the [roadmap](ROADMAP.md): composer, pnpm, phpcs, ESLint/Prett
 -   Initial project scaffold: folder structure matching the target architecture, plugin header file, GPL v2 license, AI agent rules (`AGENTS.md`, `CLAUDE.md`), EditorConfig, `.gitignore`, and `.gitattributes` with wp.org release-export hygiene.
 -   No runtime behavior yet — plugin activates cleanly in WordPress 6.2+ on PHP 8.0+ and does nothing.
 
-[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v0.15.0...HEAD
+[Unreleased]: https://github.com/waqarahmadweb/logscope/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/waqarahmadweb/logscope/compare/v0.18.0...v1.0.0
+[0.18.0]: https://github.com/waqarahmadweb/logscope/compare/v0.17.0...v0.18.0
+[0.17.0]: https://github.com/waqarahmadweb/logscope/compare/v0.16.0...v0.17.0
+[0.16.0]: https://github.com/waqarahmadweb/logscope/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/waqarahmadweb/logscope/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/waqarahmadweb/logscope/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/waqarahmadweb/logscope/compare/v0.12.0...v0.13.0
