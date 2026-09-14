@@ -93,6 +93,10 @@ const DEFAULT_STATE = {
 	logs: {
 		items: [],
 		total: 0,
+		// Set-wide fatal count and distinct log sources, both server-computed
+		// so they do not depend on how many rows have streamed in.
+		fatalTotal: 0,
+		sources: [],
 		page: 1,
 		perPage: bootstrapPerPage,
 		isLoading: false,
@@ -162,6 +166,12 @@ function stampEntry( entry ) {
 }
 function stampEntries( items ) {
 	return ( items || [] ).map( stampEntry );
+}
+
+// Tail ticks bypass the server-side fatal_total, so the header count is
+// kept in step client-side from the entries that arrive.
+function countFatals( items ) {
+	return ( items || [] ).filter( ( e ) => e?.severity === 'fatal' ).length;
 }
 
 /**
@@ -473,13 +483,14 @@ const actions = {
 			);
 		}
 	},
-	*muteSignature( signature, reason = '' ) {
+	*muteSignature( signature, reason = '', sampleMessage = '' ) {
 		yield actions.startSavingMutes();
 		try {
 			const payload = yield {
 				type: 'API_MUTE_SIGNATURE',
 				signature,
 				reason,
+				sampleMessage,
 			};
 			yield actions.receiveMutes( ( payload && payload.items ) || [] );
 			yield actions.pushToast( {
@@ -498,10 +509,11 @@ const actions = {
 			} );
 		}
 	},
-	*bulkMuteSignatures( signatures, reason = '' ) {
+	*bulkMuteSignatures( signatures, reason = '', samples = {} ) {
 		// Drop empties + dedupe so a sloppy caller can pass the raw
 		// selection set without having to pre-clean it. An empty list
-		// short-circuits without the placeholder toast.
+		// short-circuits without the placeholder toast. `samples` maps
+		// signature to a representative message for the Muted panel.
 		const list = Array.from(
 			new Set(
 				( signatures || [] ).filter(
@@ -522,6 +534,7 @@ const actions = {
 					type: 'API_MUTE_SIGNATURE',
 					signature,
 					reason,
+					sampleMessage: samples?.[ signature ] || '',
 				};
 			} catch ( e ) {
 				failures += 1;
@@ -883,6 +896,7 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 						// old total/page over would fake a "scroll for more"
 						// tail and fire a bogus next-page fetch.
 						total: replacement.length,
+						fatalTotal: countFatals( replacement ),
 						page: 1,
 					},
 					expandedTraces: {},
@@ -907,6 +921,7 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					// a tail session while unloaded pages remain, killing
 					// infinite scroll and staling the header count.
 					total: state.logs.total + incoming.length,
+					fatalTotal: state.logs.fatalTotal + countFatals( incoming ),
 				},
 				tail: {
 					...state.tail,
@@ -972,6 +987,10 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					isLoading: false,
 					items,
 					total: action.payload.total || 0,
+					fatalTotal: action.payload.fatal_total || 0,
+					sources: Array.isArray( action.payload.sources )
+						? action.payload.sources
+						: [],
 					page: action.payload.page || 1,
 					perPage: action.payload.per_page || state.logs.perPage,
 				},
@@ -998,6 +1017,10 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 					isLoading: false,
 					items: [ ...state.logs.items, ...appended ],
 					total: action.payload.total || state.logs.total,
+					// Later pages carry the same set-wide count; `sources` is only
+					// sent with page 1, so keep what we have.
+					fatalTotal:
+						action.payload.fatal_total ?? state.logs.fatalTotal,
 					page: action.payload.page || state.logs.page,
 					perPage: action.payload.per_page || state.logs.perPage,
 				},
@@ -1384,6 +1407,8 @@ const selectors = {
 	getTailNewCount: ( state ) => state.tail.newCount,
 	getLogs: ( state ) => state.logs.items,
 	getLogsTotal: ( state ) => state.logs.total,
+	getLogsFatalTotal: ( state ) => state.logs.fatalTotal,
+	getLogSources: ( state ) => state.logs.sources,
 	getLogsPage: ( state ) => state.logs.page,
 	getLogsPerPage: ( state ) => state.logs.perPage,
 	hasMoreLogs: ( state ) =>
@@ -1443,8 +1468,8 @@ const controls = {
 	API_FETCH_MUTES() {
 		return client.getMutes();
 	},
-	API_MUTE_SIGNATURE( { signature, reason } ) {
-		return client.muteSignature( signature, reason );
+	API_MUTE_SIGNATURE( { signature, reason, sampleMessage } ) {
+		return client.muteSignature( signature, reason, sampleMessage );
 	},
 	API_UNMUTE_SIGNATURE( { signature } ) {
 		return client.unmuteSignature( signature );

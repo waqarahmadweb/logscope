@@ -46,6 +46,13 @@ export default function EmptyState( {
 	);
 }
 
+// WP_CONTENT_DIR on Windows is ABSPATH (backslashes) + '/wp-content', so
+// the default path arrives mixed. Unify on backslashes when any are present.
+function displayPath( path ) {
+	const value = String( path || '' );
+	return value.includes( '\\' ) ? value.replace( /\//g, '\\' ) : value;
+}
+
 function resolveReason( { filtersActive, diagnostics, muteCount } ) {
 	if ( filtersActive ) {
 		return {
@@ -85,7 +92,7 @@ function resolveReason( { filtersActive, diagnostics, muteCount } ) {
 						'Logscope is watching %s — entries will appear here once WordPress writes its first error.',
 						'logscope'
 					),
-					diagnostics.log_path
+					displayPath( diagnostics.log_path )
 				),
 			};
 		}

@@ -65,6 +65,13 @@ final class WebhookAlerter implements AlertDispatcherInterface {
 	private string $url;
 
 	/**
+	 * Reason the last dispatch failed, for the test-alert UI.
+	 *
+	 * @var string|null
+	 */
+	private ?string $last_error = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param bool   $enabled Whether the user has enabled webhook alerts.
@@ -82,6 +89,15 @@ final class WebhookAlerter implements AlertDispatcherInterface {
 	 */
 	public function name(): string {
 		return 'webhook';
+	}
+
+	/**
+	 * Reason the most recent dispatch failed, or null.
+	 *
+	 * @return string|null
+	 */
+	public function last_error(): ?string {
+		return $this->last_error;
 	}
 
 	/**
@@ -103,12 +119,16 @@ final class WebhookAlerter implements AlertDispatcherInterface {
 	 * @return bool True on 2xx response, false on disabled / invalid URL / non-2xx / transport failure.
 	 */
 	public function dispatch( Group $group ): bool {
+		$this->last_error = null;
+
 		if ( ! $this->is_enabled() ) {
+			$this->last_error = __( 'Webhook alerts are disabled or no URL is set.', 'logscope' );
 			return false;
 		}
 
 		$validated = wp_http_validate_url( $this->url );
 		if ( ! is_string( $validated ) || '' === $validated ) {
+			$this->last_error = __( 'The webhook URL is not a valid http(s) URL.', 'logscope' );
 			return false;
 		}
 
@@ -118,6 +138,7 @@ final class WebhookAlerter implements AlertDispatcherInterface {
 		// (some adapters historically honoured non-http schemes).
 		$scheme = wp_parse_url( $validated, PHP_URL_SCHEME );
 		if ( ! is_string( $scheme ) || ( 'http' !== strtolower( $scheme ) && 'https' !== strtolower( $scheme ) ) ) {
+			$this->last_error = __( 'The webhook URL must start with http:// or https://.', 'logscope' );
 			return false;
 		}
 
@@ -141,6 +162,7 @@ final class WebhookAlerter implements AlertDispatcherInterface {
 
 		$body = wp_json_encode( $payload );
 		if ( ! is_string( $body ) ) {
+			$this->last_error = __( 'The webhook payload could not be encoded as JSON.', 'logscope' );
 			return false;
 		}
 
@@ -163,12 +185,24 @@ final class WebhookAlerter implements AlertDispatcherInterface {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			// wp_safe_remote_post reports a refused private/loopback host here
+			// too ("A valid URL was not provided."), so the message is the
+			// most useful thing an admin can see.
+			$this->last_error = $response->get_error_message();
 			return false;
 		}
 
 		$status = (int) wp_remote_retrieve_response_code( $response );
+		if ( $status < 200 || $status >= 300 ) {
+			$this->last_error = sprintf(
+				/* translators: %d is the HTTP status code returned by the webhook endpoint. */
+				__( 'The webhook endpoint answered with HTTP %d.', 'logscope' ),
+				$status
+			);
+			return false;
+		}
 
-		return $status >= 200 && $status < 300;
+		return true;
 	}
 
 	/**

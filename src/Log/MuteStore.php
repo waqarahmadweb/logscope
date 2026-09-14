@@ -17,8 +17,9 @@ defined( 'ABSPATH' ) || exit;
  * Storage shape (JSON-friendly): an associative array keyed by
  * signature so existence checks and re-mute updates are O(1) without a
  * second index, with each entry holding `signature`, `reason`,
- * `muted_at` (Unix timestamp), and `muted_by` (user id, 0 for
- * system-driven calls). Re-muting an existing signature updates the
+ * `sample_message` (one representative line so the management panel
+ * can show what was muted, not just a hash), `muted_at` (Unix
+ * timestamp), and `muted_by` (user id, 0 for system-driven calls). Re-muting an existing signature updates the
  * record in place rather than appending a duplicate.
  *
  * The class is intentionally WordPress-aware (reads/writes via
@@ -47,11 +48,13 @@ final class MuteStore {
 	 * @param string $reason    Free-form admin note. Stored verbatim after
 	 *                          `wp_strip_all_tags` so a careless paste cannot
 	 *                          inject markup into the management UI.
-	 * @param int    $user_id   Acting user id; 0 for non-user contexts.
+	 * @param int    $user_id        Acting user id; 0 for non-user contexts.
+	 * @param string $sample_message Representative log message for the
+	 *                               signature, shown in the management UI.
 	 * @return bool True when the record was stored; false on empty
 	 *              signature or when a net-new record would exceed the cap.
 	 */
-	public function add( string $signature, string $reason, int $user_id ): bool {
+	public function add( string $signature, string $reason, int $user_id, string $sample_message = '' ): bool {
 		if ( '' === $signature ) {
 			return false;
 		}
@@ -64,10 +67,11 @@ final class MuteStore {
 		}
 
 		$records[ $signature ] = array(
-			'signature' => $signature,
-			'reason'    => wp_strip_all_tags( $reason ),
-			'muted_at'  => time(),
-			'muted_by'  => $user_id < 0 ? 0 : $user_id,
+			'signature'      => $signature,
+			'reason'         => wp_strip_all_tags( $reason ),
+			'sample_message' => wp_strip_all_tags( $sample_message ),
+			'muted_at'       => time(),
+			'muted_by'       => $user_id < 0 ? 0 : $user_id,
 		);
 
 		update_option( self::OPTION_KEY, $records, false );
@@ -97,7 +101,7 @@ final class MuteStore {
 	 * array (the keyed shape is an internal implementation detail; the
 	 * REST surface is a list).
 	 *
-	 * @return list<array{signature:string, reason:string, muted_at:int, muted_by:int}>
+	 * @return list<array{signature:string, reason:string, sample_message:string, muted_at:int, muted_by:int}>
 	 */
 	public function list(): array {
 		return array_values( $this->load() );
@@ -133,7 +137,7 @@ final class MuteStore {
 	 * Loads the stored map, defending against corruption from a prior
 	 * version by dropping any non-array entries rather than throwing.
 	 *
-	 * @return array<string, array{signature:string, reason:string, muted_at:int, muted_by:int}>
+	 * @return array<string, array{signature:string, reason:string, sample_message:string, muted_at:int, muted_by:int}>
 	 */
 	private function load(): array {
 		$raw = get_option( self::OPTION_KEY, array() );
@@ -151,10 +155,12 @@ final class MuteStore {
 			}
 
 			$out[ $signature ] = array(
-				'signature' => $signature,
-				'reason'    => isset( $record['reason'] ) && is_string( $record['reason'] ) ? $record['reason'] : '',
-				'muted_at'  => isset( $record['muted_at'] ) && is_numeric( $record['muted_at'] ) ? (int) $record['muted_at'] : 0,
-				'muted_by'  => isset( $record['muted_by'] ) && is_numeric( $record['muted_by'] ) ? (int) $record['muted_by'] : 0,
+				'signature'      => $signature,
+				'reason'         => isset( $record['reason'] ) && is_string( $record['reason'] ) ? $record['reason'] : '',
+				// Records muted before this field existed simply show the hash.
+				'sample_message' => isset( $record['sample_message'] ) && is_string( $record['sample_message'] ) ? $record['sample_message'] : '',
+				'muted_at'       => isset( $record['muted_at'] ) && is_numeric( $record['muted_at'] ) ? (int) $record['muted_at'] : 0,
+				'muted_by'       => isset( $record['muted_by'] ) && is_numeric( $record['muted_by'] ) ? (int) $record['muted_by'] : 0,
 			);
 		}
 

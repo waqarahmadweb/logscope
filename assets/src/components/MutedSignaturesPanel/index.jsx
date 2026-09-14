@@ -60,7 +60,22 @@ export default function MutedSignaturesPanel() {
 							className="logscope-muted-panel__item"
 						>
 							<div className="logscope-muted-panel__meta">
-								<code className="logscope-muted-panel__sig">
+								{ /* Message first so the admin can tell what was
+								     muted; the hash is only the lookup key. Mutes
+								     saved before the message was stored fall back
+								     to the hash alone. */ }
+								{ item.sample_message && (
+									<span
+										className="logscope-muted-panel__message"
+										title={ item.sample_message }
+									>
+										{ item.sample_message }
+									</span>
+								) }
+								<code
+									className="logscope-muted-panel__sig"
+									title={ item.signature }
+								>
 									{ item.signature }
 								</code>
 								{ item.reason && (

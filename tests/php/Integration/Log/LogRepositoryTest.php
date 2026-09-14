@@ -191,6 +191,22 @@ final class LogRepositoryTest extends TestCase {
 		$this->assertStringContainsString( 'middle', $result->items[0]->message );
 	}
 
+	public function test_date_range_same_day_includes_entries_on_that_day(): void {
+		$lines = array(
+			'[26-Apr-2026 23:59:59 UTC] PHP Notice:  before in /var/www/x.php on line 1',
+			'[27-Apr-2026 00:00:00 UTC] PHP Notice:  first in /var/www/x.php on line 1',
+			'[27-Apr-2026 15:30:00 UTC] PHP Notice:  afternoon in /var/www/x.php on line 1',
+			'[27-Apr-2026 23:59:59 UTC] PHP Notice:  last in /var/www/x.php on line 1',
+			'[28-Apr-2026 00:00:00 UTC] PHP Notice:  after in /var/www/x.php on line 1',
+		);
+		$this->write_log( implode( "\n", $lines ) );
+
+		$query  = new LogQuery( null, '2026-04-27', '2026-04-27', null, null, false, 1, 50 );
+		$result = $this->repo->query( $query );
+
+		$this->assertSame( 3, $result->total );
+	}
+
 	public function test_tail_since_zero_returns_all_entries_with_last_byte(): void {
 		$lines    = array(
 			'[27-Apr-2026 12:00:00 UTC] PHP Notice:  one in /var/www/x.php on line 1',
@@ -289,15 +305,17 @@ final class LogRepositoryTest extends TestCase {
 
 		$repo = $this->repo_with_mute_store( $store );
 
-		// Ungrouped: muted entries are dropped.
+		// Ungrouped: muted entries are dropped, and so is their fatal count.
 		$result = $repo->query( $this->query() );
 		$this->assertCount( 1, $result->items );
 		$this->assertStringContainsString( 'quiet', $result->items[0]->message );
+		$this->assertSame( 1, $result->fatal_total );
 
 		// Grouped: muted groups are dropped entirely.
 		$grouped = $repo->query( new LogQuery( null, null, null, null, null, true, 1, 50 ) );
 		$this->assertCount( 1, $grouped->items );
 		$this->assertNotSame( $noisy_signature, $grouped->items[0]->signature );
+		$this->assertSame( 1, $grouped->fatal_total );
 	}
 
 	public function test_include_muted_flag_bypasses_filter(): void {

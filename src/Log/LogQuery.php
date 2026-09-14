@@ -231,9 +231,15 @@ final class LogQuery {
 		// would make the date-range filter flaky after noon UTC.
 		foreach ( array( 'Y-m-d H:i:s', 'Y-m-d|' ) as $format ) {
 			$parsed = DateTimeImmutable::createFromFormat( $format, $value );
-			if ( false !== $parsed ) {
-				return $parsed;
+			if ( false === $parsed ) {
+				continue;
 			}
+			// A date-only `to` means "through the end of that day"; midnight
+			// would exclude the whole day the user picked (from == to → 0 rows).
+			if ( 'to' === $label && 'Y-m-d|' === $format ) {
+				return $parsed->setTime( 23, 59, 59 );
+			}
+			return $parsed;
 		}
 
 		// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Surfaced as a JSON 400 body, not HTML.

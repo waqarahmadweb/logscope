@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+Findings from the automated Step 2 browser pass against the Studio site (release plan report, kept outside the repo).
+
+### Fixed
+
+-   Date range: a date-only "To" bound now means the end of that day (`23:59:59`), so picking the same day for From and To returns that day's entries instead of zero.
+-   Live mode: the "N new entries" pill and the scroll-to-top on new rows work again. `ListScrollPane` attached its scroll listener in a mount-only effect, but react-window v2 only exposes the scroll container after its own first re-render, so the listener never attached and Live always believed the user was at the top.
+-   The header "N fatal" badge now comes from the server (`fatal_total` on `GET /logs`, filter-aware, mute-aware) instead of counting only the rows loaded so far; Live ticks keep it in step.
+-   Stats totals no longer change when switching Hour and Day for the same range. The window is now exactly `now - range` to `now` regardless of bucket size; the grid gains one partial bucket at each end (25 / 8 / 31 slots for 24h-hour / 7d-day / 30d-day).
+-   "Send test alert" failures now say why. Each result carries an `error` string (the `WP_Error` message from `wp_safe_remote_post`, the `wp_mail_failed` message from PHPMailer, or a specific validation reason) and the panel shows it under the channel.
+-   Bulk mute ("Mute (N)" in All entries, "Mute" in Unique errors) now asks for an optional reason like the per-signature button does; Cancel mutes nothing. Mute records store a `sample_message`, and Settings, Muted signatures shows the message first with the hash underneath. Older records without a message still show the hash.
+-   Row ⋮ menu: Escape and choosing an item return focus to the ⋮ button instead of dropping it on `<body>`.
+-   The empty-state path no longer mixes slash styles on Windows (`D:\...\Site/wp-content\debug.log`), and the Clear-log modal names the real archive pattern including its random suffix.
+-   The Source dropdown lists every source in the log, not just those on the loaded rows. `GET /logs` returns a `sources` array on page 1 (unfiltered, sorted) and the dropdown merges it with the loaded rows.
+
+### Changed
+
+-   `AlertDispatcherInterface` gains `last_error(): ?string`. Custom dispatchers must implement it (return `null` when the last dispatch succeeded).
+-   `POST /logs/mute` accepts an optional `sample_message` (500 chars, sanitised); `GET /logs/mute` items include it.
+
 UX + a11y fixes from live browser testing on a real WordPress install.
 
 ### Fixed

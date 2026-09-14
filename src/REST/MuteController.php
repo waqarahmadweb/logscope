@@ -71,7 +71,7 @@ final class MuteController extends RestController {
 					// Bound + sanitize the body at the boundary so a stored
 					// record can't carry unbounded or tag-laden input.
 					'args'                => array(
-						'signature' => array(
+						'signature'      => array(
 							'type'              => 'string',
 							'required'          => true,
 							'maxLength'         => 255,
@@ -81,7 +81,13 @@ final class MuteController extends RestController {
 							// only ever hold well-formed keys.
 							'validate_callback' => array( self::class, 'is_valid_signature' ),
 						),
-						'reason'    => array(
+						'reason'         => array(
+							'type'              => 'string',
+							'required'          => false,
+							'maxLength'         => 500,
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+						'sample_message' => array(
 							'type'              => 'string',
 							'required'          => false,
 							'maxLength'         => 500,
@@ -140,9 +146,12 @@ final class MuteController extends RestController {
 		$reason_raw = $request->get_param( 'reason' );
 		$reason     = is_string( $reason_raw ) ? trim( $reason_raw ) : '';
 
+		$sample_raw = $request->get_param( 'sample_message' );
+		$sample     = is_string( $sample_raw ) ? trim( $sample_raw ) : '';
+
 		$user_id = get_current_user_id();
 
-		if ( ! $this->store->add( trim( $signature ), $reason, (int) $user_id ) ) {
+		if ( ! $this->store->add( trim( $signature ), $reason, (int) $user_id, $sample ) ) {
 			return $this->error(
 				'logscope_rest_mute_limit',
 				__( 'The mute list is full — unmute something before adding more.', 'logscope' ),

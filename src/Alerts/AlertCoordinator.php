@@ -90,16 +90,18 @@ class AlertCoordinator {
 	 * @param AlertDispatcherInterface $dispatcher Dispatcher to invoke.
 	 * @param Group                    $group      Source group.
 	 * @param bool                     $bypass_dedup Skip dedup (test-alert path).
-	 * @return array{dispatcher:string, signature:string, outcome:string}
+	 * @return array{dispatcher:string, signature:string, outcome:string, error:string|null}
 	 */
 	public function dispatch_one( AlertDispatcherInterface $dispatcher, Group $group, bool $bypass_dedup = false ): array {
 		$name      = $dispatcher->name();
 		$signature = $group->signature;
-		$result    = static function ( string $outcome ) use ( $name, $signature ): array {
+		$result    = static function ( string $outcome, ?string $error = null ) use ( $name, $signature ): array {
 			return array(
 				'dispatcher' => $name,
 				'signature'  => $signature,
 				'outcome'    => $outcome,
+				// Only set on `failed`; the test-alert UI shows it under the channel.
+				'error'      => $error,
 			);
 		};
 
@@ -128,7 +130,7 @@ class AlertCoordinator {
 
 		$ok = $dispatcher->dispatch( $group );
 		if ( ! $ok ) {
-			return $result( 'failed' );
+			return $result( 'failed', $dispatcher->last_error() );
 		}
 
 		if ( $bypass_dedup ) {

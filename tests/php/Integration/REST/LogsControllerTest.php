@@ -122,6 +122,39 @@ final class LogsControllerTest extends TestCase {
 		$this->assertArrayHasKey( 'last_byte', $body );
 		$this->assertGreaterThan( 0, $body['last_byte'] );
 		$this->assertFalse( $body['rotated'] );
+		// Fatal count spans the whole filtered set, not just page 2's 25 rows.
+		$this->assertSame( 75, $body['fatal_total'] );
+		// Sources are only computed on page 1.
+		$this->assertSame( array(), $body['sources'] );
+	}
+
+	public function test_index_page_one_carries_distinct_sources_and_fatal_total(): void {
+		$lines = array(
+			'[27-Apr-2026 12:00:00 UTC] PHP Notice:  a in /var/www/wp-content/plugins/jetpack/main.php on line 1',
+			'[27-Apr-2026 12:00:01 UTC] PHP Fatal error:  b in /var/www/wp-content/plugins/akismet/main.php on line 2',
+			'[27-Apr-2026 12:00:02 UTC] PHP Fatal error:  c in /var/www/wp-content/themes/twentytwentyfive/functions.php on line 3',
+			'[27-Apr-2026 12:00:03 UTC] PHP Warning:  d in /var/www/wp-content/plugins/akismet/other.php on line 4',
+		);
+		file_put_contents( $this->log_path, implode( "\n", $lines ) );
+
+		// Severity filter narrows items and fatal_total; sources stay unfiltered.
+		$request  = new WP_REST_Request( array( 'severity' => array( Severity::WARNING ) ) );
+		$response = $this->controller->handle_index( $request );
+		$body     = $response->get_data();
+
+		$this->assertSame( 1, $body['total'] );
+		$this->assertSame( 0, $body['fatal_total'] );
+		$this->assertSame(
+			array( 'plugins/akismet', 'plugins/jetpack', 'themes/twentytwentyfive' ),
+			$body['sources']
+		);
+
+		$request  = new WP_REST_Request( array() );
+		$response = $this->controller->handle_index( $request );
+		$body     = $response->get_data();
+
+		$this->assertSame( 4, $body['total'] );
+		$this->assertSame( 2, $body['fatal_total'] );
 	}
 
 	public function test_index_emits_frames_for_fatal_with_stack_trace(): void {

@@ -168,11 +168,18 @@ final class LogStats {
 	private function compute( string $range, string $bucket, DateTimeImmutable $now_utc ): array {
 		$bucket_seconds = self::BUCKET_SECONDS[ $bucket ];
 		$range_seconds  = self::RANGE_SECONDS[ $range ];
-		$bucket_count   = (int) ( $range_seconds / $bucket_seconds );
 
-		$end_ts    = $this->snap_down( $now_utc, $bucket_seconds )->getTimestamp() + $bucket_seconds;
-		$start_ts  = $end_ts - ( $bucket_count * $bucket_seconds );
-		$buckets   = $this->empty_bucket_grid( $start_ts, $bucket_count, $bucket_seconds );
+		// The window is always exactly `[now - range, now]`, independent of
+		// the bucket size, so totals agree between Hour and Day views. The
+		// grid is snapped outward to bucket boundaries, which leaves a
+		// partial bucket at each end (range/bucket + 1 slots).
+		$now_ts       = $now_utc->getTimestamp();
+		$window_start = $now_ts - $range_seconds;
+		$grid_start   = $this->snap_down( $window_start, $bucket_seconds );
+		$grid_end     = $this->snap_down( $now_ts, $bucket_seconds ) + $bucket_seconds;
+		$bucket_count = (int) ( ( $grid_end - $grid_start ) / $bucket_seconds );
+
+		$buckets   = $this->empty_bucket_grid( $grid_start, $bucket_count, $bucket_seconds );
 		$totals    = $this->empty_severity_map();
 		$in_window = array();
 
@@ -183,11 +190,10 @@ final class LogStats {
 			if ( null === $ts ) {
 				continue;
 			}
-			$delta = $ts - $start_ts;
-			if ( $delta < 0 || $delta >= $range_seconds ) {
+			if ( $ts < $window_start || $ts > $now_ts ) {
 				continue;
 			}
-			$index    = (int) ( $delta / $bucket_seconds );
+			$index    = (int) ( ( $ts - $grid_start ) / $bucket_seconds );
 			$severity = $entry->severity;
 			if ( ! isset( $buckets[ $index ][ $severity ] ) ) {
 				continue;
@@ -329,17 +335,15 @@ final class LogStats {
 	}
 
 	/**
-	 * Snaps a moment down to the start of its enclosing bucket. Hour
-	 * buckets snap to `:00:00`; day buckets snap to `00:00:00 UTC`.
+	 * Snaps a unix timestamp down to the start of its enclosing bucket.
+	 * Hour buckets snap to `:00:00`; day buckets snap to `00:00:00 UTC`.
 	 *
-	 * @param DateTimeImmutable $moment         Reference moment (UTC).
-	 * @param int               $bucket_seconds Bucket length.
-	 * @return DateTimeImmutable
+	 * @param int $ts             Unix seconds (UTC).
+	 * @param int $bucket_seconds Bucket length.
+	 * @return int
 	 */
-	private function snap_down( DateTimeImmutable $moment, int $bucket_seconds ): DateTimeImmutable {
-		$ts      = $moment->getTimestamp();
-		$snapped = $ts - ( $ts % $bucket_seconds );
-		return ( new DateTimeImmutable( '@' . $snapped ) )->setTimezone( new DateTimeZone( 'UTC' ) );
+	private function snap_down( int $ts, int $bucket_seconds ): int {
+		return $ts - ( $ts % $bucket_seconds );
 	}
 
 	/**
@@ -381,7 +385,7 @@ final class LogStats {
 		// inside the same window shares a cache slot, but a roll into
 		// the next bucket invalidates implicitly.
 		$bucket_seconds = self::BUCKET_SECONDS[ $bucket ];
-		$anchor         = $this->snap_down( $now_utc, $bucket_seconds )->getTimestamp();
+		$anchor         = $this->snap_down( $now_utc->getTimestamp(), $bucket_seconds );
 
 		$digest = md5( $size . '|' . $mtime . '|' . $range . '|' . $bucket . '|' . $anchor );
 

@@ -159,6 +159,10 @@ final class LogScannerIntegrationTest extends TestCase {
 				$this->capture->groups[] = $group;
 				return true;
 			}
+
+			public function last_error(): ?string {
+				return null;
+			}
 		};
 	}
 

@@ -150,6 +150,41 @@ final class EmailAlerterTest extends TestCase {
 		$this->assertFalse( $alerter->dispatch( $this->fixture_group() ) );
 	}
 
+	public function test_dispatch_captures_wp_mail_failed_reason(): void {
+		Functions\when( 'get_bloginfo' )->justReturn( 'Acme' );
+		Functions\when( 'home_url' )->justReturn( 'https://acme.test' );
+		Functions\when( 'add_filter' )->justReturn( true );
+		Functions\when( 'remove_filter' )->justReturn( true );
+		Functions\when( 'remove_action' )->justReturn( true );
+		Functions\when( 'is_wp_error' )->alias(
+			static function ( $thing ) {
+				return $thing instanceof \WP_Error;
+			}
+		);
+
+		// Capture the wp_mail_failed listener, then fire it from inside the
+		// wp_mail stub the way PHPMailer does before returning false.
+		$failed_cb = null;
+		Functions\when( 'add_action' )->alias(
+			static function ( string $hook, $cb ) use ( &$failed_cb ) {
+				if ( 'wp_mail_failed' === $hook ) {
+					$failed_cb = $cb;
+				}
+				return true;
+			}
+		);
+		Functions\when( 'wp_mail' )->alias(
+			static function () use ( &$failed_cb ) {
+				$failed_cb( new \WP_Error( 'wp_mail_failed', 'SMTP connect() failed.' ) );
+				return false;
+			}
+		);
+
+		$alerter = new EmailAlerter( true, 'ops@example.com' );
+		$this->assertFalse( $alerter->dispatch( $this->fixture_group() ) );
+		$this->assertSame( 'SMTP connect() failed.', $alerter->last_error() );
+	}
+
 	public function test_dispatch_registers_phpmailer_init_action_for_alt_body(): void {
 		Functions\when( 'get_bloginfo' )->justReturn( 'Acme' );
 		Functions\when( 'home_url' )->justReturn( 'https://acme.test' );

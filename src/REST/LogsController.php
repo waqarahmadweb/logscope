@@ -471,6 +471,8 @@ final class LogsController extends RestController {
 			'total_pages' => $result->total_pages,
 			'last_byte'   => $result->last_byte,
 			'rotated'     => $result->rotated,
+			'fatal_total' => $result->fatal_total,
+			'sources'     => $result->sources,
 		);
 	}
 
