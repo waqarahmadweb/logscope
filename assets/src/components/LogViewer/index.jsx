@@ -145,9 +145,7 @@ export default function LogViewer() {
 			return;
 		}
 		const lines = selectedEntries
-			.map( ( e ) =>
-				formatFileLine( e.file, e.line )
-			)
+			.map( ( e ) => formatFileLine( e.file, e.line ) )
 			.filter( Boolean );
 		try {
 			await navigator.clipboard.writeText( lines.join( '\n' ) );
@@ -422,6 +420,7 @@ export default function LogViewer() {
 				</div>
 				<div className="logscope-toolbar__actions">
 					<Button
+						variant="tertiary"
 						className={
 							isTailing
 								? 'logscope-live logscope-live--on'

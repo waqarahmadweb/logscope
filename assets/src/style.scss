@@ -100,6 +100,34 @@ body.tools_page_logscope {
 		outline-offset: 2px;
 		border-radius: 4px;
 	}
+
+	// Native form controls: wp-admin forms.css adds its own 2px box-shadow
+	// ring on focus, which stacked with the outline above read as one fat
+	// double ring floating away from the control. Keep a single ring that
+	// hugs the control instead.
+	input[ type='checkbox' ]:focus-visible,
+	input[ type='radio' ]:focus-visible {
+		outline-offset: 1px;
+		box-shadow: none;
+	}
+
+	input[ type='radio' ]:focus-visible {
+		border-radius: 50%;
+	}
+
+	// The toggle's real input is an invisible overlay the size of the track,
+	// so the ring must take the track's pill shape and sit right on it.
+	.components-form-toggle__input:focus-visible {
+		outline-offset: 1px;
+		border-radius: 9px;
+		box-shadow: none;
+	}
+
+	// ToggleControl stacks the switch and its label 8px apart, which is too
+	// tight next to a 36px pill; widen to 12px.
+	.components-toggle-control .components-h-stack {
+		gap: 12px;
+	}
 }
 
 .logscope-page-head {
@@ -632,6 +660,13 @@ body.tools_page_logscope {
 			border-color: var( --logscope-bg-muted );
 		}
 
+		// wp-admin forms.css paints its own blue check via ::before on every
+		// checked checkbox; drop it so only our ::after mark renders.
+		&:checked::before,
+		&:indeterminate::before {
+			content: none;
+		}
+
 		&:checked::after {
 			content: '';
 			position: absolute;
@@ -806,7 +841,13 @@ body.tools_page_logscope {
 	align-items: center;
 	gap: 4px;
 
-	.components-button {
+	// `.is-tertiary` / `.is-destructive` / `.is-pressed` are listed so this
+	// beats WP's own variant rules: every action gets the same cream hover
+	// (tertiary defaults to admin-blue, destructive to red) and the pressed
+	// Live button gets the sunken fill instead of WP's black `is-pressed`.
+	.components-button,
+	.components-button.is-tertiary,
+	.components-button.is-destructive {
 		border-radius: var( --logscope-radius-sm );
 		min-height: 26px;
 		padding: 0 12px;
@@ -820,7 +861,7 @@ body.tools_page_logscope {
 
 		&:not( :disabled ):hover {
 			color: var( --logscope-fg );
-			background: transparent;
+			background: var( --logscope-bg-sunken );
 			box-shadow: none;
 		}
 
@@ -828,6 +869,17 @@ body.tools_page_logscope {
 		&:focus-visible,
 		&:active {
 			box-shadow: none;
+			outline: none;
+		}
+
+		&.is-pressed,
+		&.is-pressed:hover:not( :disabled ),
+		&.is-pressed:focus,
+		&.is-pressed:active {
+			background: var( --logscope-bg-sunken );
+			color: var( --logscope-fg );
+			box-shadow: none;
+			border: 0;
 			outline: none;
 		}
 	}
