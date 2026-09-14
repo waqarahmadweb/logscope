@@ -2,7 +2,7 @@
 
 This directory holds the binary assets the WordPress.org plugin directory shows on the plugin page (banner, icon, screenshots). It is **export-ignored** from the distribution zip via `.gitattributes`; assets land in the wp.org SVN `assets/` directory at submission time, not inside the plugin zip itself.
 
-This file is a **spec only** — the binaries are not yet generated. The maintainer produces them by hand before the v1.0.0 wp.org cut. CI does not build them.
+This file is the spec for those binaries. The banner, icons, and six screenshots are checked in next to it (produced by hand; CI does not build them). Screenshots are re-captured by hand whenever the UI they show changes, see the note under the checklist.
 
 ---
 
@@ -21,10 +21,11 @@ This file is a **spec only** — the binaries are not yet generated. The maintai
 
 Captions above are sourced verbatim from the `== Screenshots ==` section of [`readme.txt`](../readme.txt). The wp.org renderer matches `screenshot-N.jpg` to the Nth caption in `readme.txt` by index, so the filenames must stay in lockstep with the order there.
 
-> **Re-capture required before the v1.0.0 cut:** the shipped screenshots predate the
-> toolbar rename (they still show `Tail` / `Grouped` / `List`) and the old order
-> (Grouped view was #2, Stats #3). Re-shoot all six on the current UI — the toolbar
-> now reads **All entries / Unique errors / Live** — with Stats as screenshot 2.
+> **Re-capture required before the v1.0.0 cut:** the checked-in screenshots are dated
+> 2026-06-23 and predate the toolbar rename (they still show `Tail` / `Grouped` / `List`),
+> the Monitoring merge, and the September relabels. Re-shoot all six on the current UI
+> (toolbar reads **All entries / Unique errors / Live**) with Stats as screenshot 2, on a
+> seeded log so the data looks real.
 
 Optional retina variants (`banner-3088x1000.png`, `icon-512x512.png`) can be added later — wp.org will serve them when present without any other change.
 
