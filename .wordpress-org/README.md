@@ -31,7 +31,7 @@ Optional retina variants (`banner-3088x1000.png`, `icon-512x512.png`) can be add
 -   **Format:** PNG, sRGB, 8-bit. JPEG is also accepted but PNG is preferred for the flat-color aesthetic this banner uses.
 -   **Safe area:** Keep the wordmark and any tagline within the centred 1200 × 400 region. The outer 172 px on the left / right and the outer 50 px on the top / bottom may be cropped on narrow viewports.
 -   **Content:** Wordmark "Logscope" + a one-line tagline ("View, filter, group, and alert on the WordPress debug log."). No screenshots in the banner — the screenshot grid below the header is the right surface for that.
--   **Style:** Match the plugin's dark-mode palette (background `#1d2327`, accent matching the focus ring), since the plugin's identity is "tool that lives inside wp-admin." Avoid stock-photo backgrounds.
+-   **Style:** Match the plugin's warm-pastel palette (cream background, tan diagonal, white log card with the four severity pills), the same tokens the admin UI uses. Avoid stock-photo backgrounds.
 
 ## Icon — `icon-256x256.png`
 
