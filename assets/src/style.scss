@@ -105,28 +105,52 @@ body.tools_page_logscope {
 	// ring on focus, which stacked with the outline above read as one fat
 	// double ring floating away from the control. Keep a single ring that
 	// hugs the control instead.
+	// `:focus` (not only `:focus-visible`) because a mouse click focuses a
+	// checkbox without matching `:focus-visible`, and that is exactly when
+	// WP's 4px-offset box-shadow ring was still showing.
+	input[ type='checkbox' ]:focus,
+	input[ type='radio' ]:focus {
+		box-shadow: none;
+	}
+
+	// Outline repeated here (not inherited from `*:focus-visible`) because
+	// wp-admin's `input[type=checkbox]:focus` sets a transparent outline at
+	// higher specificity, which would leave keyboard focus with no ring.
 	input[ type='checkbox' ]:focus-visible,
 	input[ type='radio' ]:focus-visible {
-		outline-offset: 1px;
-		box-shadow: none;
+		outline: 2px solid var( --logscope-focus-ring );
+		outline-offset: 0;
 	}
 
 	input[ type='radio' ]:focus-visible {
 		border-radius: 50%;
 	}
 
-	// The toggle's real input is an invisible overlay the size of the track,
-	// so the ring must take the track's pill shape and sit right on it.
-	.components-form-toggle__input:focus-visible {
-		outline-offset: 1px;
-		border-radius: 9px;
+	// Toggle: the ring WP draws lives on the *track* (`input:focus + track`,
+	// white gap + accent, 3px out), not on the invisible input. Override at
+	// the same selector depth: nothing on mouse focus, one hugging ring on
+	// keyboard focus, and no outline on the input so it never doubles up.
+	.components-form-toggle .components-form-toggle__input:focus-visible {
+		outline: none;
+	}
+
+	.components-form-toggle
+		.components-form-toggle__input:focus
+		+ .components-form-toggle__track {
 		box-shadow: none;
 	}
 
+	.components-form-toggle
+		.components-form-toggle__input:focus-visible
+		+ .components-form-toggle__track {
+		// 1px page-colour gap so the ring still reads against the blue "on" track.
+		box-shadow: 0 0 0 1px var( --logscope-bg ), 0 0 0 3px var( --logscope-focus-ring );
+	}
+
 	// ToggleControl stacks the switch and its label 8px apart, which is too
-	// tight next to a 36px pill; widen to 12px.
-	.components-toggle-control .components-h-stack {
-		gap: 12px;
+	// tight next to a 36px pill; push the label out to 12px.
+	.components-toggle-control__label {
+		margin-inline-start: 4px;
 	}
 }
 
@@ -451,6 +475,13 @@ body.tools_page_logscope {
 		flex-direction: column;
 		gap: 2px;
 
+		// Set by FilterBar when a right-anchored menu would start left of
+		// the toolbar (pill wrapped to the left edge on a narrow screen).
+		&--flipped {
+			right: auto;
+			left: 0;
+		}
+
 		&--date {
 			padding: 12px;
 			gap: 10px;
@@ -641,46 +672,24 @@ body.tools_page_logscope {
 		}
 	}
 
-	&__check {
-		appearance: none;
-		-webkit-appearance: none;
-		width: 14px;
-		height: 14px;
-		border-radius: var( --logscope-radius-xs );
-		border: 1px solid rgba( 255, 255, 255, 0.45 );
-		background: transparent;
-		cursor: pointer;
+	// Rendered by wp-admin forms.css (white box, admin-blue fill + white
+	// check when checked). Only the indeterminate state needs help: WP has
+	// no look for it, so mirror the checked fill with a white dash.
+	// `input[type=checkbox]` is spelled out to outrank the forms.css rules.
+	input[ type='checkbox' ]#{&}__check {
 		margin: 0;
-		display: inline-block;
 		position: relative;
 
-		&:checked,
 		&:indeterminate {
-			background: var( --logscope-bg-muted );
-			border-color: var( --logscope-bg-muted );
+			background: var( --wp-admin-theme-color );
+			border-color: var( --wp-admin-theme-color );
 		}
 
-		// wp-admin forms.css paints its own blue check via ::before on every
-		// checked checkbox; drop it so only our ::after mark renders.
-		&:checked::before,
 		&:indeterminate::before {
-			content: none;
-		}
-
-		&:checked::after {
 			content: '';
 			position: absolute;
-			inset: 1px 3px 3px 2px;
-			border-right: 2px solid var( --logscope-fg );
-			border-bottom: 2px solid var( --logscope-fg );
-			transform: rotate( 40deg );
-		}
-
-		&:indeterminate::after {
-			content: '';
-			position: absolute;
-			inset: 5px 2px;
-			background: var( --logscope-fg );
+			inset: 6px 3px;
+			background: #fff;
 			border-radius: 1px;
 		}
 	}
@@ -903,6 +912,35 @@ body.tools_page_logscope {
 			background: #22a06b;
 			animation: logscope-live-pulse 1.6s ease-in-out infinite;
 		}
+	}
+}
+
+@keyframes logscope-save-check-pop {
+	0% {
+		transform: rotate( 40deg ) scale( 0.4 );
+		opacity: 0;
+	}
+	100% {
+		transform: rotate( 40deg ) scale( 1 );
+		opacity: 1;
+	}
+}
+
+@keyframes logscope-save-cross-pop {
+	0% {
+		transform: scale( 0.4 );
+		opacity: 0;
+	}
+	100% {
+		transform: scale( 1 );
+		opacity: 1;
+	}
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+	.logscope-settings-panel__save-check,
+	.logscope-settings-panel__save-cross {
+		animation: none;
 	}
 }
 
@@ -1672,6 +1710,43 @@ body.tools_page_logscope {
 			box-shadow: none;
 		}
 
+		// While saving the button is disabled, and the disabled `background`
+		// shorthand above wipes WP's busy stripes; restore them on the dark
+		// fill so "Saving…" visibly moves.
+		.components-button.is-primary.is-busy:disabled {
+			background-color: var( --logscope-fg );
+			color: var( --logscope-bg-muted );
+			background-image: linear-gradient(
+				-45deg,
+				rgba( 255, 255, 255, 0.14 ) 33%,
+				transparent 33%,
+				transparent 70%,
+				rgba( 255, 255, 255, 0.14 ) 70%
+			);
+			background-size: 100px 100%;
+			animation: components-button__busy-animation 2.5s infinite linear;
+		}
+
+		// Post-save confirmation. Listed after the disabled rule on purpose:
+		// the form is clean (so the button is disabled) exactly while this
+		// state shows, and it must win over the grey disabled look.
+		.components-button.is-primary.logscope-settings-panel__save--saved,
+		.components-button.is-primary.logscope-settings-panel__save--saved:disabled {
+			background: #22a06b;
+			color: #fff;
+			cursor: default;
+		}
+
+		// Failed save: the form is still dirty so the button stays enabled;
+		// paint it red for the same beat, then it returns to "Save settings".
+		.components-button.is-primary.logscope-settings-panel__save--failed,
+		.components-button.is-primary.logscope-settings-panel__save--failed:not(
+				:disabled
+			):hover {
+			background: #d33545;
+			color: #fff;
+		}
+
 		.components-button.is-tertiary {
 			color: var( --logscope-fg-muted );
 
@@ -1680,6 +1755,58 @@ body.tools_page_logscope {
 				background: var( --logscope-bg-sunken );
 				box-shadow: none;
 			}
+		}
+	}
+
+	&__save-check {
+		display: inline-block;
+		width: 6px;
+		height: 11px;
+		margin: -3px 8px 0 0;
+		border-right: 2px solid currentColor;
+		border-bottom: 2px solid currentColor;
+		transform: rotate( 40deg );
+		animation: logscope-save-check-pop 0.25s ease-out;
+	}
+
+	&__save-cross {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		margin: 0 8px -1px 0;
+		position: relative;
+		animation: logscope-save-cross-pop 0.25s ease-out;
+
+		&::before,
+		&::after {
+			content: '';
+			position: absolute;
+			left: 4px;
+			top: -1px;
+			width: 2px;
+			height: 12px;
+			background: currentColor;
+			border-radius: 1px;
+			transform: rotate( 45deg );
+		}
+
+		&::after {
+			transform: rotate( -45deg );
+		}
+	}
+
+	&__nav-status {
+		font-size: 11px;
+		color: #22a06b;
+		text-align: center;
+		min-height: 0;
+
+		&--error {
+			color: #d33545;
+		}
+
+		&:empty {
+			display: none;
 		}
 	}
 
@@ -1786,6 +1913,12 @@ body.tools_page_logscope {
 
 		&:last-of-type {
 			margin-bottom: 0;
+		}
+
+		// A channel toggle followed by its input (Email + recipient, Webhook
+		// + URL) sat flush against the input's label; give it breathing room.
+		.components-toggle-control + .components-base-control {
+			margin-top: 12px;
 		}
 	}
 

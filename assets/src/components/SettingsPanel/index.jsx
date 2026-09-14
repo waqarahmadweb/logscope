@@ -32,6 +32,8 @@ import MonitoringPanel, { validateMonitoring } from '../MonitoringPanel';
 import DisplayPanel, { validateDisplay } from '../DisplayPanel';
 import MutedSignaturesPanel from '../MutedSignaturesPanel';
 
+const SAVE_MIN_BUSY_MS = 450;
+const SAVE_SUCCESS_MS = 2500;
 const TAIL_INTERVAL_MIN = 1;
 const DEDUP_WINDOW_MIN = 60;
 const SCAN_INTERVAL_MIN = 1;
@@ -274,6 +276,7 @@ export default function SettingsPanel() {
 				<SettingsNav
 					isDirty={ isDirty }
 					isSaving={ isSaving }
+					saveError={ saveError }
 					isValid={ validationOk }
 				/>
 
@@ -665,9 +668,51 @@ function DebugConstantsCard() {
 	);
 }
 
-function SettingsNav( { isDirty, isSaving, isValid } ) {
+function SettingsNav( { isDirty, isSaving, saveError, isValid } ) {
 	const [ activeId, setActiveId ] = useState( SECTIONS[ 0 ].id );
 	const lockUntilRef = useRef( 0 );
+
+	// Save feedback: idle → saving → saved | failed → idle. On a fast site the
+	// request resolves in tens of ms, so the busy spinner never registers;
+	// hold "Saving…" for at least SAVE_MIN_BUSY_MS, then show a green "Saved"
+	// check or a red "Failed" cross for SAVE_SUCCESS_MS. `savePhase` is a
+	// dependency on purpose: an instant failure (offline) can land before the
+	// 'saving' state update is applied, and the effect must re-run then or
+	// the button stays stuck on "Saving…".
+	const [ savePhase, setSavePhase ] = useState( 'idle' );
+	const saveStartedRef = useRef( 0 );
+	useEffect( () => {
+		if ( isSaving ) {
+			if ( savePhase !== 'saving' ) {
+				saveStartedRef.current = Date.now();
+				setSavePhase( 'saving' );
+			}
+			return undefined;
+		}
+		if ( savePhase !== 'saving' ) {
+			return undefined;
+		}
+		const remaining = Math.max(
+			0,
+			SAVE_MIN_BUSY_MS - ( Date.now() - saveStartedRef.current )
+		);
+		const next = saveError ? 'failed' : 'saved';
+		const toResult = setTimeout( () => setSavePhase( next ), remaining );
+		return () => clearTimeout( toResult );
+	}, [ isSaving, saveError, savePhase ] );
+	useEffect( () => {
+		if ( savePhase !== 'saved' && savePhase !== 'failed' ) {
+			return undefined;
+		}
+		const toIdle = setTimeout(
+			() => setSavePhase( 'idle' ),
+			SAVE_SUCCESS_MS
+		);
+		return () => clearTimeout( toIdle );
+	}, [ savePhase ] );
+	const showBusy = savePhase === 'saving';
+	const showSaved = savePhase === 'saved';
+	const showFailed = savePhase === 'failed';
 
 	// Mirror the section closest to the top of the viewport into the nav
 	// highlight. rootMargin pushes the "active band" into the upper
@@ -753,14 +798,58 @@ function SettingsNav( { isDirty, isSaving, isValid } ) {
 				<Button
 					variant="primary"
 					type="submit"
-					isBusy={ isSaving }
-					disabled={ isSaving || ! isDirty || ! isValid }
+					className={
+						'logscope-settings-panel__save' +
+						( showSaved
+							? ' logscope-settings-panel__save--saved'
+							: '' ) +
+						( showFailed
+							? ' logscope-settings-panel__save--failed'
+							: '' )
+					}
+					isBusy={ showBusy }
+					disabled={ showBusy || ! isDirty || ! isValid }
 				>
-					{ isSaving
-						? __( 'Saving…', 'logscope' )
-						: __( 'Save settings', 'logscope' ) }
+					{ showBusy && __( 'Saving…', 'logscope' ) }
+					{ showSaved && (
+						<>
+							<span
+								className="logscope-settings-panel__save-check"
+								aria-hidden="true"
+							/>
+							{ __( 'Saved', 'logscope' ) }
+						</>
+					) }
+					{ showFailed && (
+						<>
+							<span
+								className="logscope-settings-panel__save-cross"
+								aria-hidden="true"
+							/>
+							{ __( 'Not saved', 'logscope' ) }
+						</>
+					) }
+					{ ! showBusy &&
+						! showSaved &&
+						! showFailed &&
+						__( 'Save settings', 'logscope' ) }
 				</Button>
-				{ isDirty && (
+				<div
+					className={
+						'logscope-settings-panel__nav-status' +
+						( showFailed
+							? ' logscope-settings-panel__nav-status--error'
+							: '' )
+					}
+					role="status"
+					aria-live="polite"
+				>
+					{ showSaved && __( 'Settings saved.', 'logscope' ) }
+					{ showFailed &&
+						( saveError ||
+							__( 'Could not save settings.', 'logscope' ) ) }
+				</div>
+				{ isDirty && ! showSaved && ! showFailed && (
 					<div className="logscope-settings-panel__nav-dirty">
 						{ __( 'Unsaved changes', 'logscope' ) }
 					</div>
